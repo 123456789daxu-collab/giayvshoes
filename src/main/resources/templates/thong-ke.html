@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê | VShoes</title>
+    <link rel="stylesheet" href="/css/sidebar.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Nhúng Sidebar dùng chung -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- Nội dung chính đơn giản -->
+        <main class="main-content">
+            <div class="content-card">
+                <h1 class="content-title">Thống kê</h1>
+                <p class="content-desc">Nội dung của trang thống kê sẽ hiển thị ở đây.</p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

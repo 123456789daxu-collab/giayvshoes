@@ -1,0 +1,357 @@
+/* Nhúng Font chữ Inter từ Google Fonts để giao diện hiện đại và cao cấp */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Thiết lập cơ bản cho toàn bộ trang */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f8fafc; /* Nền xám nhạt cao cấp (slate 50) */
+    color: #1e293b; /* Chữ màu xám đậm (slate 800) */
+    display: flex;
+}
+
+/* CONTAINER CHÍNH */
+.app-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* SIDEBAR STYLES */
+.sidebar {
+    width: 280px; /* Chiều rộng thanh Sidebar */
+    height: 100vh; /* Cao bằng 100% màn hình */
+    background-color: #ffffff; /* Nền trắng tinh tế */
+    border-right: 1px solid #e2e8f0; /* Đường viền bên phải mảnh (slate 200) */
+    position: fixed; /* Cố định thanh Sidebar ở bên trái */
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02); /* Đổ bóng nhẹ sang trọng */
+}
+
+/* KHU VỰC LOGO */
+.sidebar-brand {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #f1f5f9; /* Đường gạch phân cách dưới logo */
+}
+
+/* Ảnh Logo */
+.logo-img {
+    max-width: 160px; /* Chiều rộng tối đa của logo */
+    height: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.03); /* Phóng to nhẹ khi rê chuột vào logo */
+}
+
+/* Logo văn bản dự phòng nếu không tải được ảnh */
+.logo-placeholder {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.logo-placeholder span {
+    color: #0284c7; /* Tông màu xanh dương nổi bật */
+}
+
+.logo-subtitle {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+/* KHU VỰC MENU DANH SÁCH */
+.sidebar-menu {
+    flex: 1;
+    padding: 20px 16px;
+    overflow-y: auto; /* Tự động xuất hiện cuộn dọc nếu menu quá dài */
+}
+
+/* Custom thanh cuộn của sidebar cho mượt mà */
+.sidebar-menu::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+/* MỤC MENU ITEM CHÍNH */
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    color: #475569; /* Chữ xám trung tính (slate 600) */
+    text-decoration: none;
+    border-radius: 8px; /* Bo góc tròn nhẹ */
+    font-size: 14px;
+    font-weight: 500; /* Medium font weight */
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+}
+
+/* Icon trong menu */
+.menu-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 14px;
+    color: #64748b; /* Icon xám (slate 500) */
+    transition: color 0.25s ease;
+}
+
+/* Mũi tên chỉ hướng cho menu dropdown */
+.arrow-icon {
+    margin-left: auto;
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s ease;
+}
+
+/* HIỆU ỨNG HOVER */
+.menu-item:hover {
+    background-color: #f8fafc; /* Nền xám rất nhạt khi hover */
+    color: #0f172a; /* Chữ đổi sang màu đậm hơn */
+}
+
+.menu-item:hover .menu-icon {
+    color: #0f172a; /* Icon đậm hơn khi hover */
+}
+
+/* MỤC ĐANG ACTIVE (TRANG HIỆN TẠI) */
+.menu-item.active {
+    background-color: #e0f2fe; /* Màu nền xanh dương nhạt (sky 100) */
+    color: #0369a1; /* Màu chữ xanh dương đậm (sky 700) */
+    font-weight: 600; /* Chữ đậm hơn */
+}
+
+.menu-item.active .menu-icon {
+    color: #0284c7; /* Icon chuyển sang màu xanh dương */
+}
+
+/* Đường vạch nhỏ đứng màu xanh bên trái khi active */
+.menu-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 4px;
+    background-color: #0284c7;
+    border-radius: 0 4px 4px 0;
+}
+
+/* MENU CON (SUBMENU) */
+.submenu-container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Danh sách con */
+.submenu {
+    list-style: none;
+    padding-left: 20px;
+    max-height: 0; /* Mặc định ẩn bằng cách giới hạn chiều cao bằng 0 */
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Hiệu ứng trượt lên/xuống mượt mà */
+}
+
+/* Khi submenu được mở */
+.submenu.open {
+    max-height: 200px; /* Cho phép hiển thị hết chiều cao của các mục con */
+}
+
+/* Xoay mũi tên khi submenu mở */
+.menu-item.open-parent .arrow-icon {
+    transform: rotate(180deg);
+}
+
+/* Các mục con bên trong */
+.submenu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px 10px 30px;
+    margin-bottom: 4px;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.submenu-item::before {
+    content: '•';
+    margin-right: 10px;
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.submenu-item:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.submenu-item.active {
+    color: #0284c7;
+    font-weight: 600;
+    background-color: #f0f9ff;
+}
+
+.submenu-item.active::before {
+    color: #0284c7;
+}
+
+/* PHẦN CHỨA NỘI DUNG CHÍNH (BÊN PHẢI SIDEBAR) */
+.main-content {
+    margin-left: 280px; /* Cách lề trái bằng đúng chiều rộng Sidebar */
+    flex: 1;
+    padding: 40px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+/* CSS Giao diện nội dung trang mẫu */
+.content-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 32px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+}
+
+.content-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 12px;
+}
+
+.content-desc {
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+/* DASHBOARD UTILITIES (LÀM GIAO DIỆN XỊN HƠN) */
+.grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+}
+
+.icon-blue { background-color: #e0f2fe; color: #0284c7; }
+.icon-green { background-color: #dcfce7; color: #16a34a; }
+.icon-orange { background-color: #ffedd5; color: #ea580c; }
+.icon-purple { background-color: #f3e8ff; color: #9333ea; }
+
+.stat-info .stat-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.stat-info .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* THIẾT KẾ BẢNG HIỂN THỊ (TABLE) */
+.custom-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.custom-table th {
+    padding: 16px;
+    border-bottom: 2px solid #e2e8f0;
+    color: #475569;
+    font-weight: 600;
+    font-size: 14px;
+    background-color: #f8fafc;
+}
+
+.custom-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+}
+
+.custom-table tr:hover {
+    background-color: #f8fafc;
+}
+
+/* BADGES TRẠNG THÁI */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success { background-color: #dcfce7; color: #15803d; }
+.badge-warning { background-color: #fef9c3; color: #a16207; }
+.badge-danger { background-color: #fee2e2; color: #b91c1c; }
+.badge-info { background-color: #e0f2fe; color: #0369a1; }
+
