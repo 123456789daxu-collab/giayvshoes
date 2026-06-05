@@ -4,20 +4,837 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đợt giảm giá | VShoes</title>
+    <!-- Nhúng CSS sidebar & khách hàng dùng chung -->
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/khach-hang.css">
+    <!-- Nhúng CSS riêng của trang đợt giảm giá -->
+    <link rel="stylesheet" href="/css/dot-giam-gia.css">
 </head>
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính đơn giản -->
+        <!-- NỘI DUNG CHÍNH -->
         <main class="main-content">
-            <div class="content-card">
-                <h1 class="content-title">Quản lý đợt giảm giá</h1>
-                <p class="content-desc">Nội dung của trang đợt giảm giá sẽ hiển thị ở đây.</p>
+            <div class="campaign-container">
+
+                <!-- PANEL 1: DANH SÁCH ĐỢT GIẢM GIÁ (LISTING PANEL) -->
+                <div id="list-panel" class="tab-panel active">
+                    
+                    <!-- BỘ LỌC TÌM KIẾM -->
+                    <div class="filter-card">
+                        <div class="filter-header">
+                            <span class="filter-title">Bộ lọc tìm kiếm</span>
+                            <button class="refresh-btn" onclick="resetCampaignFilters()" title="Làm mới bộ lọc">
+                                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="filter-grid" style="grid-template-columns: 2fr 2fr 2fr 1fr;">
+                            <!-- Tìm kiếm theo mã hoặc tên -->
+                            <div class="form-group">
+                                <label for="filter-search">Tìm kiếm</label>
+                                <input type="text" id="filter-search" class="input-control" placeholder="Nhập tên hoặc mã đợt giảm giá..." oninput="applyCampaignFilters()">
+                            </div>
+
+                            <!-- Khoảng ngày áp dụng -->
+                            <div class="form-group">
+                                <label>Khoảng ngày áp dụng</label>
+                                <div class="date-range-container">
+                                    <input type="date" id="filter-start-date" class="input-control" onchange="applyCampaignFilters()">
+                                    <span class="date-separator">&rarr;</span>
+                                    <input type="date" id="filter-end-date" class="input-control" onchange="applyCampaignFilters()">
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái -->
+                            <div class="form-group">
+                                <label for="filter-status">Trạng thái</label>
+                                <select id="filter-status" class="input-control" onchange="applyCampaignFilters()">
+                                    <option value="">Tất cả</option>
+                                    <option value="1">Kích hoạt (Đang diễn ra)</option>
+                                    <option value="3">Chưa diễn ra (Đang chờ)</option>
+                                    <option value="2">Hết hạn</option>
+                                    <option value="0">Ngừng hoạt động (Tắt)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD DANH SÁCH -->
+                    <div class="customer-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <span class="card-title-table" style="margin-bottom: 0;">Danh sách đợt giảm giá</span>
+                            <div class="action-row" style="margin-bottom: 0;">
+                                <button class="btn-primary-action" onclick="openAddCampaignForm()">
+                                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                                    Tạo đợt giảm giá
+                                </button>
+                                <button class="btn-icon" title="Xuất Excel" onclick="exportCampaignsExcel()">
+                                    <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bảng danh sách đợt giảm giá -->
+                        <div class="custom-table-container">
+                            <table class="customer-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px; text-align: center;">STT</th>
+                                        <th style="width: 130px;">Mã</th>
+                                        <th style="width: 200px;">Tên</th>
+                                        <th style="width: 100px; text-align: center;">Giá trị</th>
+                                        <th style="width: 180px;">Ngày bắt đầu</th>
+                                        <th style="width: 180px;">Ngày kết thúc</th>
+                                        <th style="width: 130px;">Trạng thái</th>
+                                        <th style="width: 100px; text-align: center;">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="campaign-table-body">
+                                    <!-- Load động từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang danh sách -->
+                        <div class="table-footer">
+                            <div class="total-count" id="campaign-total-count">
+                                Tổng 0 đợt giảm giá
+                            </div>
+                            <div class="pagination-nav" id="campaign-pagination">
+                                <!-- Nút trang -->
+                            </div>
+                            <div class="page-size-selector">
+                                <select class="page-size-select" id="campaign-page-size" onchange="changeCampaignPageSize(this.value)">
+                                    <option value="10">10 / page</option>
+                                    <option value="20">20 / page</option>
+                                    <option value="50">50 / page</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 2: THÊM MỚI / CẬP NHẬT ĐỢT GIẢM GIÁ (FORM PANEL) -->
+                <div id="form-panel" class="tab-panel">
+                    
+                    <button class="back-link" onclick="backToListPanel()">
+                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        Quay lại danh sách
+                    </button>
+
+                    <div class="form-card">
+                        <div class="form-title-row">
+                            <span id="form-panel-title" class="form-title">Tạo đợt giảm giá</span>
+                        </div>
+
+                        <form id="campaign-form" onsubmit="saveCampaign(event)">
+                            <input type="hidden" id="campaign-id">
+
+                            <!-- Hàng 1: Tên đợt & Phần trăm giảm -->
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="campaign-name">Tên đợt giảm giá <span class="required-star">*</span></label>
+                                    <input type="text" id="campaign-name" class="input-control" required placeholder="Nhập tên đợt giảm giá...">
+                                </div>
+                                <div class="form-group">
+                                    <label for="campaign-discount-percent">Mức giảm (%) <span class="required-star">*</span></label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('campaign-discount-percent', -5)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="campaign-discount-percent" class="input-control number-input-control" required min="1" max="100" placeholder="Nhập phần trăm...">
+                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('campaign-discount-percent', 5)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 2: Ngày bắt đầu & Ngày kết thúc -->
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="campaign-start-date">Ngày bắt đầu <span class="required-star">*</span></label>
+                                    <input type="datetime-local" id="campaign-start-date" class="input-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="campaign-end-date">Ngày kết thúc <span class="required-star">*</span></label>
+                                    <input type="datetime-local" id="campaign-end-date" class="input-control" required>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 3: Mô tả -->
+                            <div class="form-group" style="margin-bottom: 24px;">
+                                <label for="campaign-desc">Mô tả chi tiết</label>
+                                <div class="textarea-wrapper">
+                                    <textarea id="campaign-desc" class="input-control" rows="3" maxlength="500" placeholder="Nhập thông tin mô tả đợt giảm giá..." oninput="updateCharCount(this)"></textarea>
+                                    <span class="char-counter" id="desc-char-count">0/500</span>
+                                </div>
+                            </div>
+
+                            <!-- PHẦN CHỌN SẢN PHẨM ÁP DỤNG -->
+                            <div class="product-section">
+                                <div class="product-section-title">Danh sách sản phẩm áp dụng giảm giá</div>
+                                
+                                <div class="product-filter-bar">
+                                    <div class="product-filter-left">
+                                        <input type="text" id="prod-filter-search" class="input-control" placeholder="Tìm kiếm theo mã chi tiết, mã SP, tên sản phẩm..." oninput="applyProdFilters()">
+                                    </div>
+                                    <div class="product-filter-right">
+                                        <button type="button" class="btn-secondary" style="height: 40px;" onclick="selectAllCurrentPageProducts()">Chọn tất cả</button>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #1e3a8a;">
+                                    Đã chọn: <span id="prod-selected-label">0</span> sản phẩm chi tiết
+                                </div>
+
+                                <!-- Bảng sản phẩm -->
+                                <div class="table-scrollable">
+                                    <table class="customer-table" style="width:100%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="checkbox-cell">
+                                                    <input type="checkbox" id="check-all-products" onchange="toggleSelectAllPage(this.checked)">
+                                                </th>
+                                                <th style="width: 140px;">Mã chi tiết</th>
+                                                <th>Tên sản phẩm</th>
+                                                <th style="width: 120px;">Màu sắc</th>
+                                                <th style="width: 100px; text-align: center;">Size</th>
+                                                <th style="width: 130px; text-align: right;">Giá bán gốc</th>
+                                                <th style="width: 100px; text-align: center;">Số lượng tồn</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="prod-table-body">
+                                            <!-- Load động -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Phân trang sản phẩm -->
+                                <div class="table-footer" style="margin-top: 16px;">
+                                    <div class="total-count" id="prod-total-count">Tổng 0 sản phẩm</div>
+                                    <div class="pagination-nav" id="prod-pagination">
+                                        <!-- Nút phân trang -->
+                                    </div>
+                                    <div class="page-size-selector">
+                                        <select class="page-size-select" id="prod-page-size" onchange="changeProdPageSize(this.value)">
+                                            <option value="5">5 / page</option>
+                                            <option value="10">10 / page</option>
+                                            <option value="20">20 / page</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer nút bấm -->
+                            <div class="modal-footer" style="padding-top: 20px; border-top: 1px solid #f1f5f9; margin-top: 28px;">
+                                <button type="button" class="btn-secondary" onclick="backToListPanel()">Hủy</button>
+                                <button type="submit" class="btn-primary-action">Lưu thông tin</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </main>
     </div>
+
+    <!-- Script Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // CÁC BIẾN TOÀN CỤC CHO CAMPAIGNS LIST
+        let cCurrentPage = 0;
+        let cPageSize = 10;
+        let cTotalPages = 1;
+
+        // CÁC BIẾN TOÀN CỤC CHO SẢN PHẨM SELECTION
+        let prodCurrentPage = 0;
+        let prodPageSize = 5;
+        let prodTotalPages = 1;
+        let selectedProductDetailIds = new Set(); // Chứa danh sách ID sản phẩm chi tiết đã chọn
+        let displayedProductDetailIdsOnPage = []; // Chứa danh sách ID sản phẩm hiển thị trên trang hiện tại
+
+        // Khởi chạy khi DOM load xong
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            loadCampaignsTable();
+        });
+
+        // Hàm format Date sang yyyy-MM-ddThh:mm
+        function formatDateTimeLocal(date) {
+            const yyyy = date.getFullYear();
+            const MM = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
+        }
+
+        // =========================================================================
+        // SECTION 1: XỬ LÝ DANH SÁCH ĐỢT GIẢM GIÁ (CAMPAIGN LIST OPERATIONS)
+        // =========================================================================
+
+        // Tải dữ liệu đợt giảm giá từ API
+        async function loadCampaignsTable() {
+            const search = document.getElementById("filter-search").value;
+            const start = document.getElementById("filter-start-date").value;
+            const end = document.getElementById("filter-end-date").value;
+            const status = document.getElementById("filter-status").value;
+
+            let url = `/api/dot-giam-gia?page=${cCurrentPage}&size=${cPageSize}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (status) url += `&trangThai=${status}`;
+            if (start) url += `&ngayBatDau=${encodeURIComponent(start + "T00:00:00")}`;
+            if (end) url += `&ngayKetThuc=${encodeURIComponent(end + "T23:59:59")}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách đợt giảm giá");
+                const data = await response.json();
+                renderCampaignsTable(data);
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi kết nối API: " + err.message);
+            }
+        }
+
+        // Render dữ liệu đợt giảm giá vào bảng
+        function renderCampaignsTable(pageData) {
+            const tbody = document.getElementById("campaign-table-body");
+            tbody.innerHTML = "";
+
+            const list = pageData.content || [];
+            cTotalPages = pageData.totalPages || 1;
+            const totalElements = pageData.totalElements || 0;
+
+            document.getElementById("campaign-total-count").innerText = `Tổng ${totalElements} đợt giảm giá`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <span>Không tìm thấy đợt giảm giá nào.</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                renderCampaignPagination();
+                lucide.createIcons();
+                return;
+            }
+
+            list.forEach((campaign, index) => {
+                const tr = document.createElement("tr");
+
+                // STT
+                const sttTd = `<td style="text-align: center; font-weight: 500; color: #64748b;">${cCurrentPage * cPageSize + index + 1}</td>`;
+                
+                // Mã & Tên
+                const maTd = `<td style="font-weight: 600; color: #0f172a;">${campaign.maDotGiamGia}</td>`;
+                const tenTd = `<td><div style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${campaign.tenDotGiamGia}">${campaign.tenDotGiamGia}</div></td>`;
+
+                // Mức giảm %
+                const giamTd = `<td style="text-align: center; font-weight: 600; color: #dc2626;">${campaign.phanTramGiam}%</td>`;
+
+                // Thời gian áp dụng
+                const thoiGianBatDauTd = `<td>${formatDateTimeStr(campaign.ngayBatDau)}</td>`;
+                const thoiGianKetThucTd = `<td>${formatDateTimeStr(campaign.ngayKetThuc)}</td>`;
+
+                // Trạng thái thực tế
+                const statusInfo = getCampaignStatus(campaign);
+                const trangThaiTd = `<td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>`;
+
+                // Hành động
+                const isChecked = campaign.trangThai === 1 ? 'checked' : '';
+                const isExpired = statusInfo.text === "Hết hạn";
+                const switchHtml = isExpired ? '' : `
+                            <label class="switch-control" title="Bật/Tắt trạng thái">
+                                <input type="checkbox" ${isChecked} onchange="toggleCampaignActive(${campaign.id}, this.checked)">
+                                <span class="switch-slider"></span>
+                            </label>
+                `;
+                const hanhDongTd = `
+                    <td style="text-align: center;">
+                        <div class="btn-actions-cell" style="justify-content: center; gap: 12px;">
+                            <button type="button" class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCampaignForm(${campaign.id})">
+                                <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            ${switchHtml}
+                        </div>
+                    </td>
+                `;
+
+                tr.innerHTML = sttTd + maTd + tenTd + giamTd + thoiGianBatDauTd + thoiGianKetThucTd + trangThaiTd + hanhDongTd;
+                tbody.appendChild(tr);
+            });
+
+            renderCampaignPagination();
+            lucide.createIcons();
+        }
+
+        // Tính trạng thái đợt giảm giá
+        function getCampaignStatus(campaign) {
+            if (campaign.trangThai === 0) {
+                return { text: "Ngừng hoạt động", class: "badge-inactive" };
+            }
+            
+            const now = new Date();
+            const start = new Date(campaign.ngayBatDau);
+            const end = new Date(campaign.ngayKetThuc);
+
+            if (now < start) {
+                return { text: "Chưa diễn ra", class: "badge-pending" };
+            } else if (now > end) {
+                return { text: "Hết hạn", class: "badge-expired" };
+            } else {
+                return { text: "Kích hoạt", class: "badge-active" };
+            }
+        }
+
+        // Định dạng tiền tệ VND
+        function formatCurrency(val) {
+            if (val === null || val === undefined) return "0";
+            return new Intl.NumberFormat('vi-VN').format(val);
+        }
+
+        // Định dạng datetime JSON thành dd/MM/yyyy HH:mm:ss
+        function formatDateTimeStr(dateArr) {
+            if (!dateArr) return "-";
+            if (Array.isArray(dateArr)) {
+                const yyyy = dateArr[0];
+                const MM = String(dateArr[1]).padStart(2, '0');
+                const dd = String(dateArr[2]).padStart(2, '0');
+                const hh = String(dateArr[3] || 0).padStart(2, '0');
+                const mm = String(dateArr[4] || 0).padStart(2, '0');
+                const ss = String(dateArr[5] || 0).padStart(2, '0');
+                return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+            }
+            const date = new Date(dateArr);
+            if (isNaN(date.getTime())) return dateArr;
+            const dd = String(date.getDate()).padStart(2, '0');
+            const MM = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            const ss = String(date.getSeconds()).padStart(2, '0');
+            return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+        }
+
+        // Vẽ phân trang đợt giảm giá
+        function renderCampaignPagination() {
+            const nav = document.getElementById("campaign-pagination");
+            nav.innerHTML = "";
+
+            // Nút lùi
+            const prev = document.createElement("button");
+            prev.className = `page-btn ${cCurrentPage === 0 ? 'disabled' : ''}`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>`;
+            prev.onclick = () => { if (cCurrentPage > 0) { cCurrentPage--; loadCampaignsTable(); } };
+            nav.appendChild(prev);
+
+            // Các trang số
+            for (let i = 0; i < cTotalPages; i++) {
+                const btn = document.createElement("button");
+                btn.className = `page-btn ${i === cCurrentPage ? 'active' : ''}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => { cCurrentPage = i; loadCampaignsTable(); };
+                nav.appendChild(btn);
+            }
+
+            // Nút tiến
+            const next = document.createElement("button");
+            next.className = `page-btn ${cCurrentPage >= cTotalPages - 1 ? 'disabled' : ''}`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>`;
+            next.onclick = () => { if (cCurrentPage < cTotalPages - 1) { cCurrentPage++; loadCampaignsTable(); } };
+            nav.appendChild(next);
+        }
+
+        function changeCampaignPageSize(val) {
+            cPageSize = parseInt(val);
+            cCurrentPage = 0;
+            loadCampaignsTable();
+        }
+
+        function applyCampaignFilters() {
+            cCurrentPage = 0;
+            loadCampaignsTable();
+        }
+
+        function resetCampaignFilters() {
+            document.getElementById("filter-search").value = "";
+            document.getElementById("filter-start-date").value = "";
+            document.getElementById("filter-end-date").value = "";
+            document.getElementById("filter-status").value = "";
+            cCurrentPage = 0;
+            loadCampaignsTable();
+        }
+
+        // Bật/tắt trạng thái
+        async function toggleCampaignActive(id, isChecked) {
+            const status = isChecked ? 1 : 0;
+            try {
+                const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                    method: "PATCH"
+                });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+                }
+                loadCampaignsTable();
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+                loadCampaignsTable();
+            }
+        }
+
+        // Xuất Excel
+        function exportCampaignsExcel() {
+            const search = document.getElementById("filter-search").value;
+            const start = document.getElementById("filter-start-date").value;
+            const end = document.getElementById("filter-end-date").value;
+            const status = document.getElementById("filter-status").value;
+
+            let url = `/api/dot-giam-gia/export?`;
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (status) url += `trangThai=${status}&`;
+            if (start) url += `ngayBatDau=${encodeURIComponent(start + "T00:00:00")}&`;
+            if (end) url += `ngayKetThuc=${encodeURIComponent(end + "T23:59:59")}&`;
+
+            window.location.href = url;
+        }
+
+
+        // =========================================================================
+        // SECTION 2: XỬ LÝ BIỂU MẪU THÊM MỚI / SỬA (FORM OPERATIONS)
+        // =========================================================================
+
+        function adjustNumberInput(id, delta) {
+            const input = document.getElementById(id);
+            if (input.disabled) return;
+            
+            let val = parseInt(input.value) || 0;
+            val += delta;
+            
+            if (input.min !== "" && val < parseInt(input.min)) {
+                val = parseInt(input.min);
+            }
+            if (input.max !== "" && val > parseInt(input.max)) {
+                val = parseInt(input.max);
+            }
+            
+            input.value = val;
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+        }
+
+        function updateCharCount(textarea) {
+            const label = document.getElementById("desc-char-count");
+            label.innerText = `${textarea.value.length}/500`;
+        }
+
+        function openAddCampaignForm() {
+            document.getElementById("campaign-form").reset();
+            document.getElementById("campaign-id").value = "";
+            document.getElementById("form-panel-title").innerText = "Tạo đợt giảm giá";
+            document.getElementById("desc-char-count").innerText = "0/500";
+            
+            selectedProductDetailIds.clear();
+            document.getElementById("prod-selected-label").innerText = "0";
+
+            // Ngày mặc định: bắt đầu là hiện tại, kết thúc sau 3 ngày
+            const now = new Date();
+            const future = new Date();
+            future.setDate(now.getDate() + 3);
+            
+            document.getElementById("campaign-start-date").value = formatDateTimeLocal(now);
+            document.getElementById("campaign-end-date").value = formatDateTimeLocal(future);
+
+            // Nạp bảng sản phẩm chi tiết
+            prodCurrentPage = 0;
+            loadProductDetailsTable();
+
+            // Chuyển panel
+            document.getElementById("list-panel").classList.remove("active");
+            document.getElementById("form-panel").classList.add("active");
+            
+            window.scrollTo(0, 0);
+            lucide.createIcons();
+        }
+
+        async function openEditCampaignForm(id) {
+            try {
+                const resCampaign = await fetch(`/api/dot-giam-gia/${id}`);
+                if (!resCampaign.ok) throw new Error("Không thể tải thông tin đợt giảm giá");
+                const campaign = await resCampaign.json();
+
+                // Điền dữ liệu
+                document.getElementById("campaign-id").value = campaign.id;
+                document.getElementById("campaign-name").value = campaign.tenDotGiamGia;
+                document.getElementById("campaign-discount-percent").value = campaign.phanTramGiam;
+                document.getElementById("campaign-desc").value = campaign.moTa || "";
+                document.getElementById("desc-char-count").innerText = `${(campaign.moTa || "").length}/500`;
+
+                // Format datetime-local
+                document.getElementById("campaign-start-date").value = formatIsoLocalDateTime(campaign.ngayBatDau);
+                document.getElementById("campaign-end-date").value = formatIsoLocalDateTime(campaign.ngayKetThuc);
+
+                selectedProductDetailIds.clear();
+
+                // Lấy danh sách sản phẩm chi tiết đã áp dụng
+                const resProdIds = await fetch(`/api/dot-giam-gia/${id}/product-detail-ids`);
+                if (resProdIds.ok) {
+                    const ids = await resProdIds.json();
+                    ids.forEach(pid => selectedProductDetailIds.add(pid));
+                }
+
+                document.getElementById("prod-selected-label").innerText = selectedProductDetailIds.size;
+
+                document.getElementById("form-panel-title").innerText = `Cập nhật đợt giảm giá: ${campaign.maDotGiamGia}`;
+
+                // Nạp bảng sản phẩm chi tiết
+                prodCurrentPage = 0;
+                loadProductDetailsTable();
+
+                // Chuyển panel
+                document.getElementById("list-panel").classList.remove("active");
+                document.getElementById("form-panel").classList.add("active");
+
+                window.scrollTo(0, 0);
+                lucide.createIcons();
+
+            } catch (err) {
+                alert("Lỗi tải chi tiết: " + err.message);
+            }
+        }
+
+        // Format Date Array hoặc string từ server thành yyyy-MM-ddThh:mm
+        function formatIsoLocalDateTime(dateArr) {
+            if (!dateArr) return "";
+            if (Array.isArray(dateArr)) {
+                const yyyy = dateArr[0];
+                const MM = String(dateArr[1]).padStart(2, '0');
+                const dd = String(dateArr[2]).padStart(2, '0');
+                const hh = String(dateArr[3] || 0).padStart(2, '0');
+                const mm = String(dateArr[4] || 0).padStart(2, '0');
+                return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
+            }
+            const date = new Date(dateArr);
+            if (isNaN(date.getTime())) return dateArr;
+            return formatDateTimeLocal(date);
+        }
+
+        function backToListPanel() {
+            document.getElementById("form-panel").classList.remove("active");
+            document.getElementById("list-panel").classList.add("active");
+            loadCampaignsTable();
+            window.scrollTo(0, 0);
+        }
+
+        // Lưu thông tin (Thêm mới / Cập nhật)
+        async function saveCampaign(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("campaign-id").value;
+            const tenDotGiamGia = document.getElementById("campaign-name").value.trim();
+            const phanTramGiam = parseInt(document.getElementById("campaign-discount-percent").value);
+            const ngayBatDau = document.getElementById("campaign-start-date").value;
+            const ngayKetThuc = document.getElementById("campaign-end-date").value;
+            const moTa = document.getElementById("campaign-desc").value.trim();
+
+            if (new Date(ngayBatDau) > new Date(ngayKetThuc)) {
+                alert("Lỗi: Ngày bắt đầu phải diễn ra trước ngày kết thúc!");
+                return;
+            }
+
+            if (selectedProductDetailIds.size === 0) {
+                alert("Lỗi: Bạn phải chọn ít nhất 1 sản phẩm chi tiết để áp dụng đợt giảm giá!");
+                return;
+            }
+
+            const payload = {
+                tenDotGiamGia,
+                phanTramGiam,
+                ngayBatDau,
+                ngayKetThuc,
+                moTa,
+                trangThai: 1, // kích hoạt mặc định
+                productDetailIds: Array.from(selectedProductDetailIds)
+            };
+
+            const url = id ? `/api/dot-giam-gia/${id}` : "/api/dot-giam-gia";
+            const method = id ? "PUT" : "POST";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.message || "Lỗi lưu thông tin đợt giảm giá");
+                }
+
+                alert(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
+                backToListPanel();
+            } catch (err) {
+                alert("Thao tác thất bại: " + err.message);
+            }
+        }
+
+
+        // =========================================================================
+        // SECTION 3: XỬ LÝ CHỌN SẢN PHẨM CHI TIẾT (PRODUCT SELECTION)
+        // =========================================================================
+
+        async function loadProductDetailsTable() {
+            const search = document.getElementById("prod-filter-search").value;
+
+            let url = `/api/dot-giam-gia/san-pham-chi-tiet?page=${prodCurrentPage}&size=${prodPageSize}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách sản phẩm chi tiết");
+                const data = await response.json();
+                renderProductDetailsTable(data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderProductDetailsTable(pageData) {
+            const tbody = document.getElementById("prod-table-body");
+            tbody.innerHTML = "";
+
+            const list = pageData.content || [];
+            prodTotalPages = pageData.totalPages || 1;
+            const totalElements = pageData.totalElements || 0;
+
+            document.getElementById("prod-total-count").innerText = `Tổng ${totalElements} sản phẩm`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">
+                            Không tìm thấy sản phẩm chi tiết nào hoạt động.
+                        </td>
+                    </tr>
+                `;
+                renderProdPagination();
+                return;
+            }
+
+            displayedProductDetailIdsOnPage = list.map(p => p.id);
+
+            list.forEach((spct, index) => {
+                const tr = document.createElement("tr");
+
+                // Checkbox
+                const isChecked = selectedProductDetailIds.has(spct.id) ? "checked" : "";
+                const checkboxTd = `
+                    <td class="checkbox-cell">
+                        <input type="checkbox" value="${spct.id}" ${isChecked} onchange="toggleProductDetailSelect(${spct.id}, this.checked)">
+                    </td>
+                `;
+
+                // Columns
+                const maTd = `<td style="font-weight: 500;">${spct.ma}</td>`;
+                const tenTd = `<td style="font-weight: 600; color: #1e293b;">${spct.tenSanPham}</td>`;
+                const mauTd = `<td>${spct.tenMauSac}</td>`;
+                const sizeTd = `<td style="text-align: center;">${spct.sizeGiay}</td>`;
+                const giaTd = `<td style="text-align: right; font-weight: 600; color: #1e3a8a;">${formatCurrency(spct.giaBan)} đ</td>`;
+                const tonTd = `<td style="text-align: center;">${spct.soLuongTon}</td>`;
+
+                tr.innerHTML = checkboxTd + maTd + tenTd + mauTd + sizeTd + giaTd + tonTd;
+                tbody.appendChild(tr);
+            });
+
+            updateHeaderCheckboxState();
+            renderProdPagination();
+        }
+
+        function toggleProductDetailSelect(id, isChecked) {
+            if (isChecked) {
+                selectedProductDetailIds.add(id);
+            } else {
+                selectedProductDetailIds.delete(id);
+            }
+            
+            document.getElementById("prod-selected-label").innerText = selectedProductDetailIds.size;
+            updateHeaderCheckboxState();
+        }
+
+        function updateHeaderCheckboxState() {
+            const headerCheckbox = document.getElementById("check-all-products");
+            if (displayedProductDetailIdsOnPage.length === 0) {
+                headerCheckbox.checked = false;
+                return;
+            }
+            const allChecked = displayedProductDetailIdsOnPage.every(id => selectedProductDetailIds.has(id));
+            headerCheckbox.checked = allChecked;
+        }
+
+        function toggleSelectAllPage(isChecked) {
+            displayedProductDetailIdsOnPage.forEach(id => {
+                if (isChecked) {
+                    selectedProductDetailIds.add(id);
+                } else {
+                    selectedProductDetailIds.delete(id);
+                }
+            });
+
+            document.getElementById("prod-selected-label").innerText = selectedProductDetailIds.size;
+            loadProductDetailsTable();
+        }
+
+        function selectAllCurrentPageProducts() {
+            toggleSelectAllPage(true);
+        }
+
+        function renderProdPagination() {
+            const nav = document.getElementById("prod-pagination");
+            nav.innerHTML = "";
+
+            const prev = document.createElement("button");
+            prev.type = "button";
+            prev.className = `page-btn ${prodCurrentPage === 0 ? 'disabled' : ''}`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>`;
+            prev.onclick = () => { if (prodCurrentPage > 0) { prodCurrentPage--; loadProductDetailsTable(); } };
+            nav.appendChild(prev);
+
+            for (let i = 0; i < prodTotalPages; i++) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = `page-btn ${i === prodCurrentPage ? 'active' : ''}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => { prodCurrentPage = i; loadProductDetailsTable(); };
+                nav.appendChild(btn);
+            }
+
+            const next = document.createElement("button");
+            next.type = "button";
+            next.className = `page-btn ${prodCurrentPage >= prodTotalPages - 1 ? 'disabled' : ''}`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>`;
+            next.onclick = () => { if (prodCurrentPage < prodTotalPages - 1) { prodCurrentPage++; loadProductDetailsTable(); } };
+            nav.appendChild(next);
+            
+            lucide.createIcons();
+        }
+
+        function changeProdPageSize(val) {
+            prodPageSize = parseInt(val);
+            prodCurrentPage = 0;
+            loadProductDetailsTable();
+        }
+
+        function applyProdFilters() {
+            prodCurrentPage = 0;
+            loadProductDetailsTable();
+        }
+    </script>
 </body>
 </html>
