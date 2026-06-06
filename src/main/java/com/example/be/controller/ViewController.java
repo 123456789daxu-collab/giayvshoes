@@ -31,10 +31,7 @@ public class ViewController {
         return "hoa-don";
     }
 
-    @GetMapping("/san-pham")
-    public String sanPham() {
-        return "san-pham";
-    }
+
 
     @GetMapping("/phieu-giam-gia")
     public String phieuGiamGia() {
