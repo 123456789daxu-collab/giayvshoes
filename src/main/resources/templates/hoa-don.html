@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hóa đơn | VShoes</title>
+    
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/store.css">
+    <link rel="stylesheet" href="/css/invoice.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Nhúng Sidebar dùng chung -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- Nội dung chính -->
+        <main class="main-content">
+            <div class="invoice-container">
+                <h1 class="page-title">Quản lý hóa đơn</h1>
+
+                <!-- BỘ LỌC (Filter Section) -->
+                <div class="filter-card">
+                    <div class="filter-header">
+                        <i data-lucide="filter"></i>
+                        <span>Bộ lọc</span>
+                    </div>
+                    
+                    <div class="filter-grid">
+                        <div class="filter-item">
+                            <label>Tìm kiếm:</label>
+                            <input type="text" id="searchKeyword" class="glass-input" placeholder="Tìm kiếm theo...">
+                        </div>
+                        
+                        <div class="filter-item">
+                            <label>Thời gian:</label>
+                            <input type="text" id="dateRange" class="glass-input" placeholder="Bắt đầu -> Kết thúc">
+                        </div>
+
+                        <div class="filter-item">
+                            <label>Trạng thái:</label>
+                            <select id="filterStatus" class="glass-input select-icon">
+                                <option value="">Chọn trạng thái</option>
+                                <option value="1">Hoàn thành</option>
+                                <option value="0">Hủy</option>
+                                <option value="2">Sắp diễn ra</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-item filter-radio-group">
+                            <label>Loại hóa đơn:</label>
+                            <div class="radio-options">
+                                <label class="radio-label">
+                                    <input type="radio" name="loaiHoaDon" value="" checked>
+                                    <span class="custom-radio"></span>
+                                    Tất cả
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="loaiHoaDon" value="Tại quầy">
+                                    <span class="custom-radio"></span>
+                                    Tại quầy
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="loaiHoaDon" value="Online">
+                                    <span class="custom-radio"></span>
+                                    Online
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Khoảng giá -->
+                    <div class="price-range-container">
+                        <div class="price-range-header">
+                            <label>Khoảng giá(Tổng tiền):</label>
+                            <span class="price-display" id="priceDisplay">0đ - 70,000,000đ</span>
+                        </div>
+                        <div class="range-slider">
+                            <input type="range" id="minPrice" min="0" max="100000000" value="0" step="500000">
+                            <input type="range" id="maxPrice" min="0" max="100000000" value="70000000" step="500000">
+                            <div class="slider-track">
+                                <div class="slider-range" id="sliderRange"></div>
+                            </div>
+                        </div>
+                        <div class="range-labels">
+                            <span>0 đ</span>
+                            <span>100,000,000 đ</span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn-reset" id="btnReset">Đặt lại</button>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH HÓA ĐƠN -->
+                <div class="list-section">
+                    <div class="list-header">
+                        <div class="list-title">
+                            <i data-lucide="list"></i>
+                            <span>Danh sách hóa đơn</span>
+                        </div>
+                        <div class="list-actions">
+                            <button class="btn-export" id="btnExport">Xuất excel</button>
+                            <button class="btn-add" id="btnAddInvoice">Thêm</button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">STT</th>
+                                    <th>Mã</th>
+                                    <th>Người tạo</th>
+                                    <th>Khách hàng</th>
+                                    <th>Số điện thoại</th>
+                                    <th style="text-align: center;">Số lượng</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Loại hóa đơn</th>
+                                    <th style="text-align: center;">Trạng thái</th>
+                                    <th style="text-align: center; width: 100px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceTableBody">
+                                <!-- Data populated by invoice.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination (Client/Server handled via JS) -->
+                    <div class="pagination-container">
+                        <div class="pagination-info" id="paginationInfo">Hiển thị 1-5 / 20 hóa đơn</div>
+                        <div class="pagination-controls" id="paginationControls">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL THÊM / SỬA HÓA ĐƠN -->
+    <div class="modal-overlay" id="invoiceModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 600px; width: 95%;">
+            <span class="close" id="modalClose" style="position: absolute; top: 20px; right: 25px; cursor: pointer; font-size: 28px; color: #64748b;">&times;</span>
+            <h2 id="modalTitle" class="gradient-text" style="font-size: 22px; margin-top: 0; margin-bottom: 25px; font-weight: 800;">Thêm Hóa Đơn</h2>
+
+            <form id="invoiceForm">
+                <input type="hidden" id="invId">
+                
+                <div class="modal-body-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tên người nhận <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="glass-input" id="invCustomerName" placeholder="Nhập tên..." required style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Số điện thoại <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="glass-input" id="invCustomerPhone" placeholder="Nhập SĐT..." required style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Loại hóa đơn</label>
+                        <select class="glass-input" id="invType" style="width: 100%; box-sizing: border-box;">
+                            <option value="Tại quầy">Tại quầy</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Trạng thái</label>
+                        <select class="glass-input" id="invStatus" style="width: 100%; box-sizing: border-box;">
+                            <option value="1">Hoàn thành</option>
+                            <option value="2">Sắp diễn ra</option>
+                            <option value="0">Hủy</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tổng tiền thanh toán (VNĐ)</label>
+                        <input type="number" class="glass-input" id="invTotal" value="0" style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Ghi chú</label>
+                    <textarea class="glass-input" id="invNote" rows="3" placeholder="Ghi chú thêm..." style="width: 100%; resize: none; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-reset" id="btnCancelInv" style="background-color: #94a3b8; color: white;">Hủy</button>
+                    <button type="submit" class="btn-add" style="min-width: 120px;">Lưu hóa đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+
+    <!-- Javascript -->
+    <script src="/js/invoice.js" defer></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

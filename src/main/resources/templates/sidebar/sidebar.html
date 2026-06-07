@@ -1,0 +1,130 @@
+<!-- File fragment Sidebar dùng chung cho toàn bộ các trang -->
+<div th:fragment="sidebar" class="sidebar">
+    
+    <!-- 1. KHU VỰC LOGO VSHOES -->
+    <div class="sidebar-brand">
+        <!-- Đường dẫn ảnh trỏ tới thư mục static/images/logo.png -->
+        <!-- Bạn có thể copy ảnh logo của mình đặt tên là logo.png và bỏ vào thư mục src/main/resources/static/images/ -->
+        <img src="/images/logo.png" alt="VShoes Logo" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';">
+        
+        <!-- Logo dạng chữ dự phòng hiển thị nếu như không tìm thấy file ảnh logo.png -->
+        <div class="logo-placeholder" style="display: none;">V<span>SHOES</span></div>
+        <div class="logo-subtitle" style="display: none;">Bán giày chạy bộ</div>
+    </div>
+
+    <!-- 2. DANH SÁCH MENU SIDEBAR -->
+    <nav class="sidebar-menu">
+        <!-- Trang chủ -->
+        <a href="/trang-chu" class="menu-item">
+            <i data-lucide="home" class="menu-icon"></i>
+            <span>Trang chủ</span>
+        </a>
+
+        <!-- Thống kê -->
+        <a href="/thong-ke" class="menu-item">
+            <i data-lucide="bar-chart-3" class="menu-icon"></i>
+            <span>Thống kê</span>
+        </a>
+
+        <!-- Bán hàng -->
+        <a href="/ban-hang" class="menu-item">
+            <i data-lucide="shopping-cart" class="menu-icon"></i>
+            <span>Bán hàng</span>
+        </a>
+
+        <!-- Hóa đơn -->
+        <a href="/hoa-don" class="menu-item">
+            <i data-lucide="receipt" class="menu-icon"></i>
+            <span>Quản lý hóa đơn</span>
+        </a>
+
+        <!-- Sản phẩm -->
+        <a href="/san-pham" class="menu-item">
+            <i data-lucide="package" class="menu-icon"></i>
+            <span>Sản phẩm</span>
+        </a>
+
+        <!-- Phiếu giảm giá -->
+        <a href="/phieu-giam-gia" class="menu-item">
+            <i data-lucide="ticket" class="menu-icon"></i>
+            <span>Phiếu giảm giá</span>
+        </a>
+
+        <!-- Đợt giảm giá -->
+        <a href="/dot-giam-gia" class="menu-item">
+            <i data-lucide="percent" class="menu-icon"></i>
+            <span>Đợt giảm giá</span>
+        </a>
+
+        <!-- Tài khoản (Menu Cha - Dropdown) -->
+        <div class="submenu-container">
+            <a href="#" class="menu-item" id="toggle-submenu">
+                <i data-lucide="users" class="menu-icon"></i>
+                <span>Tài khoản</span>
+                <i data-lucide="chevron-down" class="arrow-icon"></i>
+            </a>
+            <!-- Danh sách các mục tài khoản con -->
+            <ul class="submenu" id="submenu-tai-khoan">
+                <li>
+                    <a href="/tai-khoan/khach-hang" class="submenu-item">Tài khoản khách hàng</a>
+                </li>
+                <li>
+                    <a href="/tai-khoan/nhan-vien" class="submenu-item">Tài khoản nhân viên</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Nhúng thư viện Lucide Icons qua CDN để vẽ các icon vector sắc nét -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Khi trang web đã load xong HTML
+        document.addEventListener("DOMContentLoaded", function() {
+            // Khởi tạo các Icon của thư viện Lucide
+            lucide.createIcons();
+
+            // Lấy đường dẫn URL hiện tại của trang web (ví dụ: "/trang-chu" hoặc "/tai-khoan/khach-hang")
+            const currentPath = window.location.pathname;
+            
+            // Tìm tất cả các thẻ <a> liên kết trong Sidebar
+            const menuLinks = document.querySelectorAll(".sidebar-menu a");
+            
+            menuLinks.forEach(link => {
+                const href = link.getAttribute("href");
+                
+                // So sánh đường dẫn hiện tại với thuộc tính href của thẻ <a>
+                if (currentPath === href) {
+                    // Thêm class 'active' để làm nổi bật mục menu hiện tại
+                    link.classList.add("active");
+                    
+                    // Nếu link đang active nằm trong một menu con (submenu)
+                    const parentSubmenu = link.closest(".submenu");
+                    if (parentSubmenu) {
+                        // Mở rộng menu con ra bằng cách thêm class 'open'
+                        parentSubmenu.classList.add("open");
+                        // Xoay mũi tên chỉ xuống của menu cha
+                        const parentMenuItem = parentSubmenu.previousElementSibling;
+                        if (parentMenuItem) {
+                            parentMenuItem.classList.add("open-parent");
+                        }
+                    }
+                }
+            });
+
+            // Xử lý sự kiện click đóng/mở menu con "Tài khoản" khi click vào menu cha
+            const toggleSubmenuBtn = document.getElementById("toggle-submenu");
+            const submenu = document.getElementById("submenu-tai-khoan");
+            
+            if (toggleSubmenuBtn && submenu) {
+                toggleSubmenuBtn.addEventListener("click", function(e) {
+                    e.preventDefault(); // Ngăn trình duyệt nhảy trang lên đầu khi click href="#"
+                    
+                    // Toggle class 'open' để trượt mở hoặc đóng submenu
+                    submenu.classList.toggle("open");
+                    // Toggle class 'open-parent' để xoay mũi tên
+                    toggleSubmenuBtn.classList.toggle("open-parent");
+                });
+            }
+        });
+    </script>
+</div>
