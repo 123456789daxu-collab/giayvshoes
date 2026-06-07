@@ -44,16 +44,16 @@ public class SanPhamServiceImpl implements SanPhamService {
                     sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "tenSanPham");
                     break;
                 case "price_asc":
-                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "ngayTao");
+                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "giaBan");
                     break;
                 case "price_desc":
-                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "ngayTao");
+                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "giaBan");
                     break;
                 case "qty_desc":
-                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "ngayTao");
+                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "soLuong");
                     break;
                 case "qty_asc":
-                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "ngayTao");
+                    sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "soLuong");
                     break;
                 default:
                     sortObj = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id");
@@ -89,8 +89,9 @@ public class SanPhamServiceImpl implements SanPhamService {
             existing.setMaSanPham(sanPham.getMaSanPham());
             existing.setThuongHieu(sanPham.getThuongHieu());
             existing.setLoaiGiay(sanPham.getLoaiGiay());
-            existing.setChatLieu(sanPham.getChatLieu());
-            existing.setDanhMuc(sanPham.getDanhMuc());
+            existing.setGiaNhap(sanPham.getGiaNhap());
+            existing.setGiaBan(sanPham.getGiaBan());
+            existing.setSoLuong(sanPham.getSoLuong());
             existing.setMoTaChiTiet(sanPham.getMoTaChiTiet());
             existing.setTrangThai(sanPham.getTrangThai());
             existing.setNgaySua(LocalDateTime.now());
