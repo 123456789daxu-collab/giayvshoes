@@ -142,10 +142,7 @@ public class SanPhamController {
         headerRow.createCell(2).setCellValue("Tên Sản Phẩm");
         headerRow.createCell(3).setCellValue("Thương Hiệu");
         headerRow.createCell(4).setCellValue("Loại Giày");
-        headerRow.createCell(5).setCellValue("Giá Nhập");
-        headerRow.createCell(6).setCellValue("Giá Bán");
-        headerRow.createCell(7).setCellValue("Số Lượng");
-        headerRow.createCell(8).setCellValue("Trạng Thái");
+        headerRow.createCell(5).setCellValue("Trạng Thái");
 
         int rowCount = 1;
         for (SanPham sp : listSanPham) {
@@ -155,10 +152,7 @@ public class SanPhamController {
             row.createCell(2).setCellValue(sp.getTenSanPham() != null ? sp.getTenSanPham() : "");
             row.createCell(3).setCellValue(sp.getThuongHieu() != null ? sp.getThuongHieu().getTenThuongHieu() : "");
             row.createCell(4).setCellValue(sp.getLoaiGiay() != null ? sp.getLoaiGiay().getTenLoaiGiay() : "");
-            row.createCell(5).setCellValue(sp.getGiaNhap() != null ? sp.getGiaNhap().doubleValue() : 0);
-            row.createCell(6).setCellValue(sp.getGiaBan() != null ? sp.getGiaBan().doubleValue() : 0);
-            row.createCell(7).setCellValue(sp.getSoLuong() != null ? sp.getSoLuong() : 0);
-            row.createCell(8).setCellValue(sp.getTrangThai() != null && sp.getTrangThai() == 1 ? "Kinh doanh" : "Ngừng kinh doanh");
+            row.createCell(5).setCellValue(sp.getTrangThai() != null && sp.getTrangThai() == 1 ? "Kinh doanh" : "Ngừng kinh doanh");
         }
 
         workbook.write(response.getOutputStream());
