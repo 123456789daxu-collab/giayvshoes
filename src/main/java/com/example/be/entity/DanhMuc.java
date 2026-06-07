@@ -22,5 +22,5 @@ public class DanhMuc {
     private String tenDanhMuc;
 
     @Column(name = "trang_thai")
-    private Integer trangThai;
+    private Boolean trangThai;
 }

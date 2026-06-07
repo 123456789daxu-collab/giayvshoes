@@ -22,5 +22,5 @@ public class ChatLieu {
     private String tenChatLieu;
 
     @Column(name = "trang_thai")
-    private Integer trangThai;
+    private Boolean trangThai;
 }

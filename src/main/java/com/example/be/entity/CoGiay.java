@@ -22,5 +22,5 @@ public class CoGiay {
     private Integer sizeGiay;
 
     @Column(name = "trang_thai")
-    private Integer trangThai;
+    private Boolean trangThai;
 }
