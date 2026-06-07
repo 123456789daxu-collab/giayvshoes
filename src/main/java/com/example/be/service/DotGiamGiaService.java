@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DotGiamGiaService {
-    
     Page<DotGiamGia> searchCampaigns(
             String search,
             LocalDateTime start,

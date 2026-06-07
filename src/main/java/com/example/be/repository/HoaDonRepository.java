@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
@@ -33,4 +34,8 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    List<HoaDon> findByTrangThaiAndLoaiHoaDonOrderByNgayTaoDesc(Integer trangThai, String loaiHoaDon);
+
+    Optional<HoaDon> findFirstByMaHoaDonStartingWithOrderByMaHoaDonDesc(String prefix);
 }
