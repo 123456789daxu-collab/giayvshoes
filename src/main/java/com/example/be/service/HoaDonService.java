@@ -24,88 +24,103 @@ public class HoaDonService {
     private final SanPhamChiTietRepository sanPhamChiTietRepository;
     private final LichSuHoaDonRepository lichSuHoaDonRepository;
 
-    public HoaDonService(HoaDonRepository hoaDonRepository, 
-                         ChiTietHoaDonRepository chiTietHoaDonRepository,
-                         SanPhamChiTietRepository sanPhamChiTietRepository,
-                         LichSuHoaDonRepository lichSuHoaDonRepository) {
+    public HoaDonService(HoaDonRepository hoaDonRepository,
+            ChiTietHoaDonRepository chiTietHoaDonRepository,
+            SanPhamChiTietRepository sanPhamChiTietRepository,
+            LichSuHoaDonRepository lichSuHoaDonRepository) {
         this.hoaDonRepository = hoaDonRepository;
         this.chiTietHoaDonRepository = chiTietHoaDonRepository;
         this.sanPhamChiTietRepository = sanPhamChiTietRepository;
         this.lichSuHoaDonRepository = lichSuHoaDonRepository;
     }
 
-    public List<HoaDonDTO> search(String keyword, Integer trangThai, String loaiHoaDon, 
-                                  BigDecimal minPrice, BigDecimal maxPrice, 
-                                  LocalDateTime startDate, LocalDateTime endDate) {
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<HoaDonDTO> search(String keyword, Integer trangThai, String loaiHoaDon,
+            BigDecimal minPrice, BigDecimal maxPrice,
+            LocalDateTime startDate, LocalDateTime endDate) {
+        String loaiHoaDonDb = null;
+        if (loaiHoaDon != null && !loaiHoaDon.isEmpty()) {
+            if ("Tại quầy".equalsIgnoreCase(loaiHoaDon) || "Tai quay".equalsIgnoreCase(loaiHoaDon)) {
+                loaiHoaDonDb = "Tại quầy";
+            } else if ("Online".equalsIgnoreCase(loaiHoaDon)) {
+                loaiHoaDonDb = "Online";
+            } else {
+                loaiHoaDonDb = loaiHoaDon;
+            }
+        }
+
         List<HoaDon> hoaDons = hoaDonRepository.searchHoaDon(
-                keyword, trangThai, loaiHoaDon, minPrice, maxPrice, startDate, endDate);
-                
+                keyword, trangThai, loaiHoaDonDb, minPrice, maxPrice, startDate, endDate);
+
         return hoaDons.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    public byte[] exportInvoicesToExcel(String keyword, Integer trangThai, String loaiHoaDon, 
-                                         BigDecimal minPrice, BigDecimal maxPrice, 
-                                         LocalDateTime startDate, LocalDateTime endDate) throws java.io.IOException {
+    public byte[] exportInvoicesToExcel(String keyword, Integer trangThai, String loaiHoaDon,
+            BigDecimal minPrice, BigDecimal maxPrice,
+            LocalDateTime startDate, LocalDateTime endDate) throws java.io.IOException {
         List<HoaDonDTO> list = search(keyword, trangThai, loaiHoaDon, minPrice, maxPrice, startDate, endDate);
-        
+
         try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
-             java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
-             
+                java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
+
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách hóa đơn");
-            
+
             // Header Row
-            String[] headers = {"STT", "Mã hóa đơn", "Tên nhân viên", "Khách hàng", "Số điện thoại", "Loại hóa đơn", "Tổng tiền (đ)", "Ngày tạo", "Trạng thái"};
+            String[] headers = { "STT", "Mã hóa đơn", "Tên nhân viên", "Khách hàng", "Số điện thoại", "Loại hóa đơn",
+                    "Tổng tiền (đ)", "Ngày tạo", "Trạng thái" };
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
-            
+
             // Style for header
             org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
             org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
             headerFont.setBold(true);
             headerStyle.setFont(headerFont);
-            
+
             for (int i = 0; i < headers.length; i++) {
                 org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
                 cell.setCellValue(headers[i]);
                 cell.setCellStyle(headerStyle);
             }
-            
+
             // Data Rows
             int rowIdx = 1;
             for (HoaDonDTO dto : list) {
                 org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
-                
+
                 row.createCell(0).setCellValue(rowIdx - 1);
                 row.createCell(1).setCellValue(dto.getMaHoaDon() != null ? dto.getMaHoaDon() : "");
                 row.createCell(2).setCellValue(dto.getNguoiTao() != null ? dto.getNguoiTao() : "");
                 row.createCell(3).setCellValue(dto.getTenKhachHang() != null ? dto.getTenKhachHang() : "");
                 row.createCell(4).setCellValue(dto.getSdtKhachHang() != null ? dto.getSdtKhachHang() : "");
                 row.createCell(5).setCellValue(dto.getLoaiHoaDon() != null ? dto.getLoaiHoaDon() : "");
-                
+
                 org.apache.poi.ss.usermodel.Cell priceCell = row.createCell(6);
                 priceCell.setCellValue(dto.getTongTien() != null ? dto.getTongTien().doubleValue() : 0.0);
-                
-                String dateStr = dto.getNgayTao() != null ? dto.getNgayTao().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "";
+
+                String dateStr = dto.getNgayTao() != null
+                        ? dto.getNgayTao().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                        : "";
                 row.createCell(7).setCellValue(dateStr);
-                
+
                 row.createCell(8).setCellValue(getStatusName(dto.getTrangThai()));
             }
-            
+
             // Auto-size columns
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
             }
-            
+
             workbook.write(out);
             return out.toByteArray();
         }
     }
-    
+
     private HoaDonDTO mapToDTO(HoaDon h) {
         List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(h.getId());
         int soLuong = details.stream()
                 .mapToInt(d -> d.getSoLuong() != null ? d.getSoLuong() : 0)
                 .sum();
-                
+
         String tenKh = "";
         String sdtKh = "";
         if (h.getKhachHang() != null) {
@@ -115,7 +130,7 @@ public class HoaDonService {
             tenKh = h.getTenNguoiNhan();
             sdtKh = h.getSdtNguoiNhan();
         }
-        
+
         String nguoiTao = "";
         String maNhanVien = "";
         if (h.getNhanVien() != null) {
@@ -139,14 +154,14 @@ public class HoaDonService {
             email = h.getKhachHang().getEmail();
         }
 
-        String tenVoucher   = null;
-        String maVoucher    = null;
+        String tenVoucher = null;
+        String maVoucher = null;
         BigDecimal giaTriGiam = null;
-        String loaiGiamGia  = null;
+        String loaiGiamGia = null;
         if (h.getPhieuGiamGia() != null) {
-            tenVoucher  = h.getPhieuGiamGia().getTenVoucher();
-            maVoucher   = h.getPhieuGiamGia().getMaVoucher();
-            giaTriGiam  = h.getPhieuGiamGia().getGiaTriGiam();
+            tenVoucher = h.getPhieuGiamGia().getTenVoucher();
+            maVoucher = h.getPhieuGiamGia().getMaVoucher();
+            giaTriGiam = h.getPhieuGiamGia().getGiaTriGiam();
             loaiGiamGia = h.getPhieuGiamGia().getLoaiGiamGia();
         }
 
@@ -239,17 +254,28 @@ public class HoaDonService {
 
     private String getStatusName(Integer status) {
         switch (status) {
-            case 0: return "Chờ xác nhận";
-            case 1: return "Đã xác nhận";
-            case 2: return "Đang xử lý";
-            case 3: return "Đang giao";
-            case 4: return "Đã giao";
-            case 5: return "Giao hàng thất bại";
-            case 6: return "Hoàn thành";
-            case 7: return "Đã huỷ";
-            case 8: return "Yêu cầu huỷ";
-            case 9: return "Đã hoàn tiền";
-            default: return "N/A";
+            case 0:
+                return "Chờ xác nhận";
+            case 1:
+                return "Đã xác nhận";
+            case 2:
+                return "Đang xử lý";
+            case 3:
+                return "Đang giao";
+            case 4:
+                return "Đã giao";
+            case 5:
+                return "Giao hàng thất bại";
+            case 6:
+                return "Hoàn thành";
+            case 7:
+                return "Đã huỷ";
+            case 8:
+                return "Yêu cầu huỷ";
+            case 9:
+                return "Đã hoàn tiền";
+            default:
+                return "N/A";
         }
     }
 

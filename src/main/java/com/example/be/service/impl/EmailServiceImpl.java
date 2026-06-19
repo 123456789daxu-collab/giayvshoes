@@ -25,44 +25,43 @@ public class EmailServiceImpl implements EmailService {
     private TemplateEngine templateEngine;
 
     @Override
-    public void sendInvoiceEmail(com.example.be.dto.HoaDonDTO invoice, java.util.List<java.util.Map<String, Object>> items) {
+    public void sendInvoiceEmail(com.example.be.dto.HoaDonDTO invoice,
+            java.util.List<java.util.Map<String, Object>> items) {
         System.out.println("Sending invoice email for invoice " + (invoice != null ? invoice.getMaHoaDon() : "null"));
     }
 
     @Override
     public void sendVoucherNotification(KhachHang customer, PhieuGiamGia voucher) {
         sendHtmlEmail(
-            customer.getEmail(), 
-            "[VShoes] Bạn nhận được mã giảm giá cá nhân mới!", 
-            "CREATE", 
-            customer, 
-            voucher
-        );
+                customer.getEmail(),
+                "[VShoes] Bạn nhận được mã giảm giá cá nhân mới!",
+                "CREATE",
+                customer,
+                voucher);
     }
 
     @Override
     public void sendVoucherUpdateNotification(KhachHang customer, PhieuGiamGia voucher) {
         sendHtmlEmail(
-            customer.getEmail(), 
-            "[VShoes] Mã giảm giá cá nhân của bạn đã được cập nhật!", 
-            "UPDATE", 
-            customer, 
-            voucher
-        );
+                customer.getEmail(),
+                "[VShoes] Mã giảm giá cá nhân của bạn đã được cập nhật!",
+                "UPDATE",
+                customer,
+                voucher);
     }
 
     @Override
     public void sendVoucherCancelNotification(KhachHang customer, PhieuGiamGia voucher) {
         sendHtmlEmail(
-            customer.getEmail(), 
-            "[VShoes] Mã giảm giá cá nhân của bạn đã tạm ngừng áp dụng!", 
-            "CANCEL", 
-            customer, 
-            voucher
-        );
+                customer.getEmail(),
+                "[VShoes] Mã giảm giá cá nhân của bạn đã tạm ngừng áp dụng!",
+                "CANCEL",
+                customer,
+                voucher);
     }
 
-    private void sendHtmlEmail(String toEmail, String subject, String action, KhachHang customer, PhieuGiamGia voucher) {
+    private void sendHtmlEmail(String toEmail, String subject, String action, KhachHang customer,
+            PhieuGiamGia voucher) {
         if (toEmail == null || toEmail.trim().isEmpty()) {
             return;
         }
@@ -70,13 +69,13 @@ public class EmailServiceImpl implements EmailService {
         CompletableFuture.runAsync(() -> {
             try {
                 if (mailSender == null) {
-                    System.out.println("JavaMailSender is not configured. Simulation HTML email sent to " 
-                        + toEmail + " for voucher " + voucher.getMaVoucher() + " (Action: " + action + ")");
+                    System.out.println("JavaMailSender is not configured. Simulation HTML email sent to "
+                            + toEmail + " for voucher " + voucher.getMaVoucher() + " (Action: " + action + ")");
                     return;
                 }
 
                 DecimalFormat df = new DecimalFormat("#,###");
-                
+
                 String formattedGiaTriGiam = "";
                 if (voucher.getGiaTriGiam() != null) {
                     if ("Tiền mặt".equalsIgnoreCase(voucher.getLoaiGiamGia())) {
@@ -100,12 +99,12 @@ public class EmailServiceImpl implements EmailService {
                 }
 
                 DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                String formattedNgayKetThuc = voucher.getNgayKetThuc() != null 
-                    ? voucher.getNgayKetThuc().format(dateFormatter) 
-                    : "";
-                String formattedNgayBatDau = voucher.getNgayBatDau() != null 
-                    ? voucher.getNgayBatDau().format(dateFormatter) 
-                    : "";
+                String formattedNgayKetThuc = voucher.getNgayKetThuc() != null
+                        ? voucher.getNgayKetThuc().format(dateFormatter)
+                        : "";
+                String formattedNgayBatDau = voucher.getNgayBatDau() != null
+                        ? voucher.getNgayBatDau().format(dateFormatter)
+                        : "";
 
                 Context context = new Context();
                 context.setVariable("customerName", customer.getHoTen());
@@ -123,7 +122,7 @@ public class EmailServiceImpl implements EmailService {
 
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                
+
                 helper.setTo(toEmail);
                 helper.setSubject(subject);
                 helper.setText(htmlContent, true);
@@ -131,7 +130,8 @@ public class EmailServiceImpl implements EmailService {
                 mailSender.send(message);
                 System.out.println("HTML Email successfully sent to " + toEmail + " (Action: " + action + ")");
             } catch (Exception e) {
-                System.err.println("Failed to send HTML email to " + toEmail + " (Action: " + action + "): " + e.getMessage());
+                System.err.println(
+                        "Failed to send HTML email to " + toEmail + " (Action: " + action + "): " + e.getMessage());
                 e.printStackTrace();
             }
         });
