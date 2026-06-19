@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class KhachHangServiceImpl implements KhachHangService {
@@ -52,15 +52,16 @@ public class KhachHangServiceImpl implements KhachHangService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với ID: " + id));
     }
 
-    private String generateMaKhachHang() {
-        Optional<KhachHang> lastCustomer = khachHangRepository.findFirstByMaKhachHangStartingWithOrderByMaKhachHangDesc("KH");
-        if (lastCustomer.isEmpty()) {
-            return "KH00001";
+    @Override
+    public String getNextMaKhachHang() {
+        Page<String> page = khachHangRepository.findMaxMaKhachHang(PageRequest.of(0, 1));
+        if (page.isEmpty() || page.getContent().isEmpty()) {
+            return "KH001";
         }
-        String lastCode = lastCustomer.get().getMaKhachHang();
+        String lastCode = page.getContent().get(0);
         try {
             int num = Integer.parseInt(lastCode.substring(2));
-            return String.format("KH%05d", num + 1);
+            return String.format("KH%03d", num + 1);
         } catch (NumberFormatException e) {
             return "KH" + System.currentTimeMillis();
         }
@@ -76,8 +77,14 @@ public class KhachHangServiceImpl implements KhachHangService {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");
         }
 
+        String maKhachHang = getNextMaKhachHang();
+
+        if (khachHangRepository.findByMaKhachHang(maKhachHang).isPresent()) {
+            throw new RuntimeException("Mã khách hàng đã tồn tại trong hệ thống!");
+        }
+
         KhachHang khachHang = KhachHang.builder()
-                .maKhachHang(generateMaKhachHang())
+                .maKhachHang(maKhachHang)
                 .hoTen(dto.getHoTen())
                 .email(dto.getEmail())
                 .soDienThoai(dto.getSoDienThoai())
@@ -250,7 +257,7 @@ public class KhachHangServiceImpl implements KhachHangService {
                 }
 
                 KhachHang khachHang = KhachHang.builder()
-                        .maKhachHang(generateMaKhachHang())
+                        .maKhachHang(getNextMaKhachHang())
                         .hoTen(hoTen)
                         .soDienThoai(sdt)
                         .email(email)
@@ -261,7 +268,7 @@ public class KhachHangServiceImpl implements KhachHangService {
                         .trangThai(trangThai)
                         .build();
 
-                khachHangRepository.save(khachHang);
+                khachHangRepository.saveAndFlush(khachHang);
             }
         }
     }

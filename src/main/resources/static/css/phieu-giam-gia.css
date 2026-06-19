@@ -243,22 +243,18 @@
 
 .customer-filter-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    gap: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
     margin-bottom: 16px;
 }
 
-.customer-filter-left {
-    flex: 1;
-    max-width: 400px;
+#cust-filter-search {
+    width: 320px;
+    flex: 0 0 auto;
 }
 
-.customer-filter-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
 
 /* Table scroll wrapper */
 .table-scrollable {

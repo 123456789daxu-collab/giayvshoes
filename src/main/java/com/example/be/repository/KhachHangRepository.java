@@ -18,8 +18,9 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Long>, Jpa
     boolean existsByEmail(String email);
     Optional<KhachHang> findByMaKhachHang(String maKhachHang);
     
-    // Tìm mã khách hàng lớn nhất có tiền tố KH để tự sinh mã KHxxxxx
-    Optional<KhachHang> findFirstByMaKhachHangStartingWithOrderByMaKhachHangDesc(String prefix);
+    // Tìm mã khách hàng lớn nhất có tiền tố KH để tự sinh mã
+    @Query("SELECT k.maKhachHang FROM KhachHang k WHERE k.maKhachHang LIKE 'KH%' ORDER BY LENGTH(k.maKhachHang) DESC, k.maKhachHang DESC")
+    Page<String> findMaxMaKhachHang(Pageable pageable);
 
     @Query("SELECT new com.example.be.dto.KhachHangVoucherDto(" +
            "kh.id, kh.maKhachHang, kh.hoTen, kh.soDienThoai, kh.email, kh.ngaySinh, " +

@@ -26,12 +26,11 @@ public class BeApplication {
     public CommandLineRunner initVoucherData(
             PhieuGiamGiaRepository phieuGiamGiaRepository,
             PhieuGiamGiaKhachHangRepository phieuGiamGiaKhachHangRepository,
-            KhachHangRepository khachHangRepository
-    ) {
+            KhachHangRepository khachHangRepository) {
         return args -> {
             if (phieuGiamGiaRepository.count() == 0) {
                 System.out.println("--- Dữ liệu trống. Đang nạp các phiếu giảm giá mặc định... ---");
-                
+
                 // 1. Voucher 1: PGG001 (Phần trăm, Công khai)
                 PhieuGiamGia pgg001 = PhieuGiamGia.builder()
                         .maVoucher("PGG001")
@@ -97,15 +96,14 @@ public class BeApplication {
                             .trangThai(1)
                             .build();
                     phieuGiamGiaKhachHangRepository.save(mapping);
-                    
+
                     // Cập nhật số lượng của PGG002
                     savedPgg002.setSoLuong(1);
                     phieuGiamGiaRepository.save(savedPgg002);
                 }
-                
+
                 System.out.println("--- Đã nạp thành công 3 phiếu giảm giá mặc định! ---");
             }
         };
     }
 }
-

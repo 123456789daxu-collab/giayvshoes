@@ -22,6 +22,8 @@ public interface KhachHangService {
     
     List<KhachHang> getFilteredList(String search, Boolean gioiTinh, LocalDate dob, Integer trangThai);
     
+    String getNextMaKhachHang();
+    
     byte[] exportExcel(String search, Boolean gioiTinh, LocalDate dob, Integer trangThai) throws IOException;
     
     void importExcel(MultipartFile file) throws Exception;

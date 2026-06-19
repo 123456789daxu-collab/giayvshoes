@@ -37,7 +37,7 @@ public class DotGiamGiaController {
         try {
             LocalDateTime start = null;
             LocalDateTime end = null;
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
 
             if (ngayBatDau != null && !ngayBatDau.trim().isEmpty()) {
                 start = LocalDateTime.parse(ngayBatDau);

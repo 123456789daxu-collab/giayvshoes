@@ -48,9 +48,6 @@ public class SanPham {
     @Column(name = "ngay_sua")
     private LocalDateTime ngaySua;
 
-    @Column(name = "trang_thai")
-    private Integer trangThai;
-
     @Column(name = "gia_nhap")
     private java.math.BigDecimal giaNhap;
 
@@ -59,4 +56,8 @@ public class SanPham {
 
     @Column(name = "so_luong")
     private Integer soLuong;
+
+    @Column(name = "trang_thai")
+    private Integer trangThai;
+
 }
