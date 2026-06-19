@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phiếu giảm giá | VShoes</title>
+    <!-- Nhúng CSS sidebar & khách hàng dùng chung -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/khach-hang.css">
+    <!-- Nhúng CSS riêng của trang phiếu giảm giá -->
+    <link rel="stylesheet" href="/css/phieu-giam-gia.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Nhúng Sidebar dùng chung -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- NỘI DUNG CHÍNH -->
+        <main class="main-content">
+            <div class="voucher-container">
+
+                <!-- PANEL 1: DANH SÁCH PHIẾU GIẢM GIÁ (LISTING PANEL) -->
+                <div id="list-panel" class="tab-panel active">
+                    
+                    <!-- BỘ LỌC TÌM KIẾM -->
+                    <div class="filter-card">
+                        <div class="filter-header">
+                            <span class="filter-title">Bộ lọc tìm kiếm</span>
+                            <button class="refresh-btn" onclick="resetVoucherFilters()" title="Làm mới bộ lọc">
+                                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 2fr;">
+                            <!-- Tên hoặc mã phiếu -->
+                            <div class="form-group">
+                                <label for="filter-search">Tên hoặc mã phiếu giảm giá</label>
+                                <input type="text" id="filter-search" class="input-control" placeholder="Nhập tên hoặc mã phiếu..." oninput="applyVoucherFilters()">
+                            </div>
+
+                            <!-- Kiểu giảm -->
+                            <div class="form-group">
+                                <label for="filter-loai-giam">Kiểu giảm</label>
+                                <select id="filter-loai-giam" class="input-control" onchange="applyVoucherFilters()">
+                                    <option value="">Tất cả</option>
+                                    <option value="Phần trăm">Phần trăm</option>
+                                    <option value="Tiền mặt">Tiền mặt</option>
+                                </select>
+                            </div>
+
+                            <!-- Đối tượng -->
+                            <div class="form-group">
+                                <label for="filter-loai-phieu">Đối tượng</label>
+                                <select id="filter-loai-phieu" class="input-control" onchange="applyVoucherFilters()">
+                                    <option value="">Tất cả</option>
+                                    <option value="Công khai">Công khai</option>
+                                    <option value="Cá nhân">Cá nhân</option>
+                                </select>
+                            </div>
+
+                            <!-- Khoảng ngày áp dụng -->
+                            <div class="form-group">
+                                <label>Khoảng ngày áp dụng</label>
+                                <div class="date-range-container">
+                                    <input type="date" id="filter-start-date" class="input-control" onchange="applyVoucherFilters()">
+                                    <span class="date-separator">&rarr;</span>
+                                    <input type="date" id="filter-end-date" class="input-control" onchange="applyVoucherFilters()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD DANH SÁCH -->
+                    <div class="customer-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <span class="card-title-table" style="margin-bottom: 0;">Danh sách phiếu giảm giá</span>
+                            <div class="action-row" style="margin-bottom: 0;">
+                                <button class="btn-primary-action" onclick="openAddVoucherForm()">
+                                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                                    Thêm mới
+                                </button>
+                                <button class="btn-icon" title="Xuất Excel" onclick="exportVouchersExcel()">
+                                    <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bảng danh sách phiếu -->
+                        <div class="custom-table-container">
+                            <table class="customer-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px; text-align: center;">STT</th>
+                                        <th style="width: 110px;">Mã</th>
+                                        <th style="width: 160px;">Tên</th>
+                                        <th style="width: 100px;">Loại</th>
+                                        <th style="width: 100px;">Đối tượng</th>
+                                        <th style="width: 100px; text-align: center;">Số lượng</th>
+                                        <th style="width: 240px;">Chi tiết ưu đãi</th>
+                                        <th style="width: 220px;">Thời gian áp dụng</th>
+                                        <th style="width: 130px;">Trạng thái</th>
+                                        <th style="width: 100px; text-align: center;">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="voucher-table-body">
+                                    <!-- Load động từ JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Phân trang danh sách phiếu -->
+                        <div class="table-footer">
+                            <div class="total-count" id="voucher-total-count">
+                                Tổng 0 phiếu giảm giá
+                            </div>
+                            <div class="pagination-nav" id="voucher-pagination">
+                                <!-- Nút trang -->
+                            </div>
+                            <div class="page-size-selector">
+                                <select class="page-size-select" id="voucher-page-size" onchange="changeVoucherPageSize(this.value)">
+                                    <option value="10">10 / page</option>
+                                    <option value="20">20 / page</option>
+                                    <option value="50">50 / page</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANEL 2: THÊM MỚI / CHỈNH SỬA PHIẾU GIẢM GIÁ (FORM PANEL) -->
+                <div id="form-panel" class="tab-panel">
+                    
+                    <button class="back-link" onclick="backToListPanel()">
+                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        Quay lại danh sách
+                    </button>
+
+                    <div class="form-card">
+                        <div class="form-title-row">
+                            <span id="form-panel-title" class="form-title">Thêm mới phiếu giảm giá</span>
+                        </div>
+
+                        <form id="voucher-form" onsubmit="saveVoucher(event)">
+                            <input type="hidden" id="voucher-id">
+
+                            <!-- Hàng 1: Tên phiếu -->
+                            <div class="form-grid-2">
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label for="voucher-name">Tên phiếu giảm giá <span class="required-star">*</span></label>
+                                    <input type="text" id="voucher-name" class="input-control" required placeholder="Nhập tên phiếu giảm giá...">
+                                </div>
+                            </div>
+
+                            <!-- Hàng 2: Hình thức giảm & Loại phiếu -->
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label>Hình thức giảm <span class="required-star">*</span></label>
+                                    <div class="radio-group">
+                                        <label class="radio-control">
+                                            <input type="radio" name="loaiGiamGia" value="Phần trăm" checked onchange="toggleDiscountType()">
+                                            % Phần trăm
+                                        </label>
+                                        <label class="radio-control">
+                                            <input type="radio" name="loaiGiamGia" value="Tiền mặt" onchange="toggleDiscountType()">
+                                            VNĐ Tiền mặt
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Loại phiếu <span class="required-star">*</span></label>
+                                    <div class="radio-group">
+                                        <label class="radio-control">
+                                            <input type="radio" name="loaiPhieu" value="Công khai" checked onchange="toggleVoucherType()">
+                                            Công khai
+                                        </label>
+                                        <label class="radio-control">
+                                            <input type="radio" name="loaiPhieu" value="Cá nhân" onchange="toggleVoucherType()">
+                                            Cá nhân
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 3: Giá trị giảm & Giảm tối đa -->
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="voucher-discount-val">Giá trị giảm <span class="required-star">*</span></label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('voucher-discount-val', -10)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="voucher-discount-val" class="input-control number-input-control" required min="1" placeholder="Nhập giá trị...">
+                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('voucher-discount-val', 10)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="voucher-max-discount">Giảm tối đa (VNĐ)</label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('voucher-max-discount', -10000)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="voucher-max-discount" class="input-control number-input-control" min="0" placeholder="Nhập mức giảm tối đa...">
+                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('voucher-max-discount', 10000)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 4: Hóa đơn tối thiểu & Số lượng -->
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="voucher-min-order">Hóa đơn tối thiểu (VNĐ) <span class="required-star">*</span></label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('voucher-min-order', -20000)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="voucher-min-order" class="input-control number-input-control" required min="0" placeholder="Nhập hạn mức hóa đơn tối thiểu...">
+                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('voucher-min-order', 20000)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="voucher-quantity">Số lượng sử dụng</label>
+                                    <div class="number-input-wrapper">
+                                        <button type="button" class="number-input-btn minus" id="btn-qty-minus" onclick="adjustNumberInput('voucher-quantity', -1)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="voucher-quantity" class="input-control number-input-control" min="1" placeholder="Nhập số lượng phát hành...">
+                                        <button type="button" class="number-input-btn plus" id="btn-qty-plus" onclick="adjustNumberInput('voucher-quantity', 1)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 5: Ngày bắt đầu & Ngày kết thúc -->
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label for="voucher-start-date">Ngày bắt đầu <span class="required-star">*</span></label>
+                                    <input type="date" id="voucher-start-date" class="input-control" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="voucher-end-date">Ngày kết thúc <span class="required-star">*</span></label>
+                                    <input type="date" id="voucher-end-date" class="input-control" required>
+                                </div>
+                            </div>
+
+                            <!-- Hàng 6: Mô tả -->
+                            <div class="form-group" style="margin-bottom: 24px;">
+                                <label for="voucher-desc">Mô tả phiếu giảm giá</label>
+                                <div class="textarea-wrapper">
+                                    <textarea id="voucher-desc" class="input-control" rows="3" maxlength="500" placeholder="Nhập thông tin mô tả chi tiết về phiếu..." oninput="updateCharCount(this)"></textarea>
+                                    <span class="char-counter" id="desc-char-count">0/500</span>
+                                </div>
+                            </div>
+
+                            <!-- PHẦN CHỌN KHÁCH HÀNG (CHỈ HIỆN KHI LÀ PHIẾU CÁ NHÂN) -->
+                            <div id="customer-select-section" class="customer-section" style="display: none;">
+                                <div class="customer-section-title">Danh sách khách hàng nhận phiếu</div>
+                                
+                                <div class="customer-filter-bar">
+                                    <!-- Search -->
+                                    <div class="customer-filter-left">
+                                        <input type="text" id="cust-filter-search" class="input-control" placeholder="Tìm theo mã / tên / SĐT / email..." oninput="applyCustFilters()">
+                                    </div>
+                                    <!-- Filters -->
+                                    <div class="customer-filter-right">
+                                        <span style="font-size: 13px; font-weight: 500; color: #64748b;">Theo tháng đặt:</span>
+                                        <select id="cust-filter-month" class="input-control" style="width: 110px;" onchange="applyCustFilters()">
+                                            <option value="">Tháng</option>
+                                            <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:text="${'Tháng ' + m}"></option>
+                                        </select>
+                                        <select id="cust-filter-year" class="input-control" style="width: 100px;" onchange="applyCustFilters()">
+                                            <option value="">Năm</option>
+                                            <option value="2026">2026</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2024">2024</option>
+                                        </select>
+                                        <button type="button" class="btn-secondary" style="height: 40px;" onclick="selectAllCurrentPageCustomers()">Chọn tất cả</button>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #1e3a8a;">
+                                    Đã chọn: <span id="cust-selected-label">0</span> khách hàng
+                                </div>
+
+                                <!-- Bảng khách hàng -->
+                                <div class="table-scrollable">
+                                    <table class="customer-table" style="width:100%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="checkbox-cell">
+                                                    <input type="checkbox" id="check-all-customers" onchange="toggleSelectAllPage(this.checked)">
+                                                </th>
+                                                <th style="width: 140px;">Mã KH</th>
+                                                <th style="width: 180px;">Tên KH</th>
+                                                <th style="width: 120px;">SĐT</th>
+                                                <th style="width: 200px;">Email</th>
+                                                <th style="width: 110px;">Ngày sinh</th>
+                                                <th style="width: 160px;">Ngày đặt gần nhất</th>
+                                                <th style="width: 100px; text-align: center;">Số lần đặt</th>
+                                                <th style="width: 140px; text-align: right;">Tổng tiền đã đặt</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="cust-table-body">
+                                            <!-- Load động -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Phân trang khách hàng -->
+                                <div class="table-footer" style="margin-top: 16px;">
+                                    <div class="total-count" id="cust-total-count">Tổng 0 khách hàng</div>
+                                    <div class="pagination-nav" id="cust-pagination">
+                                        <!-- Nút phân trang -->
+                                    </div>
+                                    <div class="page-size-selector">
+                                        <select class="page-size-select" id="cust-page-size" onchange="changeCustPageSize(this.value)">
+                                            <option value="5">5 / page</option>
+                                            <option value="10">10 / page</option>
+                                            <option value="20">20 / page</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer nút bấm -->
+                            <div class="modal-footer" style="padding-top: 20px; border-top: 1px solid #f1f5f9; margin-top: 28px;">
+                                <button type="button" class="btn-secondary" onclick="backToListPanel()">Hủy</button>
+                                <button type="submit" class="btn-primary-action">Lưu thông tin</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // CÁC BIẾN TOÀN CỤC CHO VOUCHERS LIST
+        let vCurrentPage = 0;
+        let vPageSize = 10;
+        let vTotalPages = 1;
+
+        // CÁC BIẾN TOÀN CỤC CHO CUSTOMER SELECTION (CHO PHIẾU CÁ NHÂN)
+        let custCurrentPage = 0;
+        let custPageSize = 5;
+        let custTotalPages = 1;
+        let selectedCustomerIds = new Set(); // Chứa danh sách ID khách hàng đã chọn
+        let displayedCustomerIdsOnPage = []; // Chứa danh sách ID khách hàng hiển thị trang hiện tại
+
+        // Khởi chạy khi DOM load xong
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            loadVouchersTable();
+            
+            // Đặt ngày mặc định cho bộ lọc và biểu mẫu thêm mới
+            const startInput = document.getElementById("voucher-start-date");
+            const endInput = document.getElementById("voucher-end-date");
+            
+            // Mặc định ngày bắt đầu là hiện tại, kết thúc sau 3 ngày
+            const now = new Date();
+            const future = new Date();
+            future.setDate(now.getDate() + 3);
+
+            startInput.value = formatDateLocalDate(now);
+            endInput.value = formatDateLocalDate(future);
+
+            // Vô hiệu hóa các ngày trong quá khứ đối với ngày kết thúc
+            endInput.min = formatDateLocalDate(now);
+        });
+
+        // Hàm format Date thành chuỗi yyyy-MM-dd để nhét vào input date
+        function formatDateLocalDate(date) {
+            const yyyy = date.getFullYear();
+            const MM = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${MM}-${dd}`;
+        }
+
+        // =========================================================================
+        // SECTION 1: XỬ LÝ DANH SÁCH PHIẾU GIẢM GIÁ (VOUCHER LIST OPERATIONS)
+        // =========================================================================
+
+        // Tải dữ liệu voucher từ API
+        async function loadVouchersTable() {
+            const search = document.getElementById("filter-search").value;
+            const loaiGiam = document.getElementById("filter-loai-giam").value;
+            const loaiPhieu = document.getElementById("filter-loai-phieu").value;
+            const start = document.getElementById("filter-start-date").value;
+            const end = document.getElementById("filter-end-date").value;
+
+            let url = `/api/phieu-giam-gia?page=${vCurrentPage}&size=${vPageSize}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (loaiGiam) url += `&loaiGiamGia=${encodeURIComponent(loaiGiam)}`;
+            if (loaiPhieu) url += `&loaiPhieu=${encodeURIComponent(loaiPhieu)}`;
+            if (start) url += `&ngayBatDau=${encodeURIComponent(start + "T00:00:00")}`;
+            if (end) url += `&ngayKetThuc=${encodeURIComponent(end + "T23:59:59")}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách phiếu giảm giá");
+                const data = await response.json();
+                renderVouchersTable(data);
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi kết nối API: " + err.message);
+            }
+        }
+
+        // Render dữ liệu voucher vào bảng
+        function renderVouchersTable(pageData) {
+            const tbody = document.getElementById("voucher-table-body");
+            tbody.innerHTML = "";
+
+            const list = pageData.content || [];
+            vTotalPages = pageData.totalPages || 1;
+            const totalElements = pageData.totalElements || 0;
+
+            document.getElementById("voucher-total-count").innerText = `Tổng ${totalElements} phiếu giảm giá`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <span>Không tìm thấy phiếu giảm giá nào.</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                renderVoucherPagination();
+                lucide.createIcons();
+                return;
+            }
+
+            list.forEach((voucher, index) => {
+                const tr = document.createElement("tr");
+
+                // STT
+                const sttTd = `<td style="text-align: center; font-weight: 500; color: #64748b;">${vCurrentPage * vPageSize + index + 1}</td>`;
+                
+                // Mã & Tên
+                const maTd = `<td style="font-weight: 600; color: #0f172a;">${voucher.maVoucher}</td>`;
+                const tenTd = `<td><div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${voucher.tenVoucher}">${voucher.tenVoucher}</div></td>`;
+
+                // Loại & Đối tượng Badges
+                const loaiBadge = voucher.loaiGiamGia === "Tiền mặt" 
+                    ? `<span class="badge badge-cash">Tiền mặt</span>` 
+                    : `<span class="badge badge-percent">Phần trăm</span>`;
+                const loaiTd = `<td>${loaiBadge}</td>`;
+
+                const doiTuongBadge = voucher.loaiPhieu === "Cá nhân" 
+                    ? `<span class="badge badge-individual">Cá nhân</span>` 
+                    : `<span class="badge badge-public">Công khai</span>`;
+                const doiTuongTd = `<td>${doiTuongBadge}</td>`;
+
+                // Số lượng
+                const soLuongTd = `
+                    <td style="text-align: center;">
+                        <span style="font-weight: 600; color: #334155;">${voucher.soLuong}</span>
+                        <div style="font-size: 11px; color: #64748b;">Đã dùng: ${voucher.soLuongDaDung || 0}</div>
+                    </td>
+                `;
+
+                // Chi tiết ưu đãi
+                const giamText = voucher.loaiGiamGia === "Phần trăm" 
+                    ? `Giảm: <span class="text-danger">${voucher.giaTriGiam}%</span>`
+                    : `Giảm: <span class="text-danger">${formatCurrency(voucher.giaTriGiam)} đ</span>`;
+                
+                const toiDaText = voucher.loaiGiamGia === "Phần trăm"
+                    ? `Tối đa: ${formatCurrency(voucher.giamToiDa)} đ`
+                    : `Tối đa: 0 đ`;
+
+                const uuDaiTd = `
+                    <td>
+                        <div class="detail-text">
+                            <div>${giamText}</div>
+                            <div class="text-muted">${toiDaText}</div>
+                            <div class="text-muted">Đơn tối thiểu: ${formatCurrency(voucher.donToiThieu)} đ</div>
+                        </div>
+                    </td>
+                `;
+
+                // Thời gian áp dụng
+                const thoiGianTd = `
+                    <td>
+                        <div style="font-size: 12px; line-height: 1.5; color: #334155;">
+                            <div><span class="text-muted">Từ:</span> ${formatDateTimeStr(voucher.ngayBatDau)}</div>
+                            <div><span class="text-muted">Đến:</span> ${formatDateTimeStr(voucher.ngayKetThuc)}</div>
+                        </div>
+                    </td>
+                `;
+
+                // Tính toán trạng thái thực tế dựa trên thời gian và db
+                const statusInfo = getVoucherStatus(voucher);
+                const trangThaiTd = `<td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>`;
+
+                // Hành động (Sửa, Switch trạng thái)
+                const isChecked = voucher.trangThai === 1 ? 'checked' : '';
+                const isExpired = statusInfo.text === "Hết hạn";
+                const switchHtml = isExpired ? '' : `
+                            <label class="switch-control" title="Bật/Tắt trạng thái">
+                                <input type="checkbox" ${isChecked} onchange="toggleVoucherActive(${voucher.id}, this.checked)">
+                                <span class="switch-slider"></span>
+                            </label>
+                `;
+                const hanhDongTd = `
+                    <td style="text-align: center;">
+                        <div class="btn-actions-cell" style="justify-content: center;">
+                            <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditVoucherForm(${voucher.id})">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            ${switchHtml}
+                        </div>
+                    </td>
+                `;
+
+                tr.innerHTML = sttTd + maTd + tenTd + loaiTd + doiTuongTd + soLuongTd + uuDaiTd + thoiGianTd + trangThaiTd + hanhDongTd;
+                tbody.appendChild(tr);
+            });
+
+            renderVoucherPagination();
+            lucide.createIcons();
+        }
+
+        // Tính trạng thái voucher
+        function getVoucherStatus(voucher) {
+            if (voucher.trangThai === 0) {
+                return { text: "Ngừng áp dụng", class: "badge-inactive" };
+            }
+            
+            const now = new Date();
+            const start = new Date(voucher.ngayBatDau);
+            const end = new Date(voucher.ngayKetThuc);
+
+            if (now < start) {
+                return { text: "Đang chờ", class: "badge-pending" };
+            } else if (now > end) {
+                return { text: "Hết hạn", class: "badge-inactive" };
+            } else {
+                return { text: "Đang áp dụng", class: "badge-active" };
+            }
+        }
+
+        // Định dạng tiền tệ VND
+        function formatCurrency(val) {
+            if (val === null || val === undefined) return "0";
+            return new Intl.NumberFormat('vi-VN').format(val);
+        }
+
+        // Định dạng datetime JSON thành dd/MM/yyyy HH:mm:ss
+        function formatDateTimeStr(dateArr) {
+            if (!dateArr) return "-";
+            // Date từ spring boot có thể là mảng [yyyy, MM, dd, hh, mm, ss] hoặc chuỗi ISO
+            if (Array.isArray(dateArr)) {
+                const yyyy = dateArr[0];
+                const MM = String(dateArr[1]).padStart(2, '0');
+                const dd = String(dateArr[2]).padStart(2, '0');
+                const hh = String(dateArr[3] || 0).padStart(2, '0');
+                const mm = String(dateArr[4] || 0).padStart(2, '0');
+                const ss = String(dateArr[5] || 0).padStart(2, '0');
+                return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+            }
+            const date = new Date(dateArr);
+            if (isNaN(date.getTime())) return dateArr;
+            const dd = String(date.getDate()).padStart(2, '0');
+            const MM = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            const ss = String(date.getSeconds()).padStart(2, '0');
+            return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+        }
+
+        // Vẽ các nút phân trang voucher
+        function renderVoucherPagination() {
+            const nav = document.getElementById("voucher-pagination");
+            nav.innerHTML = "";
+
+            // Nút lùi
+            const prev = document.createElement("button");
+            prev.className = `page-btn ${vCurrentPage === 0 ? 'disabled' : ''}`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>`;
+            prev.onclick = () => { if (vCurrentPage > 0) { vCurrentPage--; loadVouchersTable(); } };
+            nav.appendChild(prev);
+
+            // Các trang số
+            for (let i = 0; i < vTotalPages; i++) {
+                const btn = document.createElement("button");
+                btn.className = `page-btn ${i === vCurrentPage ? 'active' : ''}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => { vCurrentPage = i; loadVouchersTable(); };
+                nav.appendChild(btn);
+            }
+
+            // Nút tiến
+            const next = document.createElement("button");
+            next.className = `page-btn ${vCurrentPage >= vTotalPages - 1 ? 'disabled' : ''}`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>`;
+            next.onclick = () => { if (vCurrentPage < vTotalPages - 1) { vCurrentPage++; loadVouchersTable(); } };
+            nav.appendChild(next);
+        }
+
+        // Đổi page size của voucher
+        function changeVoucherPageSize(val) {
+            vPageSize = parseInt(val);
+            vCurrentPage = 0;
+            loadVouchersTable();
+        }
+
+        // Áp dụng bộ lọc voucher
+        function applyVoucherFilters() {
+            vCurrentPage = 0;
+            loadVouchersTable();
+        }
+
+        // Reset bộ lọc voucher
+        function resetVoucherFilters() {
+            document.getElementById("filter-search").value = "";
+            document.getElementById("filter-loai-giam").value = "";
+            document.getElementById("filter-loai-phieu").value = "";
+            document.getElementById("filter-start-date").value = "";
+            document.getElementById("filter-end-date").value = "";
+            vCurrentPage = 0;
+            loadVouchersTable();
+        }
+
+        // Toggle nhanh bật/tắt hoạt động của voucher
+        async function toggleVoucherActive(id, isChecked) {
+            const status = isChecked ? 1 : 0;
+            try {
+                const response = await fetch(`/api/phieu-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                    method: "PATCH"
+                });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+                }
+                loadVouchersTable();
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+                loadVouchersTable();
+            }
+        }
+
+        // Xuất Excel danh sách voucher
+        function exportVouchersExcel() {
+            const search = document.getElementById("filter-search").value;
+            const loaiGiam = document.getElementById("filter-loai-giam").value;
+            const loaiPhieu = document.getElementById("filter-loai-phieu").value;
+            const start = document.getElementById("filter-start-date").value;
+            const end = document.getElementById("filter-end-date").value;
+
+            let url = `/api/phieu-giam-gia/export?`;
+            if (search) url += `search=${encodeURIComponent(search)}&`;
+            if (loaiGiam) url += `loaiGiamGia=${encodeURIComponent(loaiGiam)}&`;
+            if (loaiPhieu) url += `loaiPhieu=${encodeURIComponent(loaiPhieu)}&`;
+            if (start) url += `ngayBatDau=${encodeURIComponent(start + "T00:00:00")}&`;
+            if (end) url += `ngayKetThuc=${encodeURIComponent(end + "T23:59:59")}&`;
+
+            window.location.href = url;
+        }
+
+
+        // =========================================================================
+        // SECTION 2: XỬ LÝ BIỂU MẪU THÊM MỚI / SỬA PHIẾU (FORM OPERATIONS)
+        // =========================================================================
+
+        // Plus/Minus helper cho các input number
+        function adjustNumberInput(id, delta) {
+            const input = document.getElementById(id);
+            if (input.disabled) return;
+            
+            let val = parseInt(input.value) || 0;
+            val += delta;
+            
+            if (input.min !== "" && val < parseInt(input.min)) {
+                val = parseInt(input.min);
+            }
+            
+            input.value = val;
+            
+            // Kích hoạt sự kiện oninput nếu có
+            const event = new Event('input', { bubbles: true });
+            input.dispatchEvent(event);
+        }
+
+        // Đếm ký tự cho textarea mô tả
+        function updateCharCount(textarea) {
+            const label = document.getElementById("desc-char-count");
+            label.innerText = `${textarea.value.length}/500`;
+        }
+
+        // Bật tắt UI dựa trên hình thức giảm (% hoặc VND)
+        function toggleDiscountType() {
+            const checkedRadio = document.querySelector('input[name="loaiGiamGia"]:checked');
+            const loaiGiamVal = checkedRadio ? checkedRadio.value : "Phần trăm";
+            const maxDiscountInput = document.getElementById("voucher-max-discount");
+            
+            if (loaiGiamVal === "Tiền mặt") {
+                maxDiscountInput.disabled = true;
+                maxDiscountInput.value = "";
+                maxDiscountInput.placeholder = "Chỉ áp dụng khi giảm theo %";
+            } else {
+                maxDiscountInput.disabled = false;
+                maxDiscountInput.placeholder = "Nhập mức giảm tối đa...";
+            }
+        }
+
+        // Bật tắt UI dựa trên loại phiếu (Công khai hoặc Cá nhân)
+        function toggleVoucherType() {
+            const checkedRadio = document.querySelector('input[name="loaiPhieu"]:checked');
+            const loaiPhieuVal = checkedRadio ? checkedRadio.value : "Công khai";
+            const qtyInput = document.getElementById("voucher-quantity");
+            const btnQtyMinus = document.getElementById("btn-qty-minus");
+            const btnQtyPlus = document.getElementById("btn-qty-plus");
+            const customerSection = document.getElementById("customer-select-section");
+
+            if (loaiPhieuVal === "Cá nhân") {
+                qtyInput.disabled = true;
+                qtyInput.value = selectedCustomerIds.size;
+                qtyInput.placeholder = "Tự động theo số KH chọn";
+                btnQtyMinus.style.pointerEvents = "none";
+                btnQtyMinus.style.opacity = "0.5";
+                btnQtyPlus.style.pointerEvents = "none";
+                btnQtyPlus.style.opacity = "0.5";
+                
+                customerSection.style.display = "block";
+                loadCustomersTable();
+            } else {
+                qtyInput.disabled = false;
+                qtyInput.placeholder = "Nhập số lượng phát hành...";
+                btnQtyMinus.style.pointerEvents = "auto";
+                btnQtyMinus.style.opacity = "1";
+                btnQtyPlus.style.pointerEvents = "auto";
+                btnQtyPlus.style.opacity = "1";
+                
+                customerSection.style.display = "none";
+            }
+        }
+
+        // Mở màn hình thêm mới voucher
+        function openAddVoucherForm() {
+            document.getElementById("voucher-form").reset();
+            document.getElementById("voucher-id").value = "";
+            document.getElementById("form-panel-title").innerText = "Thêm mới phiếu giảm giá";
+            
+            selectedCustomerIds.clear();
+            document.getElementById("cust-selected-label").innerText = "0";
+
+            // Thiết lập giá trị mặc định cho ngày
+            const now = new Date();
+            const future = new Date();
+            future.setDate(now.getDate() + 3);
+            document.getElementById("voucher-start-date").value = formatDateLocalDate(now);
+            const endInput = document.getElementById("voucher-end-date");
+            endInput.value = formatDateLocalDate(future);
+            endInput.min = formatDateLocalDate(now);
+
+            // Bật tắt control về trạng thái mặc định
+            toggleDiscountType();
+            toggleVoucherType();
+
+            // Chuyển panel
+            document.getElementById("list-panel").classList.remove("active");
+            document.getElementById("form-panel").classList.add("active");
+            
+            window.scrollTo(0, 0);
+            lucide.createIcons();
+        }
+
+        // Mở màn hình chỉnh sửa voucher
+        async function openEditVoucherForm(id) {
+            try {
+                const resVoucher = await fetch(`/api/phieu-giam-gia/${id}`);
+                if (!resVoucher.ok) throw new Error("Không thể tải thông tin phiếu giảm giá");
+                const voucher = await resVoucher.json();
+
+                // Điền thông tin cơ bản vào form
+                document.getElementById("voucher-id").value = voucher.id;
+                document.getElementById("voucher-name").value = voucher.tenVoucher;
+                
+                // Chọn radio button hình thức giảm
+                const radiosLoaiGiam = document.querySelectorAll('input[name="loaiGiamGia"]');
+                let foundGiam = false;
+                radiosLoaiGiam.forEach(r => {
+                    r.checked = (r.value === voucher.loaiGiamGia);
+                    if (r.checked) foundGiam = true;
+                });
+                if (!foundGiam && radiosLoaiGiam.length > 0) {
+                    radiosLoaiGiam[0].checked = true; // mặc định Phần trăm
+                }
+
+                // Chọn radio button loại phiếu
+                const radiosLoaiPhieu = document.querySelectorAll('input[name="loaiPhieu"]');
+                let foundPhieu = false;
+                radiosLoaiPhieu.forEach(r => {
+                    r.checked = (r.value === voucher.loaiPhieu);
+                    if (r.checked) foundPhieu = true;
+                });
+                if (!foundPhieu && radiosLoaiPhieu.length > 0) {
+                    radiosLoaiPhieu[0].checked = true; // mặc định Công khai
+                }
+
+                document.getElementById("voucher-discount-val").value = voucher.giaTriGiam;
+                document.getElementById("voucher-max-discount").value = voucher.giamToiDa || "";
+                document.getElementById("voucher-min-order").value = voucher.donToiThieu;
+                document.getElementById("voucher-quantity").value = voucher.soLuong;
+                
+                // Format date về dạng ISO local datetime string
+                document.getElementById("voucher-start-date").value = formatIsoString(voucher.ngayBatDau);
+                const endInput = document.getElementById("voucher-end-date");
+                endInput.value = formatIsoString(voucher.ngayKetThuc);
+                endInput.min = formatDateLocalDate(new Date());
+                
+                selectedCustomerIds.clear();
+
+                // Nếu là phiếu cá nhân thì lấy danh sách ID khách hàng cũ đã gán
+                if (voucher.loaiPhieu === "Cá nhân") {
+                    const resCustIds = await fetch(`/api/phieu-giam-gia/${id}/customer-ids`);
+                    if (resCustIds.ok) {
+                        const ids = await resCustIds.json();
+                        ids.forEach(cid => selectedCustomerIds.add(cid));
+                    }
+                }
+                
+                document.getElementById("cust-selected-label").innerText = selectedCustomerIds.size;
+                
+                // Thiết lập trạng thái UI và nạp bảng khách hàng
+                toggleDiscountType();
+                toggleVoucherType();
+
+                document.getElementById("form-panel-title").innerText = `Cập nhật phiếu giảm giá: ${voucher.maVoucher}`;
+
+                // Chuyển panel
+                document.getElementById("list-panel").classList.remove("active");
+                document.getElementById("form-panel").classList.add("active");
+
+                window.scrollTo(0, 0);
+                lucide.createIcons();
+
+            } catch (err) {
+                alert("Lỗi tải chi tiết: " + err.message);
+            }
+        }
+
+        // Format Date Array hoặc string từ server thành yyyy-MM-dd
+        function formatIsoString(dateArr) {
+            if (!dateArr) return "";
+            let date;
+            if (Array.isArray(dateArr)) {
+                // [yyyy, MM, dd]
+                const yyyy = dateArr[0];
+                const MM = String(dateArr[1]).padStart(2, '0');
+                const dd = String(dateArr[2]).padStart(2, '0');
+                return `${yyyy}-${MM}-${dd}`;
+            } else {
+                date = new Date(dateArr);
+            }
+            if (isNaN(date.getTime())) return dateArr;
+            return formatDateLocalDate(date);
+        }
+
+        // Quay lại màn hình danh sách
+        function backToListPanel() {
+            document.getElementById("form-panel").classList.remove("active");
+            document.getElementById("list-panel").classList.add("active");
+            loadVouchersTable();
+            window.scrollTo(0, 0);
+        }
+
+        // Lưu thông tin phiếu (Thêm mới / Cập nhật)
+        async function saveVoucher(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("voucher-id").value;
+            const tenVoucher = document.getElementById("voucher-name").value.trim();
+            const checkedLoaiGiam = document.querySelector('input[name="loaiGiamGia"]:checked');
+            const loaiGiamGia = checkedLoaiGiam ? checkedLoaiGiam.value : "Phần trăm";
+            const checkedLoaiPhieu = document.querySelector('input[name="loaiPhieu"]:checked');
+            const loaiPhieu = checkedLoaiPhieu ? checkedLoaiPhieu.value : "Công khai";
+            const giaTriGiam = parseFloat(document.getElementById("voucher-discount-val").value);
+            const giamToiDaVal = document.getElementById("voucher-max-discount").value;
+            const giamToiDa = giamToiDaVal !== "" ? parseFloat(giamToiDaVal) : null;
+            const donToiThieu = parseFloat(document.getElementById("voucher-min-order").value);
+            const soLuongVal = document.getElementById("voucher-quantity").value;
+            const soLuong = soLuongVal !== "" ? parseInt(soLuongVal) : 0;
+            const ngayBatDauVal = document.getElementById("voucher-start-date").value;
+            const ngayKetThucVal = document.getElementById("voucher-end-date").value;
+
+            // Kiểm tra ràng buộc phía client
+            if (new Date(ngayBatDauVal) > new Date(ngayKetThucVal)) {
+                alert("Lỗi: Ngày bắt đầu phải diễn ra trước hoặc cùng ngày với ngày kết thúc!");
+                return;
+            }
+
+            if (loaiGiamGia === "Phần trăm" && (giaTriGiam < 1 || giaTriGiam > 100)) {
+                alert("Lỗi: Giá trị giảm theo % phải nằm trong khoảng 1% - 100%!");
+                return;
+            }
+
+            if (loaiGiamGia === "Tiền mặt") {
+                if (giaTriGiam > donToiThieu) {
+                    alert("Lỗi: Giá trị giảm không được lớn hơn hóa đơn tối thiểu!");
+                    return;
+                }
+            } else if (loaiGiamGia === "Phần trăm") {
+                if (giamToiDa !== null && !isNaN(giamToiDa) && giamToiDa > donToiThieu) {
+                    alert("Lỗi: Giảm tối đa không được lớn hơn hóa đơn tối thiểu!");
+                    return;
+                }
+            }
+
+            if (loaiPhieu === "Cá nhân" && selectedCustomerIds.size === 0) {
+                alert("Lỗi: Đối tượng cá nhân yêu cầu bạn chọn ít nhất 1 khách hàng nhận phiếu!");
+                return;
+            }
+
+            // Chuẩn bị payload gửi đi
+            const payload = {
+                tenVoucher,
+                loaiGiamGia,
+                loaiPhieu,
+                giaTriGiam,
+                donToiThieu,
+                giamToiDa: loaiGiamGia === "Phần trăm" ? giamToiDa : 0,
+                soLuong: loaiPhieu === "Cá nhân" ? selectedCustomerIds.size : soLuong,
+                ngayBatDau: ngayBatDauVal + "T00:00:00",
+                ngayKetThuc: ngayKetThucVal + "T23:59:59",
+                trangThai: 1, // mặc định hoạt động
+                customerIds: loaiPhieu === "Cá nhân" ? Array.from(selectedCustomerIds) : []
+            };
+
+            const url = id ? `/api/phieu-giam-gia/${id}` : "/api/phieu-giam-gia";
+            const method = id ? "PUT" : "POST";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.message || "Lỗi lưu thông tin phiếu giảm giá");
+                }
+
+                alert(id ? "Cập nhật phiếu giảm giá thành công!" : "Thêm mới phiếu giảm giá thành công!");
+                backToListPanel();
+            } catch (err) {
+                alert("Thao tác thất bại: " + err.message);
+            }
+        }
+
+
+        // =========================================================================
+        // SECTION 3: XỬ LÝ CHỌN KHÁCH HÀNG (CUSTOMER SELECTION OPERATIONS)
+        // =========================================================================
+
+        // Tải dữ liệu khách hàng kèm thống kê mua hàng
+        async function loadCustomersTable() {
+            const search = document.getElementById("cust-filter-search").value;
+            const month = document.getElementById("cust-filter-month").value;
+            const year = document.getElementById("cust-filter-year").value;
+
+            let url = `/api/phieu-giam-gia/khach-hang-statistics?page=${custCurrentPage}&size=${custPageSize}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (month) url += `&month=${month}`;
+            if (year) url += `&year=${year}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách khách hàng");
+                const data = await response.json();
+                renderCustomersTable(data);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Render dữ liệu khách hàng vào bảng con
+        function renderCustomersTable(pageData) {
+            const tbody = document.getElementById("cust-table-body");
+            tbody.innerHTML = "";
+
+            const list = pageData.content || [];
+            custTotalPages = pageData.totalPages || 1;
+            const totalElements = pageData.totalElements || 0;
+
+            document.getElementById("cust-total-count").innerText = `Tổng ${totalElements} khách hàng`;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #94a3b8; padding: 24px;">
+                            Không tìm thấy khách hàng nào khớp bộ lọc.
+                        </td>
+                    </tr>
+                `;
+                renderCustPagination();
+                return;
+            }
+
+            displayedCustomerIdsOnPage = list.map(c => c.id);
+
+            list.forEach((customer, index) => {
+                const tr = document.createElement("tr");
+
+                // Checkbox
+                const isChecked = selectedCustomerIds.has(customer.id) ? "checked" : "";
+                const checkboxTd = `
+                    <td class="checkbox-cell">
+                        <input type="checkbox" value="${customer.id}" ${isChecked} onchange="toggleCustomerSelect(${customer.id}, this.checked)">
+                    </td>
+                `;
+
+                // Các cột dữ liệu
+                const maTd = `<td style="font-weight: 500;">${customer.maKhachHang}</td>`;
+                const tenTd = `<td style="font-weight: 600; color: #1e293b;">${customer.hoTen}</td>`;
+                const sdtTd = `<td>${customer.soDienThoai || "-"}</td>`;
+                const emailTd = `<td>${customer.email || "-"}</td>`;
+                const dobTd = `<td>${formatDate(customer.ngaySinh)}</td>`;
+                
+                const ngayDatTd = `<td>${formatDateTimeStr(customer.ngayDatGanNhat)}</td>`;
+                const soLanDatTd = `<td style="text-align: center; font-weight: 500;">${customer.soLanDat}</td>`;
+                const tongTienTd = `<td style="text-align: right; font-weight: 600; color: #1e3a8a;">${formatCurrency(customer.tongTienDaDat)} đ</td>`;
+
+                tr.innerHTML = checkboxTd + maTd + tenTd + sdtTd + emailTd + dobTd + ngayDatTd + soLanDatTd + tongTienTd;
+                tbody.appendChild(tr);
+            });
+
+            // Cập nhật trạng thái checkbox "Chọn tất cả" trên header trang hiện tại
+            updateHeaderCheckboxState();
+            renderCustPagination();
+        }
+
+        // Định dạng ngày sinh dd/MM/yyyy
+        function formatDate(dateStr) {
+            if (!dateStr) return "-";
+            if (Array.isArray(dateStr)) {
+                return `${String(dateStr[2]).padStart(2, '0')}-${String(dateStr[1]).padStart(2, '0')}-${dateStr[0]}`;
+            }
+            const parts = dateStr.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Xử lý sự kiện click checkbox của từng khách hàng
+        function toggleCustomerSelect(customerId, isChecked) {
+            if (isChecked) {
+                selectedCustomerIds.add(customerId);
+            } else {
+                selectedCustomerIds.delete(customerId);
+            }
+            
+            // Cập nhật số lượng đã chọn hiển thị trên UI
+            document.getElementById("cust-selected-label").innerText = selectedCustomerIds.size;
+            
+            // Gán lại số lượng sử dụng của phiếu tự động
+            document.getElementById("voucher-quantity").value = selectedCustomerIds.size;
+
+            updateHeaderCheckboxState();
+        }
+
+        // Cập nhật trạng thái của checkbox đầu bảng
+        function updateHeaderCheckboxState() {
+            const headerCheckbox = document.getElementById("check-all-customers");
+            if (displayedCustomerIdsOnPage.length === 0) {
+                headerCheckbox.checked = false;
+                return;
+            }
+            
+            const allChecked = displayedCustomerIdsOnPage.every(id => selectedCustomerIds.has(id));
+            headerCheckbox.checked = allChecked;
+        }
+
+        // Bật/tắt tất cả khách hàng trên TRANG HIỆN TẠI bằng checkbox đầu bảng
+        function toggleSelectAllPage(isChecked) {
+            displayedCustomerIdsOnPage.forEach(id => {
+                if (isChecked) {
+                    selectedCustomerIds.add(id);
+                } else {
+                    selectedCustomerIds.delete(id);
+                }
+            });
+
+            // Cập nhật UI
+            document.getElementById("cust-selected-label").innerText = selectedCustomerIds.size;
+            document.getElementById("voucher-quantity").value = selectedCustomerIds.size;
+
+            // Render lại bảng để check/uncheck các checkbox
+            loadCustomersTable();
+        }
+
+        // Nút "Chọn tất cả" (Chọn toàn bộ khách hàng trên trang hiện tại)
+        function selectAllCurrentPageCustomers() {
+            toggleSelectAllPage(true);
+        }
+
+        // Vẽ các nút phân trang khách hàng
+        function renderCustPagination() {
+            const nav = document.getElementById("cust-pagination");
+            nav.innerHTML = "";
+
+            const prev = document.createElement("button");
+            prev.type = "button";
+            prev.className = `page-btn ${custCurrentPage === 0 ? 'disabled' : ''}`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>`;
+            prev.onclick = () => { if (custCurrentPage > 0) { custCurrentPage--; loadCustomersTable(); } };
+            nav.appendChild(prev);
+
+            for (let i = 0; i < custTotalPages; i++) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = `page-btn ${i === custCurrentPage ? 'active' : ''}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => { custCurrentPage = i; loadCustomersTable(); };
+                nav.appendChild(btn);
+            }
+
+            const next = document.createElement("button");
+            next.type = "button";
+            next.className = `page-btn ${custCurrentPage >= custTotalPages - 1 ? 'disabled' : ''}`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>`;
+            next.onclick = () => { if (custCurrentPage < custTotalPages - 1) { custCurrentPage++; loadCustomersTable(); } };
+            nav.appendChild(next);
+            
+            lucide.createIcons();
+        }
+
+        // Đổi page size của bảng khách hàng
+        function changeCustPageSize(val) {
+            custPageSize = parseInt(val);
+            custCurrentPage = 0;
+            loadCustomersTable();
+        }
+
+        // Lọc danh sách khách hàng
+        function applyCustFilters() {
+            custCurrentPage = 0;
+            loadCustomersTable();
+        }
+    </script>
+</body>
+</html>

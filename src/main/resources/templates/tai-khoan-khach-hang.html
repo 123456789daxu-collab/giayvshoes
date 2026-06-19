@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khách hàng | VShoes</title>
+    <!-- Nhúng CSS sidebar dùng chung -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/khach-hang.css">
+    
+    <!-- SweetAlert2 for beautiful popups -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Nhúng Sidebar dùng chung -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- NỘI DUNG CHÍNH CỦA TRANG QUẢN LÝ KHÁCH HÀNG -->
+        <main class="main-content">
+
+            <!-- Filter Section -->
+            <div style="background: white; border-radius: 12px; padding: 24px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 24px;">
+                <h3 style="font-size: 15px; margin: 0 0 20px 0; color: #333; font-weight: 700;">Bộ lọc tìm kiếm</h3>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <!-- Tìm kiếm -->
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 8px;">Tìm kiếm</label>
+                        <div style="position: relative;">
+                            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8;"></i>
+                            <input type="text" id="search-input" placeholder="Tìm kiếm" oninput="applyFilters()" style="width: 100%; padding: 8px 12px 8px 32px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; box-sizing: border-box; outline: none;">
+                        </div>
+                    </div>
+                    
+                    <!-- Giới tính -->
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 8px;">Giới tính</label>
+                        <select id="gender-select" onchange="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; box-sizing: border-box; outline: none; color: #444; background-color: white;">
+                            <option value="all">Tất cả</option>
+                            <option value="true">Nam</option>
+                            <option value="false">Nữ</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Ngày sinh -->
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 8px;">Ngày sinh</label>
+                        <input type="date" id="dob-input" onchange="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; box-sizing: border-box; outline: none; color: #666;">
+                    </div>
+                    
+                    <!-- Trạng thái -->
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 8px;">Trạng thái</label>
+                        <select id="status-select" onchange="applyFilters()" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; box-sizing: border-box; outline: none; color: #444; background-color: white;">
+                            <option value="all">Tất cả</option>
+                            <option value="1">Hoạt động</option>
+                            <option value="0">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Refresh Button -->
+                    <div>
+                        <button onclick="resetFilters()" title="Làm mới bộ lọc" style="background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); color: white; border: none; border-radius: 8px; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2); transition: transform 0.2s;"><i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách khách hàng Card -->
+            <div class="content-card" style="background: white; border-radius: 12px; padding: 24px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="font-size: 15px; margin: 0; color: #333; font-weight: 700;">Danh sách khách hàng</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btnExportExcel" style="padding: 8px 14px; background: white; color: #2563eb; border: 1px solid #2563eb; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#2563eb'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#2563eb'">
+                            <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Xuất Excel
+                        </button>
+                        <button class="btn-action-icon" onclick="openAddCustomerModal()" style="padding: 8px 14px; background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2); width: auto;">
+                            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                            Thêm Khách hàng
+                        </button>
+                    </div>
+                </div>
+
+                <div class="custom-table-container">
+                    <table class="customer-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
+                                <th style="width: 70px; text-align: center;">Ảnh</th>
+                                <th style="width: 120px;">Mã khách hàng</th>
+                                <th style="width: 180px;">Tên khách hàng</th>
+                                <th style="width: 90px;">Giới tính</th>
+                                <th style="width: 120px;">Số điện thoại</th>
+                                <th style="width: 180px;">Email</th>
+                                <th style="width: 130px;">Trạng thái</th>
+                                <th style="width: 160px; text-align: center;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customer-table-body">
+                            <!-- Dữ liệu được render động bằng JavaScript bên dưới -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BẢNG PHÂN TRANG & THÔNG TIN TỔNG HỢP -->
+                <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px;">
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <button class="page-btn disabled" id="prev-page-btn" onclick="changePage(-1)">
+                                <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                            </button>
+                            <div id="page-numbers-container" style="display: flex; gap: 6px;">
+                                <button class="page-btn active">1</button>
+                            </div>
+                            <button class="page-btn disabled" id="next-page-btn" onclick="changePage(1)">
+                                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
+                        <div class="page-size-selector">
+                            <select class="page-size-select" id="page-size-select" onchange="changePageSize(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 13px; color: #333; cursor: pointer;">
+                                <option value="10">10</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- HỘP THOẠI THÊM / CHỈNH SỬA KHÁCH HÀNG -->
+    <div id="customer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="customer-modal-title" class="modal-title">Thêm Khách Hàng Mới</span>
+                <button class="close-btn" onclick="closeCustomerModal()">&times;</button>
+            </div>
+            <form id="customer-form" onsubmit="saveCustomer(event)">
+                <input type="hidden" id="cust-id">
+                
+                <!-- Custom Drag and Drop Avatar area -->
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; font-weight: 500; color: #475569; display: block; margin-bottom: 8px;">Ảnh đại diện</label>
+                    <div class="avatar-upload-container" id="custAvatarDropZone" style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 20px; cursor: pointer; transition: all 0.3s ease; background: #f8fafc;">
+                        <div class="avatar-preview-box" style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0;">
+                            <img id="custAvatarImg" src="/images/avatars/default.png" alt="Avatar preview" onerror="this.src='/images/avatars/default.png'" style="width: 100%; height: 100%; object-fit: cover;"/>
+                        </div>
+                        <div class="upload-actions" style="display: flex; flex-direction: column; gap: 4px;">
+                            <span class="btn-upload-trigger" style="color: #4f46e5; font-weight: 600; font-size: 14px;"><i data-lucide="upload-cloud" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"></i>Tải ảnh lên</span>
+                            <span class="upload-tip" style="font-size: 12px; color: #64748b;">Nhấp hoặc kéo thả tệp tin ảnh vào vùng này (Tối đa 3MB)</span>
+                            <input type="file" id="custAvatar" accept="image/*" style="display: none;" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label for="cust-name">Họ và tên <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="cust-name" class="input-control" required placeholder="Nhập họ và tên">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-phone">Số điện thoại <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="cust-phone" class="input-control" required placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-email">Email</label>
+                        <input type="email" id="cust-email" class="input-control" placeholder="Nhập địa chỉ email">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-gender">Giới tính <span style="color: #ef4444;">*</span></label>
+                        <select id="cust-gender" class="input-control" required>
+                            <option value="true">Nam</option>
+                            <option value="false">Nữ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-dob">Ngày sinh</label>
+                        <input type="date" id="cust-dob" class="input-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="cust-status">Trạng thái</label>
+                        <select id="cust-status" class="input-control">
+                            <option value="1">Hoạt động</option>
+                            <option value="0">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Địa chỉ mặc định ban đầu (Chỉ cho phép nhập khi Thêm mới) -->
+                <div id="initial-address-section">
+                    <div class="section-divider"></div>
+                    <span class="section-title">Địa chỉ mặc định ban đầu</span>
+                    <div class="modal-grid" style="margin-top: 14px;">
+                        <div class="form-group">
+                            <label for="addr-province">Tỉnh / Thành phố</label>
+                            <input type="text" id="addr-province" class="input-control" placeholder="Tỉnh / Thành phố">
+                        </div>
+                        <div class="form-group">
+                            <label for="addr-district">Quận / Huyện</label>
+                            <input type="text" id="addr-district" class="input-control" placeholder="Quận / Huyện">
+                        </div>
+                        <div class="form-group">
+                            <label for="addr-ward">Phường / Xã</label>
+                            <input type="text" id="addr-ward" class="input-control" placeholder="Phường / Xã">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="addr-detail">Địa chỉ chi tiết</label>
+                            <input type="text" id="addr-detail" class="input-control" placeholder="Số nhà, ngõ, tên đường...">
+                        </div>
+                        <div class="form-group">
+                            <label for="addr-type">Loại địa chỉ</label>
+                            <select id="addr-type" class="input-control">
+                                <option value="Nhà riêng">Nhà riêng</option>
+                                <option value="Văn phòng">Văn phòng</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeCustomerModal()">Hủy</button>
+                    <button type="submit" class="btn-primary-action">Lưu thông tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- HỘP THOẠI CHI TIẾT KHÁCH HÀNG & QUẢN LÝ ĐỊA CHỈ -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <span class="modal-title">Thông Tin Chi Tiết Khách Hàng</span>
+                <button class="close-btn" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="detail-layout">
+                <!-- Thẻ Thông tin cá nhân -->
+                <div class="detail-card-panel">
+                    <div class="detail-avatar-container">
+                        <div id="detail-avatar" class="avatar-placeholder-large">U</div>
+                        <span id="detail-name" class="detail-fullname">Nguyễn Văn A</span>
+                        <span id="detail-code" class="detail-code-badge">KH00001</span>
+                    </div>
+                    <div class="detail-info-list">
+                        <div class="detail-info-item">
+                            <span class="info-label">Số điện thoại:</span>
+                            <span id="detail-phone" class="info-val">-</span>
+                        </div>
+                        <div class="detail-info-item">
+                            <span class="info-label">Email:</span>
+                            <span id="detail-email" class="info-val">-</span>
+                        </div>
+                        <div class="detail-info-item">
+                            <span class="info-label">Giới tính:</span>
+                            <span id="detail-gender" class="info-val">-</span>
+                        </div>
+                        <div class="detail-info-item">
+                            <span class="info-label">Ngày sinh:</span>
+                            <span id="detail-dob" class="info-val">-</span>
+                        </div>
+                        <div class="detail-info-item">
+                            <span class="info-label">Trạng thái:</span>
+                            <span id="detail-status" class="info-val">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thẻ Quản lý địa chỉ -->
+                <div class="detail-address-panel">
+                    <div class="address-panel-header">
+                        <span class="panel-subtitle">Sổ địa chỉ liên hệ</span>
+                        <button class="btn-primary-action btn-sm" onclick="openAddAddressSubModal()">
+                            <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                            Thêm địa chỉ mới
+                        </button>
+                    </div>
+                    <div id="address-list-container" class="address-list-scroll">
+                        <!-- Địa chỉ load động ở đây -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDetailModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HỘP THOẠI THÊM / CẬP NHẬT ĐỊA CHỈ -->
+    <div id="address-modal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <span id="address-modal-title" class="modal-title">Địa Chỉ Mới</span>
+                <button class="close-btn" onclick="closeAddressModal()">&times;</button>
+            </div>
+            <form id="address-form" onsubmit="saveAddress(event)">
+                <input type="hidden" id="addr-id">
+                <input type="hidden" id="addr-cust-id">
+                
+                <div class="form-group">
+                    <label for="addr-recipient">Tên người nhận <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="addr-recipient" class="input-control" required placeholder="Họ tên người nhận">
+                </div>
+                <div class="form-group">
+                    <label for="addr-phone-input">Số điện thoại <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="addr-phone-input" class="input-control" required placeholder="Số điện thoại nhận hàng">
+                </div>
+                <div class="modal-grid">
+                    <div class="form-group">
+                        <label for="addr-prov">Tỉnh/Thành phố <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="addr-prov" class="input-control" required placeholder="Tỉnh / Thành phố">
+                    </div>
+                    <div class="form-group">
+                        <label for="addr-dist">Quận/Huyện <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="addr-dist" class="input-control" required placeholder="Quận / Huyện">
+                    </div>
+                    <div class="form-group">
+                        <label for="addr-w">Phường/Xã <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="addr-w" class="input-control" required placeholder="Phường / Xã">
+                    </div>
+                    <div class="form-group">
+                        <label for="addr-type-select">Loại địa chỉ</label>
+                        <select id="addr-type-select" class="input-control">
+                            <option value="Nhà riêng">Nhà riêng</option>
+                            <option value="Văn phòng">Văn phòng</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="addr-det">Địa chỉ chi tiết <span style="color: #ef4444;">*</span></label>
+                    <input type="text" id="addr-det" class="input-control" required placeholder="Số nhà, ngõ, đường phố...">
+                </div>
+                <div class="form-group-checkbox">
+                    <label class="gender-checkbox">
+                        <input type="checkbox" id="addr-default"> Đặt làm địa chỉ mặc định
+                    </label>
+                </div>
+                <div class="modal-footer" style="padding-top: 14px;">
+                    <button type="button" class="btn-secondary" onclick="closeAddressModal()">Hủy</button>
+                    <button type="submit" class="btn-primary-action">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Input file ẩn phục vụ việc Import Excel -->
+    <input type="file" id="excel-file-input" style="display: none;" accept=".xlsx, .xls" onchange="uploadExcelFile(this)">
+
+    <!-- Script thư viện Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Script kết nối API thực tế và xử lý giao diện -->
+    <script>
+        let currentStatusFilter = 'all'; // 'all', '1', '0'
+        let currentPage = 0; // 0-indexed cho Spring Boot Backend
+        let pageSize = 10;
+        let totalPages = 1;
+        let activeCustomerIdForAddress = null;
+
+        // Khởi chạy khi DOM load xong
+        document.addEventListener("DOMContentLoaded", () => {
+            // Setup avatar dropzone logic
+            const custDropZone = document.getElementById("custAvatarDropZone");
+            const custAvatarInput = document.getElementById("custAvatar");
+            
+            if(custDropZone && custAvatarInput) {
+                custDropZone.addEventListener("click", () => custAvatarInput.click());
+                
+                custAvatarInput.addEventListener("change", function(e) {
+                    if (this.files && this.files[0]) {
+                        handleCustAvatarPreview(this.files[0]);
+                    }
+                });
+
+                custDropZone.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    custDropZone.style.borderColor = "#4f46e5";
+                    custDropZone.style.backgroundColor = "#e0e7ff";
+                });
+
+                custDropZone.addEventListener("dragleave", (e) => {
+                    e.preventDefault();
+                    custDropZone.style.borderColor = "#cbd5e1";
+                    custDropZone.style.backgroundColor = "#f8fafc";
+                });
+
+                custDropZone.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    custDropZone.style.borderColor = "#cbd5e1";
+                    custDropZone.style.backgroundColor = "#f8fafc";
+                    
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        custAvatarInput.files = e.dataTransfer.files;
+                        handleCustAvatarPreview(e.dataTransfer.files[0]);
+                    }
+                });
+            }
+
+            loadTable();
+        });
+
+        function handleCustAvatarPreview(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById("custAvatarImg").src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Hệ thống thông báo (Toast) ---
+        function showToast(message, type = 'success') {
+            let toastContainer = document.getElementById("toast-container");
+            if (!toastContainer) {
+                toastContainer = document.createElement("div");
+                toastContainer.id = "toast-container";
+                toastContainer.style.cssText = "position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;";
+                document.body.appendChild(toastContainer);
+            }
+
+            const toast = document.createElement("div");
+            const bgColor = type === 'success' ? '#10b981' : '#ef4444';
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            
+            toast.style.cssText = `
+                background: ${bgColor}; color: white; padding: 14px 24px; border-radius: 8px;
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px;
+                font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+                transform: translateX(100%); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            `;
+
+            toast.innerHTML = `<i data-lucide="${icon}" style="width: 20px; height: 20px;"></i> <span>${message}</span>`;
+            toastContainer.appendChild(toast);
+            if (window.lucide) lucide.createIcons({ root: toast });
+
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+            }, 10);
+
+            // Animate out
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        document.getElementById("btnExportExcel").addEventListener("click", async () => {
+            const search = document.getElementById("search-input").value.trim();
+            const genderVal = document.getElementById("gender-select").value;
+            const dob = document.getElementById("dob-input").value;
+            const statusVal = document.getElementById("status-select").value;
+
+            let gioiTinh = "";
+            if (genderVal !== "all") gioiTinh = genderVal;
+
+            let statusValue = "";
+            if (statusVal !== "all") statusValue = statusVal;
+
+            // Fetch toàn bộ dữ liệu khớp với bộ lọc (size lớn)
+            const url = `/api/khach-hang?search=${encodeURIComponent(search)}&gioiTinh=${gioiTinh}&dob=${dob}&trangThai=${statusValue}&page=0&size=100000`;
+
+            showToast("Đang tải dữ liệu để xuất Excel...", "success");
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách");
+                const data = await response.json();
+                const list = data.content || [];
+                
+                if (list.length === 0) {
+                    showToast("Không có dữ liệu để xuất!", "error");
+                    return;
+                }
+
+                let csvContent = "\uFEFF"; // BOM for UTF-8
+                csvContent += "STT,Mã khách hàng,Tên khách hàng,Giới tính,Ngày sinh,Số điện thoại,Email,Trạng thái\n";
+
+                list.forEach((cust, index) => {
+                    const stt = index + 1;
+                    const gender = cust.gioiTinh ? "Nam" : "Nữ";
+                    const status = cust.trangThai === 1 ? "Hoạt động" : "Ngừng hoạt động";
+                    const row = [
+                        stt,
+                        cust.maKhachHang || '',
+                        `"${(cust.hoTen || '').replace(/"/g, '""')}"`,
+                        gender,
+                        cust.ngaySinh || '',
+                        `="${cust.soDienThoai || ''}"`, // Prevent losing leading zero
+                        `"${(cust.email || '').replace(/"/g, '""')}"`,
+                        status
+                    ].join(",");
+                    csvContent += row + "\n";
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const downloadUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", downloadUrl);
+                link.setAttribute("download", `Danh_sach_khach_hang_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi khi xuất Excel: " + error.message, "error");
+            }
+        });
+
+        // Hàm tải dữ liệu khách hàng từ API Backend
+        async function loadTable() {
+            const search = document.getElementById("search-input").value.trim();
+            const genderVal = document.getElementById("gender-select").value;
+            const dob = document.getElementById("dob-input").value;
+            const statusVal = document.getElementById("status-select").value;
+
+            let gioiTinh = "";
+            if (genderVal !== "all") gioiTinh = genderVal;
+
+            let statusValue = "";
+            if (statusVal !== "all") statusValue = statusVal;
+
+            const url = `/api/khach-hang?search=${encodeURIComponent(search)}&gioiTinh=${gioiTinh}&dob=${dob}&trangThai=${statusValue}&page=${currentPage}&size=${pageSize}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách khách hàng");
+                const data = await response.json();
+                renderTable(data);
+            } catch (error) {
+                console.error(error);
+                showToast("Lỗi kết nối máy chủ backend: " + error.message, "error");
+            }
+        }
+
+        // Hàm render dữ liệu vào bảng
+        function renderTable(pageData) {
+            const tableBody = document.getElementById("customer-table-body");
+            tableBody.innerHTML = "";
+
+            const list = pageData.content || [];
+            totalPages = pageData.totalPages || 1;
+            const totalElements = pageData.totalElements || 0;
+
+            const paginationInfo = document.getElementById("pagination-info");
+            if (paginationInfo) {
+                const fromElement = totalElements === 0 ? 0 : currentPage * pageSize + 1;
+                const toElement = Math.min((currentPage + 1) * pageSize, totalElements);
+                paginationInfo.innerText = `Hiển thị ${fromElement} - ${toElement} trong tổng số ${totalElements} khách hàng`;
+            }
+
+            if (list.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <span>Không tìm thấy khách hàng nào khớp với bộ lọc.</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                updatePaginationControls();
+                lucide.createIcons();
+                return;
+            }
+
+            list.forEach((customer, index) => {
+                const tr = document.createElement("tr");
+
+                // STT
+                const sttValue = currentPage * pageSize + index + 1;
+                const sttTd = `
+                    <td style="text-align: center; font-weight: 500; color: #64748b;">
+                        ${sttValue}
+                    </td>
+                `;
+
+                // Ảnh đại diện
+                const avatarContent = customer.anhDaiDien 
+                    ? `<img src="${customer.anhDaiDien}" alt="Avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" onerror="this.outerHTML='<div class=\\'avatar-placeholder\\'><i data-lucide=\\'user\\' style=\\'width: 20px; height: 20px; color: #94a3b8;\\'></i></div>'">`
+                    : `<div class="avatar-placeholder"><i data-lucide="user" style="width: 20px; height: 20px; color: #94a3b8;"></i></div>`;
+                const avatarTd = `
+                    <td style="text-align: center;">
+                        <div class="avatar-cell" style="display: flex; justify-content: center; align-items: center;">
+                            ${avatarContent}
+                        </div>
+                    </td>
+                `;
+
+                // Mã khách hàng (Tạo mã dựa trên STT)
+                const codeTd = `
+                    <td style="font-weight: 500; color: #64748b;">
+                        KH${String(sttValue).padStart(3, '0')}
+                    </td>
+                `;
+
+                // Tên khách hàng
+                const nameTd = `
+                    <td style="font-weight: 600; color: #1e293b;">
+                        ${customer.hoTen}
+                    </td>
+                `;
+
+                // Giới tính
+                const genderTd = `
+                    <td>${customer.gioiTinh === true ? "Nam" : "Nữ"}</td>
+                `;
+
+                // Số điện thoại
+                const phoneTd = `
+                    <td>
+                        <div style="display: flex; align-items: center; justify-content: flex-start; gap: 6px; color: #555;">
+                            <i data-lucide="phone" style="width: 14px; height: 14px; color: #d92d20;"></i> ${customer.soDienThoai || ''}
+                        </div>
+                    </td>
+                `;
+
+                // Email
+                const emailTd = `
+                    <td>
+                        <div style="display: flex; align-items: center; justify-content: flex-start; gap: 6px; color: #555;">
+                            <i data-lucide="mail" style="width: 14px; height: 14px; color: #026aa2;"></i> ${customer.email || ''}
+                        </div>
+                    </td>
+                `;
+
+                // Trạng thái hoạt động
+                const statusBadge = customer.trangThai === 1
+                    ? `<span class="badge badge-active">Hoạt động</span>`
+                    : `<span class="badge badge-inactive">Ngừng hoạt động</span>`;
+                const statusTd = `
+                    <td>${statusBadge}</td>
+                `;
+
+                // Hành động
+                const checkedAttr = customer.trangThai === 1 ? 'checked' : '';
+                const actionsTd = `
+                    <td style="text-align: center;">
+                        <div class="btn-actions-cell">
+                            <button class="action-icon-btn view" title="Sổ địa chỉ" onclick="openDetailModal(${customer.id})" style="color: #10b981; background: #ecfdf5; border: 1px solid #a7f3d0;">
+                                <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCustomerModal(${customer.id})" style="color: #f97316; background: #fff7ed; border: 1px solid #fdba74;">
+                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <button class="action-icon-btn delete" title="Xóa" onclick="deleteCustomer(${customer.id})" style="color: #ef4444; background: white; border: 1px solid #fca5a5; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; margin-right: 5px;">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </button>
+                            <label class="switch-control" title="Bật/Tắt trạng thái">
+                                <input type="checkbox" ${checkedAttr} onchange="toggleCustomerStatus(${customer.id}, this.checked)">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </td>
+                `;
+
+                tr.innerHTML = sttTd + avatarTd + codeTd + nameTd + genderTd + phoneTd + emailTd + statusTd + actionsTd;
+                tableBody.appendChild(tr);
+
+                // Fetch địa chỉ mặc định bất đồng bộ để tối ưu hiển thị
+                fetchDefaultAddress(customer.id);
+            });
+
+            updatePaginationControls();
+            lucide.createIcons();
+        }
+
+        // Tải địa chỉ mặc định hiển thị trên bảng
+        async function fetchDefaultAddress(customerId) {
+            try {
+                const response = await fetch(`/api/khach-hang/${customerId}/dia-chi`);
+                if (!response.ok) return;
+                const addresses = await response.json();
+                const defaultAddr = addresses.find(a => a.macDinh === true) || addresses[0];
+                const cell = document.getElementById(`addr-cell-${customerId}`);
+                if (!cell) return;
+
+                if (defaultAddr) {
+                    const fullText = `${defaultAddr.diaChiChiTiet}, ${defaultAddr.phuongXa}, ${defaultAddr.quanHuyen}, ${defaultAddr.tinhThanh}`;
+                    cell.innerHTML = `
+                        <div class="address-cell" title="${fullText}">
+                            <i data-lucide="map-pin" class="address-icon"></i>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">
+                                ${fullText}
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    cell.innerHTML = `
+                        <div class="address-cell" style="color: #94a3b8;">
+                            <i data-lucide="map-pin" class="address-icon" style="color: #cbd5e1;"></i>
+                            <span>Chưa có địa chỉ</span>
+                        </div>
+                    `;
+                }
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Lỗi lấy địa chỉ cho KH: " + customerId, err);
+            }
+        }
+
+        // Định dạng ngày sinh dd-MM-yyyy để hiển thị
+        function formatDate(dateStr) {
+            if (!dateStr) return "-";
+            if (Array.isArray(dateStr)) {
+                const y = dateStr[0];
+                const m = String(dateStr[1]).padStart(2, '0');
+                const d = String(dateStr[2]).padStart(2, '0');
+                return `${d}-${m}-${y}`;
+            }
+            const parts = dateStr.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Lấy màu ngẫu nhiên cho Avatar để giao diện rực rỡ
+        function getAvatarColor(id) {
+            const colors = ['#0284c7', '#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#db2777'];
+            return colors[id % colors.length];
+        }
+
+        // Cập nhật các nút phân trang
+        function updatePaginationControls() {
+            const pageNumbersContainer = document.getElementById("page-numbers-container");
+            pageNumbersContainer.innerHTML = "";
+
+            // Nút Prev
+            const prevBtn = document.getElementById("prev-page-btn");
+            if (currentPage === 0) {
+                prevBtn.classList.add("disabled");
+            } else {
+                prevBtn.classList.remove("disabled");
+            }
+
+            // Nút Next
+            const nextBtn = document.getElementById("next-page-btn");
+            if (currentPage >= totalPages - 1) {
+                nextBtn.classList.add("disabled");
+            } else {
+                nextBtn.classList.remove("disabled");
+            }
+
+            // Hiển thị số trang
+            for (let i = 0; i < totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => {
+                    currentPage = i;
+                    loadTable();
+                };
+                pageNumbersContainer.appendChild(btn);
+            }
+        }
+
+        // Thay đổi trang
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 0 && newPage < totalPages) {
+                currentPage = newPage;
+                loadTable();
+            }
+        }
+
+        // Thay đổi số lượng hiển thị trên trang
+        function changePageSize(size) {
+            pageSize = parseInt(size);
+            currentPage = 0;
+            loadTable();
+        }
+
+        // Lọc nhanh theo điều kiện
+        function applyFilters() {
+            currentPage = 0;
+            loadTable();
+        }
+
+        // Toggle bộ lọc Trạng thái
+        function toggleStatusFilter(button, statusValue) {
+            const buttons = button.parentNode.querySelectorAll(".status-btn");
+            buttons.forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
+
+            currentStatusFilter = statusValue;
+            applyFilters();
+        }
+
+        // Reset bộ lọc tìm kiếm
+        function resetFilters() {
+            document.getElementById("search-input").value = "";
+            document.getElementById("gender-select").value = "all";
+            document.getElementById("status-select").value = "all";
+            document.getElementById("dob-input").value = "";
+
+            applyFilters();
+        }
+
+        // Cập nhật trạng thái hoạt động nhanh
+        async function toggleCustomerStatus(id, isChecked) {
+            const newStatus = isChecked ? 1 : 0;
+            const url = `/api/khach-hang/${id}/trang-thai?trangThai=${newStatus}`;
+            try {
+                const response = await fetch(url, { method: "PATCH" });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+                }
+                loadTable();
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+                loadTable(); // Reset lại UI
+            }
+        }
+
+        // Xóa vĩnh viễn khách hàng
+        async function deleteCustomer(id) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: "Bạn có chắc chắn muốn xóa vĩnh viễn khách hàng này cùng với tất cả địa chỉ của họ không? Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Đồng ý xóa',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/api/khach-hang/${id}`, { method: "DELETE" });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Xóa khách hàng thất bại");
+                        }
+                        showToast("Xóa khách hàng thành công!", "success");
+                        loadTable();
+                    } catch (err) {
+                        showToast("Lỗi: " + err.message, "error");
+                    }
+                }
+            });
+        }
+
+        // Mở Modal Thêm mới Khách hàng
+        function openAddCustomerModal() {
+            document.getElementById("customer-form").reset();
+            document.getElementById("cust-id").value = "";
+            document.getElementById("customer-modal-title").innerText = "Thêm Khách Hàng Mới";
+            document.getElementById("initial-address-section").style.display = "block";
+            
+            // Reset Avatar
+            document.getElementById("custAvatarImg").src = "/images/avatars/default.png";
+            document.getElementById("custAvatar").value = "";
+            
+            // Yêu cầu nhập các thông tin địa chỉ ban đầu nếu cần
+            document.getElementById("addr-province").required = false;
+            
+            document.getElementById("customer-modal").style.display = "flex";
+        }
+
+        // Mở Modal Chỉnh sửa Khách hàng
+        async function openEditCustomerModal(id) {
+            try {
+                const response = await fetch(`/api/khach-hang/${id}`);
+                if (!response.ok) throw new Error("Không thể lấy dữ liệu khách hàng");
+                const customer = await response.json();
+
+                document.getElementById("cust-id").value = customer.id;
+                document.getElementById("cust-name").value = customer.hoTen;
+                document.getElementById("cust-phone").value = customer.soDienThoai;
+                document.getElementById("cust-email").value = customer.email || "";
+                document.getElementById("cust-gender").value = String(customer.gioiTinh);
+                document.getElementById("cust-dob").value = customer.ngaySinh || "";
+                document.getElementById("cust-status").value = String(customer.trangThai);
+
+                // Set Avatar if exists
+                document.getElementById("custAvatarImg").src = customer.anhDaiDien || "/images/avatars/default.png";
+                document.getElementById("custAvatar").value = "";
+
+                // Ẩn phần điền địa chỉ ban đầu khi Sửa thông tin chính
+                document.getElementById("initial-address-section").style.display = "none";
+
+                document.getElementById("customer-modal-title").innerText = "Chỉnh Sửa Khách Hàng";
+                document.getElementById("customer-modal").style.display = "flex";
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+            }
+        }
+
+        // Đóng Modal Khách hàng
+        function closeCustomerModal() {
+            document.getElementById("customer-modal").style.display = "none";
+        }
+
+        // Lưu thông tin Khách hàng (Thêm / Sửa)
+        async function saveCustomer(event) {
+            event.preventDefault();
+
+            const hoTen = document.getElementById("cust-name").value.trim();
+            const soDienThoai = document.getElementById("cust-phone").value.trim();
+            const email = document.getElementById("cust-email").value.trim();
+
+            if (!hoTen) {
+                showToast("Vui lòng không để trống Họ và tên!", "warning");
+                return;
+            }
+            if (!soDienThoai) {
+                showToast("Vui lòng không để trống Số điện thoại!", "warning");
+                return;
+            }
+            const phoneRegex = /^(0)[0-9]{9}$/;
+            if (!phoneRegex.test(soDienThoai)) {
+                showToast("Số điện thoại phải bắt đầu bằng số 0 và có đúng 10 chữ số!", "warning");
+                return;
+            }
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast("Email không đúng định dạng hợp lệ!", "warning");
+                    return;
+                }
+            }
+
+            const id = document.getElementById("cust-id").value;
+            const payload = {
+                hoTen: hoTen,
+                soDienThoai: soDienThoai,
+                email: email || null,
+                gioiTinh: document.getElementById("cust-gender").value === "true",
+                ngaySinh: document.getElementById("cust-dob").value || null,
+                trangThai: parseInt(document.getElementById("cust-status").value)
+            };
+
+            // Nếu thêm mới thì gửi kèm địa chỉ mặc định đầu tiên
+            if (!id) {
+                const tinhThanh = document.getElementById("addr-province").value.trim();
+                const quanHuyen = document.getElementById("addr-district").value.trim();
+                const phuongXa = document.getElementById("addr-ward").value.trim();
+                const diaChiChiTiet = document.getElementById("addr-detail").value.trim();
+                const loaiDiaChi = document.getElementById("addr-type").value;
+
+                if (tinhThanh) {
+                    payload.diaChiMacDinh = {
+                        tinhThanh, quanHuyen, phuongXa, diaChiChiTiet, loaiDiaChi, macDinh: true
+                    };
+                }
+            }
+
+            const url = id ? `/api/khach-hang/${id}` : "/api/khach-hang";
+            const method = id ? "PUT" : "POST";
+
+            try {
+                // 1. Lưu thông tin khách hàng trước
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || "Lưu thất bại");
+                }
+                const savedCustomer = await res.json();
+                
+                // 2. Upload ảnh đại diện nếu có
+                const custAvatarInput = document.getElementById("custAvatar");
+                if (custAvatarInput && custAvatarInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append("file", custAvatarInput.files[0]);
+                    
+                    const uploadRes = await fetch(`/api/khach-hang/${savedCustomer.id}/avatar`, {
+                        method: "POST",
+                        body: formData
+                    });
+                    if (!uploadRes.ok) {
+                        throw new Error("Lưu thông tin thành công nhưng tải ảnh lên thất bại!");
+                    }
+                }
+                
+                showToast("Lưu thông tin thành công!", "success");
+                closeCustomerModal();
+                loadTable();
+            } catch (error) {
+                showToast("Thao tác thất bại: " + error.message, "error");
+            }
+        }
+
+        // Mở Modal Xem chi tiết & Quản lý địa chỉ
+        async function openDetailModal(id) {
+            activeCustomerIdForAddress = id;
+            try {
+                const response = await fetch(`/api/khach-hang/${id}`);
+                if (!response.ok) throw new Error("Không thể tải thông tin chi tiết");
+                const customer = await response.json();
+
+                // Gán thông tin cá nhân
+                const firstLetter = customer.hoTen ? customer.hoTen.charAt(0).toUpperCase() : 'U';
+                const avatarDiv = document.getElementById("detail-avatar");
+                avatarDiv.innerText = firstLetter;
+                avatarDiv.style.backgroundColor = getAvatarColor(customer.id);
+
+                document.getElementById("detail-name").innerText = customer.hoTen;
+                document.getElementById("detail-code").innerText = customer.maKhachHang || "Không rõ";
+                document.getElementById("detail-phone").innerText = customer.soDienThoai || "-";
+                document.getElementById("detail-email").innerText = customer.email || "-";
+                document.getElementById("detail-gender").innerText = customer.gioiTinh === true ? "Nam" : "Nữ";
+                document.getElementById("detail-dob").innerText = formatDate(customer.ngaySinh);
+
+                const statusEl = document.getElementById("detail-status");
+                if (customer.trangThai === 1) {
+                    statusEl.innerText = "Hoạt động";
+                    statusEl.className = "status-badge active";
+                } else {
+                    statusEl.innerText = "Ngừng hoạt động";
+                    statusEl.className = "status-badge inactive";
+                }
+
+                // Tải danh sách địa chỉ
+                await loadAddressList(id);
+
+                document.getElementById("detail-modal").style.display = "flex";
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+            }
+        }
+
+        // Đóng Modal Chi tiết
+        function closeDetailModal() {
+            document.getElementById("detail-modal").style.display = "none";
+            activeCustomerIdForAddress = null;
+        }
+
+        // Tải danh sách địa chỉ của khách hàng
+        async function loadAddressList(customerId) {
+            const container = document.getElementById("address-list-container");
+            container.innerHTML = `<span style="font-style: italic; color:#94a3b8;">Đang tải danh sách địa chỉ...</span>`;
+
+            try {
+                const response = await fetch(`/api/khach-hang/${customerId}/dia-chi`);
+                if (!response.ok) throw new Error("Không thể lấy danh sách địa chỉ");
+                const addresses = response.json ? await response.json() : [];
+
+                container.innerHTML = "";
+
+                if (addresses.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #94a3b8; padding: 20px 0;">
+                            <span>Chưa cấu hình địa chỉ nào.</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                addresses.forEach(addr => {
+                    const div = document.createElement("div");
+                    div.className = `address-item-card ${addr.macDinh ? 'default' : ''}`;
+
+                    const defaultBadge = addr.macDinh 
+                        ? `<span class="addr-badge-default">Mặc định</span>` 
+                        : "";
+
+                    const typeBadge = `<span class="addr-badge-type">${addr.loaiDiaChi || 'Nhà riêng'}</span>`;
+
+                    const buttons = `
+                        <div class="addr-card-actions">
+                            ${!addr.macDinh ? `<button class="addr-action-btn primary-text" onclick="setAddressDefault(${addr.id})">Đặt mặc định</button>` : ''}
+                            <button class="addr-action-btn edit-text" onclick="openEditAddressSubModal(${addr.id}, '${addr.tenNguoiNhan}', '${addr.sdt}', '${addr.tinhThanh}', '${addr.quanHuyen}', '${addr.phuongXa}', '${addr.diaChiChiTiet}', '${addr.loaiDiaChi}', ${addr.macDinh})">Sửa</button>
+                            ${!addr.macDinh ? `<button class="addr-action-btn danger-text" onclick="deleteAddress(${addr.id})">Xóa</button>` : ''}
+                        </div>
+                    `;
+
+                    div.innerHTML = `
+                        <div class="addr-card-main">
+                            <div class="addr-card-row">
+                                <span class="addr-name">${addr.tenNguoiNhan}</span>
+                                <span class="addr-phone">${addr.sdt}</span>
+                                ${defaultBadge}
+                                ${typeBadge}
+                            </div>
+                            <div class="addr-details">
+                                <span>${addr.diaChiChiTiet}</span>
+                                <span>${addr.phuongXa}, ${addr.quanHuyen}, ${addr.tinhThanh}</span>
+                            </div>
+                        </div>
+                        ${buttons}
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                container.innerHTML = `<span style="color: #ef4444;">Lỗi: ${err.message}</span>`;
+            }
+        }
+
+        // Mở Modal Thêm mới Địa chỉ
+        function openAddAddressSubModal() {
+            if (!activeCustomerIdForAddress) return;
+            document.getElementById("address-form").reset();
+            document.getElementById("addr-id").value = "";
+            document.getElementById("addr-cust-id").value = activeCustomerIdForAddress;
+            document.getElementById("address-modal-title").innerText = "Thêm Địa Chỉ Mới";
+            document.getElementById("address-modal").style.display = "flex";
+        }
+
+        // Mở Modal Cập nhật Địa chỉ
+        function openEditAddressSubModal(id, name, phone, province, district, ward, detail, type, isDefault) {
+            document.getElementById("addr-id").value = id;
+            document.getElementById("addr-cust-id").value = activeCustomerIdForAddress;
+            document.getElementById("addr-recipient").value = name;
+            document.getElementById("addr-phone-input").value = phone;
+            document.getElementById("addr-prov").value = province;
+            document.getElementById("addr-dist").value = district;
+            document.getElementById("addr-w").value = ward;
+            document.getElementById("addr-det").value = detail;
+            document.getElementById("addr-type-select").value = type || "Nhà riêng";
+            document.getElementById("addr-default").checked = isDefault;
+
+            document.getElementById("address-modal-title").innerText = "Chỉnh Sửa Địa Chỉ";
+            document.getElementById("address-modal").style.display = "flex";
+        }
+
+        // Đóng Modal Địa chỉ
+        function closeAddressModal() {
+            document.getElementById("address-modal").style.display = "none";
+        }
+
+        // Lưu thông tin địa chỉ
+        async function saveAddress(event) {
+            event.preventDefault();
+
+            const addressId = document.getElementById("addr-id").value;
+            const customerId = document.getElementById("addr-cust-id").value;
+
+            const tenNguoiNhan = document.getElementById("addr-recipient").value.trim();
+            const sdt = document.getElementById("addr-phone-input").value.trim();
+            const tinhThanh = document.getElementById("addr-prov").value.trim();
+            const quanHuyen = document.getElementById("addr-dist").value.trim();
+            const phuongXa = document.getElementById("addr-w").value.trim();
+            const diaChiChiTiet = document.getElementById("addr-det").value.trim();
+            const loaiDiaChi = document.getElementById("addr-type-select").value;
+            const macDinh = document.getElementById("addr-default").checked;
+
+            const payload = {
+                tenNguoiNhan,
+                sdt,
+                tinhThanh,
+                quanHuyen,
+                phuongXa,
+                diaChiChiTiet,
+                loaiDiaChi,
+                macDinh
+            };
+
+            const url = addressId ? `/api/khach-hang/dia-chi/${addressId}` : `/api/khach-hang/${customerId}/dia-chi`;
+            const method = addressId ? "PUT" : "POST";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Lỗi lưu địa chỉ");
+                }
+
+                showToast("Lưu thông tin địa chỉ thành công!", "success");
+                closeAddressModal();
+                if (activeCustomerIdForAddress) {
+                    loadAddressList(activeCustomerIdForAddress);
+                }
+                loadTable(); // Tải lại bảng để cập nhật cột địa chỉ
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+            }
+        }
+
+        // Thiết lập làm địa chỉ mặc định
+        async function setAddressDefault(addressId) {
+            try {
+                const response = await fetch(`/api/khach-hang/dia-chi/${addressId}/mac-dinh`, {
+                    method: "PATCH"
+                });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không đặt được địa chỉ mặc định");
+                }
+                if (activeCustomerIdForAddress) {
+                    loadAddressList(activeCustomerIdForAddress);
+                }
+                loadTable();
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+            }
+        }
+
+        // Xóa địa chỉ
+        async function deleteAddress(addressId) {
+            if (!confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
+
+            try {
+                const response = await fetch(`/api/khach-hang/dia-chi/${addressId}`, {
+                    method: "DELETE"
+                });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không xóa được địa chỉ");
+                }
+                showToast("Đã xóa địa chỉ thành công!", "success");
+                if (activeCustomerIdForAddress) {
+                    loadAddressList(activeCustomerIdForAddress);
+                }
+                loadTable();
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+            }
+        }
+
+        // Trigger Import Excel
+        function triggerImportExcel() {
+            document.getElementById("excel-file-input").click();
+        }
+
+        // Upload file Excel import
+        async function uploadExcelFile(input) {
+            const files = input.files;
+            if (files.length === 0) return;
+
+            const file = files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/api/khach-hang/import", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Lỗi import excel");
+                }
+
+                showToast("Import danh sách khách hàng thành công!", "success");
+                input.value = ""; // Clear file input
+                loadTable();
+            } catch (err) {
+                showToast("Lỗi: " + err.message, "error");
+                input.value = "";
+            }
+        }
+
+        // Trigger Export Excel
+        function triggerExportExcel() {
+            const search = document.getElementById("search-input").value.trim();
+            const isNamChecked = document.getElementById("gender-nam").checked;
+            const isNuChecked = document.getElementById("gender-nu").checked;
+            const dob = document.getElementById("dob-input").value;
+
+            let gioiTinh = "";
+            if (isNamChecked) gioiTinh = "true";
+            if (isNuChecked) gioiTinh = "false";
+
+            let statusValue = "";
+            if (currentStatusFilter !== 'all') statusValue = currentStatusFilter;
+
+            const url = `/api/khach-hang/export?search=${encodeURIComponent(search)}&gioiTinh=${gioiTinh}&dob=${dob}&trangThai=${statusValue}`;
+            window.location.href = url;
+        }
+
+        // Tải File Mẫu Excel
+        function triggerPdfDownload() {
+            window.location.href = "/api/khach-hang/template";
+        }
+    </script>
+</body>
+
+</html>
