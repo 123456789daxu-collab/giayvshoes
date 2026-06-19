@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm Sản Phẩm Mới</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <style>
+        body { background-color: #f8f9fa; margin: 0; padding: 0; }
+        .main-content { margin-left: 260px; padding: 2rem; width: calc(100% - 260px); min-height: 100vh; }
+        .card-custom { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 2rem; border: none; width: 100%; }
+        .form-label { font-weight: 600; color: #334155; }
+        .table-custom th { background-color: #f9fafb; color: #4b5563; border-bottom: 2px solid #e5e7eb; padding: 15px; text-align: center; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        .table-custom td { vertical-align: middle; padding: 15px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+        .table-custom input.form-control { width: 150px; margin: 0 auto; text-align: center; }
+        .btn-hoan-tat { background-color: #2563EB; color: white; font-weight: 600; padding: 10px 30px; border-radius: 8px; float: right; border: none; }
+        .btn-hoan-tat:hover { background-color: #1d4ed8; color: white; }
+        .section-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 1.5rem; text-align: center; text-transform: uppercase; letter-spacing: 1px;}
+        
+        /* Làm to phần Select2 ra theo ý người dùng */
+        .select2-container .select2-selection--multiple {
+            min-height: 48px !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            border: 1px solid #dee2e6 !important;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 4px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+    
+        /* Pill Tags */
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pill-label {
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 0;
+        }
+        .btn-check:checked + .pill-label {
+            background-color: #111827;
+            color: #ffffff;
+            border-color: #111827;
+            box-shadow: none;
+        }
+        .pill-label:hover {
+            background-color: #e2e8f0;
+        }
+
+    </style>
+</head>
+<body>
+    <div style="display: flex; width: 100%;">
+        <!-- Sidebar -->
+        <nav th:replace="~{sidebar/sidebar :: sidebar}"></nav>
+
+        <main class="main-content">
+            <form id="productForm" action="/san-pham/save-all" method="POST">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <h2 class="h4 mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">Thêm Sản Phẩm Mới</h2>
+                </div>
+
+                <div class="row g-4 d-flex align-items-stretch">
+                    <!-- Cột trái (Thông tin chính) -->
+                    <div class="col-lg-8 d-flex flex-column">
+                        <div class="card bg-white border mb-4" style="border-radius: 8px; border-color: #e5e7eb !important;">
+                            <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                                <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Thông tin cơ bản</h6>
+                            </div>
+                            <div class="card-body p-4 pt-2">
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Mã sản phẩm</label>
+                                    <input type="text" class="form-control" name="maSanPham" id="maSanPham" placeholder="Nhập mã sản phẩm (để trống sẽ tự động tạo)..." style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Tên sản phẩm <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="tenSanPham" id="tenSanPham" placeholder="Nhập tên sản phẩm..." required style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Mô tả sản phẩm</label>
+                                    <textarea class="form-control" name="moTaChiTiet" rows="5" placeholder="Viết vài dòng mô tả..." style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px; resize: none;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white border mb-4" style="border-radius: 8px; border-color: #e5e7eb !important;">
+                            <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                                <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Phân loại biến thể</h6>
+                            </div>
+                            <div class="card-body p-4 pt-2">
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Màu sắc <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <button class="btn text-start d-flex justify-content-between align-items-center flex-grow-1" type="button" id="dropdownColorBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border: 1px solid #d1d5db; border-radius: 6px 0 0 6px; padding: 10px 14px; background-color: #fff;">
+                                                <span id="selectedColorsText" class="text-muted" style="font-size: 0.9rem;">Chọn màu sắc...</span>
+                                                <i class="bi bi-chevron-down text-muted"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-3 shadow-sm border" style="width: 100%; max-height: 250px; overflow-y: auto; border-radius: 8px; border-color: #e5e7eb !important;">
+                                                <div class="pill-group" id="colorGroup">
+                                                    <th:block th:each="ms : ${listMauSac}">
+                                                        <input type="checkbox" class="btn-check color-checkbox" th:id="'color_' + ${ms.id}" th:value="${ms.id}" th:data-name="${ms.tenMauSac}" autocomplete="off">
+                                                        <label class="btn pill-label mb-1" th:for="'color_' + ${ms.id}" th:text="${ms.tenMauSac}"></label>
+                                                    </th:block>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="promptAddNew('mau-sac', 'Màu Sắc')" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;"><i class="bi bi-plus-lg"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Kích cỡ <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <button class="btn text-start d-flex justify-content-between align-items-center flex-grow-1" type="button" id="dropdownSizeBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="border: 1px solid #d1d5db; border-radius: 6px 0 0 6px; padding: 10px 14px; background-color: #fff;">
+                                                <span id="selectedSizesText" class="text-muted" style="font-size: 0.9rem;">Chọn kích cỡ...</span>
+                                                <i class="bi bi-chevron-down text-muted"></i>
+                                            </button>
+                                            <div class="dropdown-menu p-3 shadow-sm border" style="width: 100%; max-height: 250px; overflow-y: auto; border-radius: 8px; border-color: #e5e7eb !important;">
+                                                <div class="pill-group" id="sizeGroup">
+                                                    <th:block th:each="cg : ${listCoGiay}">
+                                                        <input type="checkbox" class="btn-check size-checkbox" th:id="'size_' + ${cg.id}" th:value="${cg.id}" th:data-name="${cg.sizeGiay}" autocomplete="off">
+                                                        <label class="btn pill-label mb-1" th:for="'size_' + ${cg.id}" th:text="${cg.sizeGiay}"></label>
+                                                    </th:block>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="promptAddNew('co-giay', 'Kích Cỡ')" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;"><i class="bi bi-plus-lg"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải (Phân loại & Thuộc tính) -->
+                    <div class="col-lg-4 d-flex flex-column">
+                        <div class="card bg-white border mb-4 flex-grow-1" style="border-radius: 8px; border-color: #e5e7eb !important;">
+                            <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                                <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Phân loại</h6>
+                            </div>
+                            <div class="card-body p-4 pt-2">
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Trạng thái</label>
+                                    <select class="form-select" name="trangThai" style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                        <option value="1">Đang Kinh Doanh</option>
+                                        <option value="0">Ngừng Kinh Doanh</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Thương hiệu <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="thuongHieuSelect" name="thuongHieu.id" required style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                            <option value="">Chọn thương hiệu</option>
+                                            <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="promptAddNew('thuong-hieu', 'Thương Hiệu')" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Danh mục <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="danhMucSelect" name="danhMuc.id" required style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                            <option value="">Chọn danh mục</option>
+                                            <option th:each="dm : ${listDanhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}"></option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="promptAddNew('danh-muc', 'Danh Mục')" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Loại Giày <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="loaiGiaySelect" name="loaiGiay.id" required style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                            <option value="">Chọn loại giày</option>
+                                            <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}"></option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="promptAddNew('loai-giay', 'Loại Giày')" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Chất liệu <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="chatLieuSelect" name="chatLieu.id" required style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                            <option value="">Chọn chất liệu</option>
+                                            <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.tenChatLieu}"></option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="promptAddNew('chat-lieu', 'Chất Liệu')" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end mt-auto mb-4">
+                            <button type="button" class="btn text-white px-5 py-2 fw-bold" id="btnGenerateVariants" style="border-radius: 6px; font-size: 1.1rem; letter-spacing: 0.5px; background-color: #2563eb; border-color: #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><i class="bi bi-magic me-2"></i>Tạo biến thể</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PHẦN 2: BẢNG CHI TIẾT SẢN PHẨM -->
+                <div class="card bg-white border mb-4" id="variantSection" style="border-radius: 8px; border-color: #e5e7eb !important;">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-2 d-flex justify-content-between align-items-center mb-0">
+                        <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Danh sách biến thể</h6>
+                    </div>
+                    
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th>STT <i class="bi bi-arrow-down-up"></i></th>
+                                <th style="text-align: left;">Tên Sản Phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Giá Nhập</th>
+                                <th>Giá Bán</th>
+                                <th>Hành động</th>
+                                <th>Upload Ảnh</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variantTableBody">
+                            <tr><td colspan="7" style="height: 120px; border-bottom: none;"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="text-end mt-3 mb-5">
+                    <button type="submit" class="btn text-white px-5 py-2 fw-bold" style="border-radius: 6px; font-size: 1.1rem; letter-spacing: 0.5px; background-color: #2563eb; border-color: #2563eb; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"><i class="bi bi-floppy me-2"></i>Lưu Sản Phẩm</button>
+                </div>
+
+            </form>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var errorMessage = /*[[${errorMessage}]]*/ null;
+        var successMessage = /*[[${successMessage}]]*/ null;
+        /*]]>*/
+    </script>
+    <script>
+        $(document).ready(function() {
+            if (errorMessage) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: errorMessage,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+            if (successMessage) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: successMessage,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            // Validate Giá nhập phải nhỏ hơn giá bán
+            document.getElementById('productForm').addEventListener('submit', function(e) {
+                const importPrices = document.getElementsByName('variantImportPrices');
+                const prices = document.getElementsByName('variantPrices');
+                
+                if (importPrices.length === 0) {
+                    e.preventDefault();
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Vui lòng tạo ít nhất 1 biến thể!', showConfirmButton: false, timer: 3000 });
+                    return false;
+                }
+                
+                for (let i = 0; i < importPrices.length; i++) {
+                    let giaNhap = parseFloat(importPrices[i].value) || 0;
+                    let giaBan = parseFloat(prices[i].value) || 0;
+                    if (giaNhap >= giaBan) {
+                        e.preventDefault();
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: 'Giá nhập phải nhỏ hơn giá bán ở tất cả các biến thể!',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        return false;
+                    }
+                }
+            });
+
+            // Khởi tạo Select2 với giao diện đẹp
+            $('.select2-multiple').select2({
+                placeholder: " Nhấp để chọn...",
+                allowClear: true
+            });
+
+            // Tự động lắng nghe sự kiện thay đổi
+            $('.color-checkbox, .size-checkbox').on('change', function() {
+                updateDropdownTexts();
+            });
+            
+            // Xóa tự động cập nhật tên trong bảng khi gõ Tên Sản Phẩm để tránh load lại bảng chưa mong muốn
+            
+            // Nút Tạo biến thể
+            $('#btnGenerateVariants').on('click', function() {
+                const selectedColors = Array.from(document.querySelectorAll('.color-checkbox:checked'));
+                const selectedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked'));
+                if(selectedColors.length === 0 || selectedSizes.length === 0) {
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'warning',
+                        title: 'Vui lòng chọn ít nhất 1 màu sắc và 1 kích cỡ!',
+                        showConfirmButton: false, timer: 3000
+                    });
+                    return;
+                }
+                
+                generateVariants();
+            });
+        });
+
+        function updateDropdownTexts() {
+            const selectedColors = Array.from(document.querySelectorAll('.color-checkbox:checked')).map(cb => cb.dataset.name);
+            const selectedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked')).map(cb => cb.dataset.name);
+            
+            document.getElementById('selectedColorsText').innerText = selectedColors.length > 0 ? selectedColors.join(', ') : 'Nhấn để chọn màu sắc...';
+            document.getElementById('selectedColorsText').className = selectedColors.length > 0 ? 'text-dark fw-medium' : 'text-muted';
+            
+            document.getElementById('selectedSizesText').innerText = selectedSizes.length > 0 ? selectedSizes.join(', ') : 'Nhấn để chọn kích cỡ...';
+            document.getElementById('selectedSizesText').className = selectedSizes.length > 0 ? 'text-dark fw-medium' : 'text-muted';
+        }
+
+        function generateVariants() {
+            const tenSp = document.getElementById('tenSanPham').value || 'Sản phẩm mới';
+            
+            const selectedColors = Array.from(document.querySelectorAll('.color-checkbox:checked')).map(cb => ({ id: cb.value, element: { dataset: { name: cb.dataset.name } } }));
+            const selectedSizes = Array.from(document.querySelectorAll('.size-checkbox:checked')).map(cb => ({ id: cb.value, element: { dataset: { name: cb.dataset.name } } }));
+            const tbody = document.getElementById('variantTableBody');
+            
+            if(selectedColors.length === 0 || selectedSizes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="height: 120px; border-bottom: none;"></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            let stt = 1;
+
+            selectedColors.forEach((colorObj) => {
+                let firstRowForColor = true;
+                selectedSizes.forEach((sizeObj) => {
+                    const row = document.createElement('tr');
+                    
+                    const nameCell = `<td style="text-align: left; font-weight:500; color:#475569;">${tenSp} [ ${sizeObj.element.dataset.name} - ${colorObj.element.dataset.name} ]</td>`;
+                    
+                    row.innerHTML = `
+                        <td>${stt}</td>
+                        ${nameCell}
+                        <td>
+                            <input type="hidden" name="variantSizes" value="${sizeObj.id}">
+                            <input type="hidden" name="variantColors" value="${colorObj.id}">
+                            <input type="hidden" name="variantImages" class="image-color-${colorObj.id}" value="">
+                            <input type="number" class="form-control" name="variantQuantities" value="0" min="0" required>
+                        </td>
+                        <td>
+                            <div class="input-group flex-nowrap" style="width: 180px; margin: 0 auto;">
+                                <input type="number" class="form-control m-0 text-center" name="variantImportPrices" value="0" min="0" required style="width: auto; min-width: 0;">
+                                <span class="input-group-text">VNĐ</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group flex-nowrap" style="width: 180px; margin: 0 auto;">
+                                <input type="number" class="form-control m-0 text-center" name="variantPrices" value="0" min="0" required style="width: auto; min-width: 0;">
+                                <span class="input-group-text">VNĐ</span>
+                            </div>
+                        </td>
+                        <td><button type="button" class="btn btn-link text-danger" onclick="this.closest('tr').remove()"><i class="bi bi-trash-fill fs-5"></i></button></td>
+                    `;
+                    
+                    // Thêm ô upload ảnh cho mỗi nhóm màu (rowspan = selectedSizes.length)
+                    if (firstRowForColor) {
+                        row.innerHTML += `
+                        <td rowspan="${selectedSizes.length}" style="border-left: 1px solid #f1f5f9; background: #fff; vertical-align: middle; min-width: 200px;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px;" id="previewGrid_${colorObj.id}">
+                                <!-- Images will go here -->
+                            </div>
+                            <div id="imagePreviewContainer_${colorObj.id}" style="border: 2px dashed #cbd5e1; padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; color: #64748b; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #f8fafc; transition: all 0.3s;" onclick="document.getElementById('imageUpload_${colorObj.id}').click()" onmouseover="this.style.borderColor='#3b82f6'; this.style.backgroundColor='#eff6ff'" onmouseout="this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#f8fafc'">
+                                <i class="bi bi-cloud-arrow-up fs-3" id="uploadIcon_${colorObj.id}" style="color: #64748b;"></i>
+                                <div class="mt-1 fw-medium" style="font-size: 13px;" id="uploadText_${colorObj.id}">Tải ảnh (Tối đa 6)<br/>(Màu ${colorObj.element.dataset.name})</div>
+                            </div>
+                            <input type="file" id="imageUpload_${colorObj.id}" accept="image/*" multiple style="display: none;" onchange="previewImages(this, '${colorObj.id}')">
+                        </td>
+                        `;
+                        firstRowForColor = false;
+                    }
+                    
+                    tbody.appendChild(row);
+                    stt++;
+                });
+            });
+
+            document.getElementById('variantSection').style.display = 'block';
+            
+            // Render previously uploaded images globally stored
+            Object.keys(colorImagesMap).forEach(cId => {
+                renderPreviewGrid(cId);
+            });
+        }
+
+        let colorImagesMap = {};
+
+        function previewImages(input, colorId) {
+            if (!colorImagesMap[colorId]) {
+                colorImagesMap[colorId] = [];
+            }
+            
+            if (input.files && input.files.length > 0) {
+                let filesToProcess = Array.from(input.files);
+                
+                let spaceLeft = 6 - colorImagesMap[colorId].length;
+                if (spaceLeft <= 0) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Đã đạt giới hạn 6 ảnh!', showConfirmButton: false, timer: 3000 });
+                    input.value = '';
+                    return;
+                }
+                
+                if (filesToProcess.length > spaceLeft) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Chỉ có thể thêm ' + spaceLeft + ' ảnh nữa!', showConfirmButton: false, timer: 3000 });
+                    filesToProcess = filesToProcess.slice(0, spaceLeft);
+                }
+                
+                let loadedCount = 0;
+                filesToProcess.forEach(file => {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        colorImagesMap[colorId].push(e.target.result);
+                        loadedCount++;
+                        if(loadedCount === filesToProcess.length) {
+                            renderPreviewGrid(colorId);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+            input.value = '';
+        }
+
+        function removeImage(colorId, index) {
+            if (colorImagesMap[colorId]) {
+                colorImagesMap[colorId].splice(index, 1);
+                renderPreviewGrid(colorId);
+            }
+        }
+
+        function renderPreviewGrid(colorId) {
+            const grid = document.getElementById('previewGrid_' + colorId);
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            let images = colorImagesMap[colorId] || [];
+            
+            images.forEach((b64, index) => {
+                grid.innerHTML += `
+                    <div style="position: relative; width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0; flex-shrink: 0;">
+                        <img src="${b64}" style="width: 100%; height: 100%; object-fit: cover;" />
+                        <button type="button" onclick="removeImage('${colorId}', ${index})" style="position: absolute; top: 0; right: 0; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-bottom-left-radius: 6px;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            
+            // Update hidden inputs for backend array
+            var hiddenInputs = document.querySelectorAll('.image-color-' + colorId);
+            let valToSet = '';
+            if(images.length > 0) {
+                // Wrap in JSON array
+                valToSet = JSON.stringify(images);
+            }
+            hiddenInputs.forEach(inp => inp.value = valToSet);
+            
+            // Hide/Show upload button
+            const container = document.getElementById('imagePreviewContainer_' + colorId);
+            if(images.length >= 6) {
+                container.style.display = 'none';
+            } else {
+                container.style.display = 'flex';
+            }
+        }
+
+        function promptAddNew(type, title) {
+            let extraValidation = null;
+            if (type === 'co-giay') {
+                extraValidation = (val) => {
+                    if (isNaN(val)) return 'Kích cỡ phải là số!';
+                    return null;
+                };
+            }
+
+            Swal.fire({
+                title: 'Thêm ' + title + ' Mới',
+                input: 'text',
+                inputPlaceholder: 'Nhập ' + title.toLowerCase() + '...',
+                showCancelButton: true,
+                confirmButtonText: 'Thêm',
+                cancelButtonText: 'Hủy',
+                showLoaderOnConfirm: true,
+                preConfirm: (name) => {
+                    if (!name || name.trim() === '') {
+                        Swal.showValidationMessage('Vui lòng nhập giá trị hợp lệ!');
+                        return false;
+                    }
+                    if (extraValidation) {
+                        let err = extraValidation(name.trim());
+                        if (err) {
+                            Swal.showValidationMessage(err);
+                            return false;
+                        }
+                    }
+                    let bodyData = new URLSearchParams();
+                    if (type === 'co-giay') bodyData.append('size', name.trim());
+                    else bodyData.append('ten', name.trim());
+
+                    return fetch(`/api/thuoc-tinh/add-${type}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: bodyData
+                    })
+                    .then(response => {
+                        if (!response.ok) { throw new Error(response.statusText) }
+                        return response.json();
+                    })
+                    .catch(error => { Swal.showValidationMessage(`Lỗi: ${error}`); });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const data = result.value;
+                    let selectId = '';
+                    if (type === 'thuong-hieu') selectId = 'thuongHieuSelect';
+                    else if (type === 'danh-muc') selectId = 'danhMucSelect';
+                    else if (type === 'loai-giay') selectId = 'loaiGiaySelect';
+                    else if (type === 'chat-lieu') selectId = 'chatLieuSelect';
+                    
+                    if (selectId) {
+                        const newOption = new Option(data.ten, data.id, true, true);
+                        document.getElementById(selectId).add(newOption);
+                    } else if (type === 'mau-sac') {
+                        const html = `
+                            <input type="checkbox" class="btn-check color-checkbox" id="color_${data.id}" value="${data.id}" data-name="${data.ten}" autocomplete="off" checked>
+                            <label class="btn pill-label mb-1" for="color_${data.id}">${data.ten}</label>
+                        `;
+                        document.getElementById('colorGroup').insertAdjacentHTML('beforeend', html);
+                        document.getElementById(`color_${data.id}`).addEventListener('change', updateDropdownTexts);
+                        updateDropdownTexts();
+                    } else if (type === 'co-giay') {
+                        const html = `
+                            <input type="checkbox" class="btn-check size-checkbox" id="size_${data.id}" value="${data.id}" data-name="${data.ten}" autocomplete="off" checked>
+                            <label class="btn pill-label mb-1" for="size_${data.id}">${data.ten}</label>
+                        `;
+                        document.getElementById('sizeGroup').insertAdjacentHTML('beforeend', html);
+                        document.getElementById(`size_${data.id}`).addEventListener('change', updateDropdownTexts);
+                        updateDropdownTexts();
+                    }
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Thêm thành công!', showConfirmButton: false, timer: 2000 });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
