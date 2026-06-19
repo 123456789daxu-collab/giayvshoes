@@ -19,4 +19,10 @@ public class HoaDonDTO {
     private BigDecimal tongTien;
     private String loaiHoaDon;
     private Integer trangThai;
+    private String maNhanVien;
+    private String email;
+    private String diaChiGiao;
+    private String ghiChu;
+    private BigDecimal tienGiam;
+    private BigDecimal phiShip;
 }

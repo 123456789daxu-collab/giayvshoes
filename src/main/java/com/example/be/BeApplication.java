@@ -107,5 +107,12 @@ public class BeApplication {
             }
         };
     }
+    @Bean
+    public CommandLineRunner initInvoiceData(com.example.be.service.HoaDonService hoaDonService) {
+        return args -> {
+            System.out.println("--- Kiểm tra dữ liệu hóa đơn mặc định... ---");
+            hoaDonService.generateTestData();
+        };
+    }
 }
 
