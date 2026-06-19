@@ -38,11 +38,24 @@
             <span>Quản lý hóa đơn</span>
         </a>
 
-        <!-- Sản phẩm -->
-        <a href="/san-pham" class="menu-item">
-            <i data-lucide="package" class="menu-icon"></i>
-            <span>Sản phẩm</span>
-        </a>
+        <!-- Quản lý Sản phẩm (Menu Cha - Dropdown) -->
+        <div class="submenu-container">
+            <a href="#" class="menu-item" id="toggle-submenu-sanpham">
+                <i data-lucide="package" class="menu-icon"></i>
+                <span>Quản lý sản phẩm</span>
+                <i data-lucide="chevron-down" class="arrow-icon"></i>
+            </a>
+            <!-- Danh sách các mục sản phẩm con -->
+            <ul class="submenu" id="submenu-sanpham">
+                <li>
+                    <a href="/san-pham" class="submenu-item">Sản Phẩm</a>
+                </li>
+                <li>
+                    <a href="/san-pham/chi-tiet-global" class="submenu-item">Sản Phẩm Chi Tiết</a>
+                </li>
+
+            </ul>
+        </div>
 
         <!-- Phiếu giảm giá -->
         <a href="/phieu-giam-gia" class="menu-item">
@@ -89,42 +102,146 @@
             // Tìm tất cả các thẻ <a> liên kết trong Sidebar
             const menuLinks = document.querySelectorAll(".sidebar-menu a");
             
+            // Tìm link phù hợp nhất (dài nhất) để tránh trùng lặp active
+            let bestMatch = null;
+            let bestMatchLength = 0;
+
             menuLinks.forEach(link => {
                 const href = link.getAttribute("href");
+                if (!href || href === '#' || href === '/') return;
                 
-                // So sánh đường dẫn hiện tại với thuộc tính href của thẻ <a>
-                if (currentPath === href) {
-                    // Thêm class 'active' để làm nổi bật mục menu hiện tại
-                    link.classList.add("active");
-                    
-                    // Nếu link đang active nằm trong một menu con (submenu)
-                    const parentSubmenu = link.closest(".submenu");
-                    if (parentSubmenu) {
-                        // Mở rộng menu con ra bằng cách thêm class 'open'
-                        parentSubmenu.classList.add("open");
-                        // Xoay mũi tên chỉ xuống của menu cha
-                        const parentMenuItem = parentSubmenu.previousElementSibling;
-                        if (parentMenuItem) {
-                            parentMenuItem.classList.add("open-parent");
-                        }
+                // So sánh đường dẫn hiện tại với thuộc tính href
+                if (currentPath === href || currentPath.startsWith(href + '/')) {
+                    if (href.length > bestMatchLength) {
+                        bestMatch = link;
+                        bestMatchLength = href.length;
                     }
                 }
             });
 
-            // Xử lý sự kiện click đóng/mở menu con "Tài khoản" khi click vào menu cha
-            const toggleSubmenuBtn = document.getElementById("toggle-submenu");
-            const submenu = document.getElementById("submenu-tai-khoan");
-            
-            if (toggleSubmenuBtn && submenu) {
-                toggleSubmenuBtn.addEventListener("click", function(e) {
+            if (bestMatch) {
+                // Thêm class 'active' để làm nổi bật mục menu hiện tại
+                bestMatch.classList.add("active");
+                
+                // Nếu link đang active nằm trong một menu con (submenu)
+                const parentSubmenu = bestMatch.closest(".submenu");
+                if (parentSubmenu) {
+                    // Mở rộng menu con ra bằng cách thêm class 'open'
+                    parentSubmenu.classList.add("open");
+                    // Xoay mũi tên chỉ xuống của menu cha
+                    const parentMenuItem = parentSubmenu.previousElementSibling;
+                    if (parentMenuItem) {
+                        parentMenuItem.classList.add("open-parent");
+                    }
+                }
+            }
+
+            // Xử lý sự kiện click đóng/mở menu con khi click vào menu cha
+            const submenuToggles = document.querySelectorAll(".submenu-container > a");
+            submenuToggles.forEach(btn => {
+                btn.addEventListener("click", function(e) {
                     e.preventDefault(); // Ngăn trình duyệt nhảy trang lên đầu khi click href="#"
                     
-                    // Toggle class 'open' để trượt mở hoặc đóng submenu
-                    submenu.classList.toggle("open");
-                    // Toggle class 'open-parent' để xoay mũi tên
-                    toggleSubmenuBtn.classList.toggle("open-parent");
+                    const submenu = btn.nextElementSibling;
+                    if (submenu && submenu.classList.contains("submenu")) {
+                        submenu.classList.toggle("open");
+                        btn.classList.toggle("open-parent");
+                    }
                 });
-            }
+            });
         });
     </script>
+
+    <!-- Script Hệ thống Toast & Ghi đè alert -->
+    <script>
+        (function() {
+            function ensureToastContainer() {
+                let container = document.getElementById('toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'toast-container';
+                    document.body.appendChild(container);
+                }
+                return container;
+            }
+
+            window.showToast = function(title, message, type = 'success') {
+                const container = ensureToastContainer();
+                
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast';
+                
+                let iconSvg = '';
+                if (type === 'success') {
+                    iconSvg = `<div class="toast-icon success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>`;
+                } else if (type === 'error') {
+                    iconSvg = `<div class="toast-icon error">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>`;
+                } else if (type === 'warning') {
+                    iconSvg = `<div class="toast-icon warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </div>`;
+                } else {
+                    iconSvg = `<div class="toast-icon info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </div>`;
+                }
+                
+                toast.innerHTML = `
+                    ${iconSvg}
+                    <div class="toast-content">
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                    <button type="button" class="toast-close-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                `;
+                
+                toast.querySelector('.toast-close-btn').addEventListener('click', () => {
+                    toast.style.animation = 'toastFadeOut 0.3s forwards';
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                });
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.style.animation = 'toastFadeOut 0.3s forwards';
+                        setTimeout(() => {
+                            if (toast.parentElement) {
+                                toast.remove();
+                            }
+                        }, 300);
+                    }
+                }, 4500);
+            };
+
+            window.alert = function(message) {
+                if (!message) return;
+                
+                const msgStr = String(message);
+                const lowerMsg = msgStr.toLowerCase();
+                
+                let type = 'success';
+                let title = 'Thành công';
+                
+                if (lowerMsg.includes('lỗi') || lowerMsg.includes('thất bại') || lowerMsg.includes('không được') || lowerMsg.includes('yêu cầu') || lowerMsg.includes('phải') || lowerMsg.includes('chưa') || lowerMsg.includes('hủy') || lowerMsg.includes('trùng')) {
+                    type = 'error';
+                    title = 'Thất bại';
+                } else if (lowerMsg.includes('cảnh báo') || lowerMsg.includes('chú ý') || lowerMsg.includes('xác nhận')) {
+                    type = 'warning';
+                    title = 'Cảnh báo';
+                }
+                
+                window.showToast(title, msgStr, type);
+            };
+        })();
+    </script>
 </div>
+

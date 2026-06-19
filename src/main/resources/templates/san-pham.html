@@ -3,537 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San pham | VShoes Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <title>Sản phẩm | VShoes</title>
+    <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/sidebar.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { background-color: #f1f5f9; }
-
-        /* === LAYOUT === */
-        .app-container { display: flex; width: 100%; min-height: 100vh; }
-        .main-content  { margin-left: 280px; flex: 1; padding: 28px 32px; background-color: #f1f5f9; min-height: 100vh; }
-
-        /* === PAGE HEADER === */
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .page-title h1 { font-size: 1.4rem; font-weight: 700; color: #0f172a; margin: 0; position: relative; padding-bottom: 8px; }
-        .page-title h1::after { content: ''; position: absolute; left: 0; bottom: 0; width: 40px; height: 3px; background-color: #3b82f6; border-radius: 2px; }
-        .page-title p  { font-size: 0.8rem; color: #64748b; margin: 8px 0 0; }
-        .user-badge { display: flex; align-items: center; gap: 10px; }
-        .user-badge .info { text-align: right; }
-        .user-badge .name { font-size: 0.85rem; font-weight: 600; color: #0f172a; }
-        .user-badge .role { font-size: 0.75rem; color: #64748b; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: white; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
-
-        /* === STAT CARDS === */
-        .stat-card { background: white; border-radius: 12px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
-        .stat-label { font-size: 0.7rem; font-weight: 600; letter-spacing: .5px; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
-        .stat-value { font-size: 1.6rem; font-weight: 700; color: #0f172a; line-height: 1; }
-        .stat-icon { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-        .stat-icon.blue   { background: #eff6ff; color: #3b82f6; }
-        .stat-icon.green  { background: #f0fdf4; color: #22c55e; }
-        .stat-icon.red    { background: #fef2f2; color: #ef4444; }
-
-        /* === FILTER CARD === */
-        .card-filter { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 24px; }
-        .card-filter .form-control,
-        .card-filter .form-select { font-size: 0.82rem; height: 38px; padding: 0 12px; border-color: #e2e8f0; border-radius: 6px; color: #475569; }
-        .card-filter .form-control:focus,
-        .card-filter .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
-        .search-wrapper { position: relative; width: 100%; }
-        .search-wrapper .search-icon-left { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem; }
-        .search-wrapper input.form-control { padding-left: 36px !important; }
-        .btn-search { height: 38px; width: 42px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #0ea5e9; border: none; color: white; transition: background .2s; flex-shrink: 0; }
-        .btn-search:hover { background: #0284c7; }
-        .btn-refresh { width: 38px; height: 38px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #64748b; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 0.9rem; }
-        .btn-refresh:hover { background: #f8fafc; color: #334155; }
-        .filter-divider { height: 1px; background-color: #f1f5f9; margin: 20px 0; }
-
-        /* === ACTION BUTTONS === */
-        .btn-excel { height: 36px; padding: 0 16px; font-size: 0.82rem; border-radius: 6px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-excel:hover { background: #dcfce7; }
-        .btn-add-product { height: 36px; padding: 0 16px; font-size: 0.82rem; border-radius: 6px; background: #0284c7; color: white; border: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-add-product:hover { background: #0369a1; color: white; }
-
-        /* === TABLE === */
-        .card-table { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; overflow: hidden; padding: 10px 20px; }
-        .table { margin: 0; font-size: 0.83rem; border-collapse: separate; border-spacing: 0; }
-        .table thead th { background: white; color: #64748b; font-size: 0.72rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; border-bottom: 1px solid #f1f5f9; padding: 16px 12px; white-space: nowrap; border-top: none; }
-        .table tbody tr { transition: background .15s; }
-        .table tbody tr:hover { background: #f8fafc; }
-        .table tbody td { padding: 16px 12px; vertical-align: middle; color: #334155; border-bottom: 1px solid #f8fafc; font-weight: 500; }
-        .table tbody tr:last-child td { border-bottom: none; }
-
-        /* Product name column */
-        .product-name { font-weight: 700; color: #0f172a; font-size: 0.83rem; }
-        .product-sub  { font-size: 0.73rem; color: #94a3b8; margin-top: 3px; font-weight: 400; }
-
-        /* Status badge */
-        .badge-active   { background: #ecfdf5; color: #10b981; border-radius: 20px; padding: 4px 12px; font-size: 0.72rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #a7f3d0; }
-        .badge-inactive { background: #fef2f2; color: #ef4444; border-radius: 20px; padding: 4px 12px; font-size: 0.72rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #fecaca; }
-        .badge-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
-        .badge-active .badge-dot { background: #10b981; }
-        .badge-inactive .badge-dot { background: #ef4444; }
-
-        /* Action buttons in table */
-        .action-group { display: flex; align-items: center; gap: 8px; }
-        .btn-icon { width: 28px; height: 28px; border-radius: 4px; background: transparent; border: none; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem; transition: all .15s; text-decoration: none; cursor: pointer; color: #94a3b8; }
-        .btn-icon:hover { color: #0f172a; background: #f1f5f9; }
-
-        /* === PAGINATION === */
-        .pagination-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; border-top: 1px solid #f1f5f9; margin-top: 8px; }
-        .pagination-info { font-size: 0.78rem; color: #64748b; }
-        .pagination { margin: 0; gap: 4px; }
-        .page-link { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px !important; border: 1px solid #e2e8f0; color: #475569; font-size: 0.8rem; font-weight: 500; padding: 0; text-decoration: none; transition: all .15s; }
-        .page-link:hover { background: #f8fafc; border-color: #cbd5e1; }
-        .page-item.active .page-link { background: #0ea5e9; border-color: #0ea5e9; color: white; }
-        .page-item.disabled .page-link { color: #cbd5e1; pointer-events: none; }
-
-
-        /* === MODAL === */
-        .modal-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 14px 20px; }
-        .modal-title  { font-size: 0.95rem; font-weight: 600; color: #0f172a; }
-        .modal-body   { padding: 20px; }
-        .form-label   { font-size: 0.8rem; font-weight: 500; color: #374151; margin-bottom: 5px; }
-        .form-control, .form-select { font-size: 0.83rem; border-radius: 8px; border-color: #e2e8f0; }
-        .form-control:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
-        .modal-footer { padding: 12px 20px; border-top: 1px solid #f1f5f9; }
-
-        /* fix bootstrap conflicts */
-        a { text-decoration: none; }
-        p, h1, h2, h3, h4, h5, h6 { margin: 0; }
-        .modal-backdrop { z-index: 1040; }
-        .modal { z-index: 1050; }
-    </style>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/sidebar.css?v=2">
+    <link rel="stylesheet" href="/css/khach-hang.css">
 </head>
 <body>
-<div class="app-container">
-    <!-- Sidebar -->
-    <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-    <main class="main-content">
-
-        <!-- SweetAlert -->
-        <script th:if="${successMessage}">
-            Swal.fire({ icon: 'success', title: 'Thành công', text: '[[${successMessage}]]', timer: 2000, showConfirmButton: false });
-        </script>
-        <script th:if="${errorMessage}">
-            Swal.fire({ icon: 'error', title: 'Thất bại', text: '[[${errorMessage}]]', timer: 3000, showConfirmButton: false });
-        </script>
-
-        <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1>Quản lý sản phẩm</h1>
-                <p>Hệ thống quản lý kho hàng và danh mục sản phẩm giày VSHOES</p>
+        <!-- Nội dung chính -->
+        <main class="main-content">
+            <!-- Tiêu đề -->
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <h2 class="h4 mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">Quản lý sản phẩm</h2>
             </div>
-            <div class="user-badge">
-                <div class="info">
-                    <div class="name">Senior Admin</div>
-                    <div class="role">Cửa hàng VSHOES</div>
+
+            <!-- Card Bộ Lọc -->
+            <div class="card bg-white border mb-4" style="border-radius: 8px; border-color: #e5e7eb !important;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;"><i class="bi bi-funnel me-2"></i>Bộ lọc</h6>
                 </div>
-                <div class="avatar">A</div>
-            </div>
-        </div>
-
-        <!-- Stat Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <div class="stat-label">TỔNG SẢN PHẨM</div>
-                        <div class="stat-value" th:text="${totalProducts}">0</div>
-                    </div>
-                    <div class="stat-icon blue"><i class="bi bi-box-seam"></i></div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <div class="stat-label">ĐANG KINH DOANH</div>
-                        <div class="stat-value" th:text="${activeProducts}">0</div>
-                    </div>
-                    <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <div class="stat-label">NGỪNG KINH DOANH</div>
-                        <div class="stat-value" th:text="${inactiveProducts}">0</div>
-                    </div>
-                    <div class="stat-icon red"><i class="bi bi-x-circle"></i></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filter + Action -->
-        <div class="card-filter">
-            <!-- Form tìm kiếm -->
-            <form method="GET" action="/san-pham">
-                <!-- Row 1: Search & Filters -->
-                <div class="row g-2 align-items-center mb-3">
-                    <div class="col-md-3">
-                        <div class="d-flex gap-2 align-items-center">
-                            <div class="search-wrapper">
-                                <i class="bi bi-search search-icon-left"></i>
-                                <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Tìm theo mã hoặc tên...">
+                <div class="card-body p-4 pt-2">
+                    <form action="/san-pham" method="GET">
+                        <div class="row mb-4 align-items-end">
+                            <div class="col-md-6">
+                                <label for="keyword" class="form-label fw-medium text-dark" style="font-size: 0.85rem;">Tìm kiếm</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white" style="border-color: #d1d5db; border-right: none;"><i class="bi bi-search text-muted"></i></span>
+                                    <input type="text" name="keyword" id="keyword" class="form-control" placeholder="Tìm theo mã / tên sản phẩm..." th:value="${keyword}" style="border-color: #d1d5db; border-left: none; box-shadow: none;" onkeypress="if(event.keyCode==13) { this.form.submit(); return false; }">
+                                </div>
                             </div>
-                            <button type="submit" class="btn-search"><i class="bi bi-search"></i></button>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="idThuongHieu" onchange="this.form.submit()">
-                            <option value="">-- Thương hiệu --</option>
-                            <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}" th:selected="${idThuongHieu == th.id}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="idLoaiGiay" onchange="this.form.submit()">
-                            <option value="">-- Loại giày --</option>
-                            <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}" th:selected="${idLoaiGiay == lg.id}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="trangThai" onchange="this.form.submit()">
-                            <option value="">-- Trạng thái --</option>
-                            <option value="1" th:selected="${trangThai == 1}">Kinh doanh</option>
-                            <option value="0" th:selected="${trangThai == 0}">Ngừng kinh doanh</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="sort" onchange="this.form.submit()">
-                            <option value="" th:selected="${sort == null || sort == ''}">Sắp xếp: Mới nhất</option>
-                            <option value="name_asc" th:selected="${sort == 'name_asc'}">Tên A → Z</option>
-                            <option value="name_desc" th:selected="${sort == 'name_desc'}">Tên Z → A</option>
-                            <option value="price_asc" th:selected="${sort == 'price_asc'}">Giá tăng dần</option>
-                            <option value="price_desc" th:selected="${sort == 'price_desc'}">Giá giảm dần</option>
-                            <option value="qty_desc" th:selected="${sort == 'qty_desc'}">Số lượng nhiều nhất</option>
-                            <option value="qty_asc" th:selected="${sort == 'qty_asc'}">Số lượng ít nhất</option>
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <a href="/san-pham" class="btn-refresh" title="Làm mới"><i class="bi bi-arrow-clockwise"></i></a>
-                    </div>
-                </div>
-            </form>
-            
-            <div class="filter-divider"></div>
-
-            <!-- Row 2: Action buttons right-aligned -->
-            <div class="d-flex justify-content-end gap-2">
-                <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" class="btn-excel" style="text-decoration: none;">
-                    <i class="bi bi-file-earmark-excel"></i> Xuất Excel
-                </a>
-                <button class="btn-add-product" data-bs-toggle="modal" data-bs-target="#productModal" onclick="openAddModal()">
-                    <i class="bi bi-plus"></i> Thêm sản phẩm
-                </button>
-            </div>
-        </div>
-
-        <!-- Table -->
-        <div class="card-table">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width:50px">STT</th>
-                        <th style="width:100px">MÃ SP</th>
-                        <th>TÊN SẢN PHẨM</th>
-                        <th>THƯƠNG HIỆU</th>
-                        <th style="width:100px">SỐ LƯỢNG</th>
-                        <th style="width:130px">GIÁ BÁN</th>
-                        <th style="width:130px">TRẠNG THÁI</th>
-                        <th style="width:140px">HÀNH ĐỘNG</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="sp, stat : ${listSanPham}">
-                        <td th:text="${(currentPage - 1) * 5 + stat.count}" class="text-muted" style="font-size:0.8rem;"></td>
-                        <td>
-                            <span th:text="${sp.maSanPham}" style="font-size:0.8rem; color:#64748b;"></span>
-                        </td>
-                        <td>
-                            <div class="product-name" th:text="${sp.tenSanPham}"></div>
-                            <div class="product-sub" th:text="'Loại: ' + (${sp.loaiGiay != null ? sp.loaiGiay.tenLoaiGiay : 'Chưa cập nhật'})"></div>
-                        </td>
-                        <td>
-                            <span th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : 'Chưa cập nhật'}" style="font-size:0.83rem; color:#475569;"></span>
-                        </td>
-                        <td style="font-weight: 600; color:#334155;" th:text="${sp.soLuong != null ? sp.soLuong : 0}">
-                        </td>
-                        <td style="font-weight: 700; color:#0f172a;" th:text="${sp.giaBan != null ? #numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}">
-                        </td>
-                        <td>
-                            <span th:if="${sp.trangThai == 1}" class="badge-active">
-                                <span class="badge-dot"></span> Kinh doanh
-                            </span>
-                            <span th:if="${sp.trangThai != 1}" class="badge-inactive">
-                                <span class="badge-dot"></span> Ngừng KD
-                            </span>
-                        </td>
-                        <td>
-                            <div class="action-group">
-                                <button class="btn-icon view" title="Xem chi tiết"
-                                        th:data-id="${sp.id}"
-                                        th:data-ma="${sp.maSanPham}"
-                                        th:data-ten="${sp.tenSanPham}"
-                                        th:data-thuonghieu="${sp.thuongHieu != null ? sp.thuongHieu.id : ''}"
-                                        th:data-loaigiay="${sp.loaiGiay != null ? sp.loaiGiay.id : ''}"
-                                        th:data-gianhap="${sp.giaNhap}"
-                                        th:data-giaban="${sp.giaBan}"
-                                        th:data-soluong="${sp.soLuong}"
-                                        th:data-mota="${sp.moTaChiTiet}"
-                                        th:data-trangthai="${sp.trangThai}"
-                                        onclick="openViewModal(this)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="btn-icon edit" title="Chỉnh sửa"
-                                        th:data-id="${sp.id}"
-                                        th:data-ma="${sp.maSanPham}"
-                                        th:data-ten="${sp.tenSanPham}"
-                                        th:data-thuonghieu="${sp.thuongHieu != null ? sp.thuongHieu.id : ''}"
-                                        th:data-loaigiay="${sp.loaiGiay != null ? sp.loaiGiay.id : ''}"
-                                        th:data-gianhap="${sp.giaNhap}"
-                                        th:data-giaban="${sp.giaBan}"
-                                        th:data-soluong="${sp.soLuong}"
-                                        th:data-mota="${sp.moTaChiTiet}"
-                                        th:data-trangthai="${sp.trangThai}"
-                                        onclick="openEditModal(this)">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <a th:href="@{/san-pham/toggle-status/{id}(id=${sp.id})}" class="btn-icon toggle" title="Đổi trạng thái">
-                                    <i class="bi bi-power"></i>
-                                </a>
-                                <button class="btn-icon del" title="Xóa" th:onclick="'confirmDelete(' + ${sp.id} + ')'">
-                                    <i class="bi bi-trash"></i>
-                                </button>
+                            <div class="col-md-6 text-end">
+                                <a href="/san-pham" class="btn btn-outline-dark me-2" style="border-radius: 6px;"><i class="bi bi-arrow-clockwise me-1"></i> Đặt lại</a>
+                                <button type="button" class="btn btn-outline-dark me-2" style="border-radius: 6px;" onclick="window.location.href='/san-pham/export'"><i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel</button>
+                                <a href="/san-pham/create" class="btn btn-dark" style="border-radius: 6px;"><i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm</a>
                             </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(listSanPham)}">
-                        <td colspan="8" class="text-center py-5 text-muted" style="font-size:0.85rem;">
-                            <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
-                            Chưa có dữ liệu sản phẩm
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <div class="pagination-wrapper" th:if="${totalPages > 0}">
-                <div class="pagination-info">
-                    Hiển thị 
-                    <strong th:text="${(currentPage - 1) * 5 + 1}"></strong> - 
-                    <strong th:text="${(currentPage * 5) > totalItems ? totalItems : (currentPage * 5)}"></strong> 
-                    trong tổng số <strong th:text="${totalItems}"></strong> sản phẩm
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-dark" style="font-size: 0.85rem;">Thương hiệu</label>
+                                <select name="idThuongHieu" class="form-select" style="border-radius: 6px; border-color: #d1d5db;" onchange="this.form.submit()">
+                                    <option value="">Tất cả thương hiệu</option>
+                                    <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}" th:selected="${idThuongHieu == th.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-dark" style="font-size: 0.85rem;">Loại giày</label>
+                                <select name="idLoaiGiay" class="form-select" style="border-radius: 6px; border-color: #d1d5db;" onchange="this.form.submit()">
+                                    <option value="">Tất cả loại giày</option>
+                                    <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}" th:selected="${idLoaiGiay == lg.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-medium text-dark" style="font-size: 0.85rem;">Trạng thái</label>
+                                <select name="trangThai" class="form-select" style="border-radius: 6px; border-color: #d1d5db;" onchange="this.form.submit()">
+                                    <option value="">Tất cả trạng thái</option>
+                                    <option value="1" th:selected="${trangThai == 1}">Kinh doanh</option>
+                                    <option value="0" th:selected="${trangThai == 0}">Ngừng bán</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="d-none">Tìm kiếm</button>
+                    </form>
                 </div>
-                <nav>
-                    <ul class="pagination">
-                        <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/san-pham(page=${currentPage - 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}">
-                                <i class="bi bi-chevron-left" style="font-size:0.75rem;"></i>
-                            </a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
-                            th:classappend="${currentPage == i ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/san-pham(page=${i}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" th:text="${i}"></a>
-                        </li>
-                        <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/san-pham(page=${currentPage + 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}">
-                                <i class="bi bi-chevron-right" style="font-size:0.75rem;"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
             </div>
-        </div>
 
-    </main>
-</div>
-
-<!-- Modal Them/Sua san pham -->
-<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border-radius:12px; border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
-            <form id="productForm" method="post" action="/san-pham/add">
-                <div class="modal-header" style="background-color: #1e293b; color: white; border-top-left-radius: 12px; border-top-right-radius: 12px; padding: 16px 24px;">
-                    <h5 class="modal-title" id="productModalLabel" style="font-size: 1.05rem; font-weight: 600; color: white;">
-                        <i class="bi bi-plus-circle me-2"></i> Thêm Sản Phẩm Mới
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <!-- Card Danh Sách -->
+            <div class="card bg-white border mb-4" style="border-radius: 8px; border-color: #e5e7eb !important;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
+                    <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;"><i class="bi bi-box-seam me-2"></i>Danh sách sản phẩm</h6>
                 </div>
-                <div class="modal-body" style="padding: 24px;">
-                    <!-- Row 1 -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">MÃ SẢN PHẨM <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="maSanPham" id="maSanPham" placeholder="Nhập mã sản phẩm..." required style="height: 42px; border-radius: 8px;">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">TÊN SẢN PHẨM <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="tenSanPham" id="tenSanPham" placeholder="Nhập tên sản phẩm..." required style="height: 42px; border-radius: 8px;">
-                        </div>
-                    </div>
-                    
-                    <!-- Row 2 -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">THƯƠNG HIỆU <span class="text-danger">*</span></label>
-                            <select class="form-select" name="thuongHieu.id" id="thuongHieu" required style="height: 42px; border-radius: 8px;">
-                                <option value="">-- Chọn thương hiệu --</option>
-                                <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">LOẠI GIÀY <span class="text-danger">*</span></label>
-                            <select class="form-select" name="loaiGiay.id" id="loaiGiay" required style="height: 42px; border-radius: 8px;">
-                                <option value="">-- Chọn loại giày --</option>
-                                <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}"></option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Row 3 -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">GIÁ NHẬP (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="giaNhap" id="giaNhap" placeholder="0" style="height: 42px; border-radius: 8px;">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">GIÁ BÁN (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="giaBan" id="giaBan" placeholder="0" style="height: 42px; border-radius: 8px;">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">SỐ LƯỢNG NHẬP <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="soLuong" id="soLuong" placeholder="0" style="height: 42px; border-radius: 8px;">
-                        </div>
-                    </div>
-
-                    <!-- Row 4 -->
-                    <div class="mb-4">
-                        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">MÔ TẢ SẢN PHẨM</label>
-                        <textarea class="form-control" name="moTaChiTiet" id="moTaChiTiet" rows="3" placeholder="Nhập mô tả về giày, chất liệu, tính năng..." style="border-radius: 8px; resize: none;"></textarea>
-                    </div>
-
-                    <!-- Row 5 -->
-                    <div class="mb-2">
-                        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">TRẠNG THÁI BÁN</label>
-                        <select class="form-select" name="trangThai" id="trangThai" style="height: 42px; border-radius: 8px;">
-                            <option value="1">Đang kinh doanh</option>
-                            <option value="0">Ngừng kinh doanh</option>
-                        </select>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                            <thead style="background-color: #f9fafb;">
+                                <tr>
+                                    <th class="text-center text-muted fw-semibold py-3" style="width: 60px; font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">STT</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Mã SP</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Tên SP</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Thương hiệu</th>
+                                    <th class="text-center text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Số lượng</th>
+                                    <th class="text-center text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Trạng thái</th>
+                                    <th class="text-center text-muted fw-semibold py-3 text-nowrap" style="width: 120px; font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="sp, stat : ${pageData.content}">
+                                    <td class="text-center align-middle py-3" th:text="${(pageData.number * pageData.size) + stat.index + 1}"></td>
+                                    <td class="align-middle py-3" th:text="${sp.maSanPham}"></td>
+                                    <td class="fw-medium text-dark align-middle py-3" th:text="${sp.tenSanPham}"></td>
+                                    <td class="align-middle py-3" th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : ''}"></td>
+                                    <td class="text-center align-middle py-3" th:text="${sp.soLuong}"></td>
+                                    <td class="text-center align-middle py-3">
+                                        <span th:if="${sp.trangThai == 1}" class="badge bg-success-subtle text-success px-3 py-2" style="border-radius: 6px; font-weight: 500;">Kinh doanh</span>
+                                        <span th:unless="${sp.trangThai == 1}" class="badge bg-secondary-subtle text-secondary px-3 py-2" style="border-radius: 6px; font-weight: 500;">Ngừng bán</span>
+                                    </td>
+                                    <td class="text-center text-nowrap align-middle py-3">
+                                        <a th:href="@{'/san-pham/edit/' + ${sp.id}}" class="btn btn-light text-primary me-2 px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
+                                        <a th:href="@{'/san-pham/delete/' + ${sp.id}}" class="btn btn-light text-danger px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" onclick="return confirm('Bạn có chắc muốn xóa?');" title="Xóa"><i class="bi bi-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(pageData.content)}">
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                                        Không tìm thấy dữ liệu
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #f1f5f9;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 500; padding: 8px 24px; background-color: #64748b; border: none;">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary" id="btnSubmitForm" style="border-radius: 8px; font-weight: 500; padding: 8px 24px; background-color: #0ea5e9; border: none;">
-                        <i class="bi bi-save me-1"></i> Lưu sản phẩm
-                    </button>
+
+                <!-- Thanh phân trang -->
+                <div class="d-flex justify-content-between align-items-center mt-4" th:if="${pageData.totalPages > 1}">
+                    <div class="text-muted" style="font-size: 14px;">
+                        Hiển thị <span th:text="${pageData.number * pageData.size + 1}" class="fw-medium text-dark"></span> 
+                        đến <span th:text="${(pageData.number * pageData.size) + pageData.numberOfElements}" class="fw-medium text-dark"></span> 
+                        trong tổng số <span th:text="${pageData.totalElements}" class="fw-medium text-dark"></span> mục
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" th:if="${pageData.totalPages > 0}"
+    th:with="startPage=${pageData.number <= 1 ? 0 : (pageData.number >= pageData.totalPages - 2 ? pageData.totalPages - 3 : pageData.number - 1)},
+             actualStartPage=${startPage < 0 ? 0 : startPage},
+             endPage=${pageData.totalPages <= 3 ? pageData.totalPages - 1 : actualStartPage + 2}">
+    <!-- Nút Trước -->
+    <li class="page-item" th:classappend="${pageData.first ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{/san-pham(page=${pageData.number - 1}, size=${pageData.size}, keyword=${keyword}, trangThai=${trangThai}, soLuongTon=${soLuongTon}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay})}">Trước</a>
+    </li>
+    <!-- Ellipsis Đầu -->
+    <li class="page-item disabled" th:if="${actualStartPage > 0}">
+        <a class="page-link" href="#">...</a>
+    </li>
+    <!-- Các số trang -->
+    <li class="page-item" th:each="i : ${#numbers.sequence(actualStartPage, endPage)}" th:classappend="${pageData.number == i ? 'active' : ''}">
+        <a class="page-link" th:href="@{/san-pham(page=${i}, size=${pageData.size}, keyword=${keyword}, trangThai=${trangThai}, soLuongTon=${soLuongTon}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay})}" th:text="${i + 1}"></a>
+    </li>
+    <!-- Ellipsis Cuối -->
+    <li class="page-item disabled" th:if="${endPage < pageData.totalPages - 1}">
+        <a class="page-link" href="#">...</a>
+    </li>
+    <!-- Nút Sau -->
+    <li class="page-item" th:classappend="${pageData.last ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{/san-pham(page=${pageData.number + 1}, size=${pageData.size}, keyword=${keyword}, trangThai=${trangThai}, soLuongTon=${soLuongTon}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay})}">Sau</a>
+    </li>
+</ul>
+                    </nav>
                 </div>
-            </form>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Tạo Sản Phẩm -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <form action="/san-pham/add" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header border-0 pb-0 text-center d-block position-relative mt-3">
+                        <h4 class="modal-title fw-bold text-uppercase w-100" style="letter-spacing: 1px;">THÊM SẢN PHẨM</h4>
+                        <button type="button" class="btn-close position-absolute" style="top: 0; right: 20px;" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-5 py-4">
+                        
+                        <div class="mb-4 d-flex align-items-center">
+                            <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 120px;"><span class="text-danger">*</span> Tên sản phẩm:</label>
+                            <input type="text" class="form-control" name="tenSanPham" placeholder="Nhập tên sản phẩm" required style="border-radius: 6px;">
+                        </div>
+                        
+                        <div class="mb-4 d-flex align-items-start">
+                            <label class="form-label fw-bold mb-0 me-3 text-nowrap mt-2" style="width: 120px;"><span class="text-danger">*</span> Mô tả:</label>
+                            <textarea class="form-control" name="moTaChiTiet" rows="4" placeholder="Nhập mô tả sản phẩm" style="border-radius: 6px;"></textarea>
+                        </div>
+
+                        <div class="row g-4 mt-2">
+                            <!-- Cột trái -->
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Thương hiệu:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="thuongHieu.id" required style="border-radius: 6px 0 0 6px;">
+                                            <option value="">Chọn thương hiệu</option>
+                                            <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Chất Liệu:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="chatLieu.id" required style="border-radius: 6px 0 0 6px;">
+                                            <option value="">Chọn chất liệu</option>
+                                            <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.tenChatLieu}"></option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Màu sắc:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="idMauSac" required style="border-radius: 6px 0 0 6px;">
+                                            <option value="">Chọn màu sắc</option>
+                                            <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Kích cỡ:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="idCoGiay" required style="border-radius: 6px 0 0 6px;">
+                                            <option value="">Chọn kích cỡ</option>
+                                            <option th:each="cg : ${listCoGiay}" th:value="${cg.id}" th:text="${cg.sizeGiay}"></option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Ảnh SP:</label>
+                                    <input class="form-control" type="file" name="imageFile" accept="image/*" style="border-radius: 6px;" required>
+                                </div>
+                            </div>
+                            <!-- Cột phải -->
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Trạng thái:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="trangThai" style="border-radius: 6px 0 0 6px;">
+                                            <option value="1">Kinh Doanh</option>
+                                            <option value="0">Ngừng kinh doanh</option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Loại Giày:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="loaiGiay.id" required style="border-radius: 6px 0 0 6px;">
+                                            <option value="">Chọn loại giày</option>
+                                            <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}"></option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Danh mục:</label>
+                                    <div class="input-group">
+                                        <select class="form-select" name="danhMuc.id" required style="border-radius: 6px 0 0 6px;">
+                                            <option value="">Chọn danh mục</option>
+                                            <option th:each="dm : ${listDanhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}"></option>
+                                        </select>
+                                        <button class="btn btn-primary px-3" type="button" style="border-radius: 0 6px 6px 0;"><i class="bi bi-plus-lg"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Giá bán:</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" name="giaBan" placeholder="0" min="0" required style="border-radius: 6px 0 0 6px;">
+                                        <span class="input-group-text" style="border-radius: 0 6px 6px 0;">VNĐ</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center mb-4">
+                                    <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Số lượng:</label>
+                                    <input type="number" class="form-control" name="soLuongTon" placeholder="0" min="1" required style="border-radius: 6px;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mã Sản Phẩm ẩn (tự sinh) -->
+                        <input type="hidden" name="maSanPham" value="">
+                    </div>
+                    <div class="modal-footer border-0 px-5 pb-4 d-flex justify-content-center">
+                        <button type="button" class="btn btn-secondary px-4 me-2" data-bs-dismiss="modal" style="border-radius: 6px;">Hủy</button>
+                        <button type="submit" class="btn btn-primary px-4" style="border-radius: 6px; background-color: #2563EB;">Tạo mới</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleFormElements(disabled) {
-        document.getElementById('maSanPham').disabled = disabled;
-        document.getElementById('tenSanPham').disabled = disabled;
-        document.getElementById('thuongHieu').disabled = disabled;
-        document.getElementById('loaiGiay').disabled = disabled;
-        document.getElementById('giaNhap').disabled = disabled;
-        document.getElementById('giaBan').disabled = disabled;
-        document.getElementById('soLuong').disabled = disabled;
-        document.getElementById('moTaChiTiet').disabled = disabled;
-        document.getElementById('trangThai').disabled = disabled;
-        document.getElementById('btnSubmitForm').style.display = disabled ? 'none' : 'block';
-    }
-
-    function openAddModal() {
-        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i> Thêm Sản Phẩm Mới';
-        document.getElementById('productForm').action = '/san-pham/add';
-        document.getElementById('maSanPham').value = '';
-        document.getElementById('tenSanPham').value = '';
-        document.getElementById('thuongHieu').value = '';
-        document.getElementById('loaiGiay').value = '';
-        document.getElementById('giaNhap').value = '';
-        document.getElementById('giaBan').value = '';
-        document.getElementById('soLuong').value = '';
-        document.getElementById('moTaChiTiet').value = '';
-        document.getElementById('trangThai').value = '1';
-        toggleFormElements(false);
-    }
-
-    function openEditModal(btn) {
-        const id = btn.getAttribute('data-id');
-        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-pencil-square me-2"></i> Cập Nhật Sản Phẩm';
-        document.getElementById('productForm').action = '/san-pham/edit/' + id;
-        document.getElementById('maSanPham').value = btn.getAttribute('data-ma');
-        document.getElementById('tenSanPham').value = btn.getAttribute('data-ten');
-        document.getElementById('thuongHieu').value = btn.getAttribute('data-thuonghieu');
-        document.getElementById('loaiGiay').value = btn.getAttribute('data-loaigiay');
-        document.getElementById('giaNhap').value = btn.getAttribute('data-gianhap') || '0';
-        document.getElementById('giaBan').value = btn.getAttribute('data-giaban') || '0';
-        document.getElementById('soLuong').value = btn.getAttribute('data-soluong') || '0';
-        document.getElementById('moTaChiTiet').value = btn.getAttribute('data-mota') || '';
-        document.getElementById('trangThai').value = btn.getAttribute('data-trangthai') || '1';
-        toggleFormElements(false);
-        new bootstrap.Modal(document.getElementById('productModal')).show();
-    }
-
-    function openViewModal(btn) {
-        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-eye me-2"></i> Chi Tiết Sản Phẩm';
-        document.getElementById('productForm').action = '#';
-        document.getElementById('maSanPham').value = btn.getAttribute('data-ma');
-        document.getElementById('tenSanPham').value = btn.getAttribute('data-ten');
-        document.getElementById('thuongHieu').value = btn.getAttribute('data-thuonghieu');
-        document.getElementById('loaiGiay').value = btn.getAttribute('data-loaigiay');
-        document.getElementById('giaNhap').value = btn.getAttribute('data-gianhap') || '0';
-        document.getElementById('giaBan').value = btn.getAttribute('data-giaban') || '0';
-        document.getElementById('soLuong').value = btn.getAttribute('data-soluong') || '0';
-        document.getElementById('moTaChiTiet').value = btn.getAttribute('data-mota') || '';
-        document.getElementById('trangThai').value = btn.getAttribute('data-trangthai') || '1';
-        toggleFormElements(true);
-        new bootstrap.Modal(document.getElementById('productModal')).show();
-    }
-
-    function confirmDelete(id) {
-        Swal.fire({
-            title: 'Xóa sản phẩm?',
-            text: 'Bạn không thể hoàn tác hành động này!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Có, xóa đi!',
-            cancelButtonText: 'Hủy',
-            borderRadius: '12px'
-        }).then(r => { if (r.isConfirmed) window.location.href = '/san-pham/delete/' + id; });
-    }
-
-    document.getElementById('productForm').addEventListener('submit', function(e) {
-        if (this.action.endsWith('#')) {
-            e.preventDefault();
-            return;
-        }
-        const giaNhap = parseFloat(document.getElementById('giaNhap').value) || 0;
-        const giaBan = parseFloat(document.getElementById('giaBan').value) || 0;
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var successMsg = /*[[${successMessage}]]*/ null;
+        var errorMsg = /*[[${errorMessage}]]*/ null;
+        /*]]>*/
         
-        if (giaNhap >= giaBan) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: 'Lỗi nhập liệu',
-                text: 'Giá bán phải lớn hơn giá nhập!',
-                confirmButtonColor: '#0ea5e9',
-                borderRadius: '12px'
-            });
-        }
-    });
-</script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (successMsg) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: successMsg,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+            if (errorMsg) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: errorMsg,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        });
+    </script>
 </body>
 </html>

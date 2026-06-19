@@ -2,15 +2,13 @@ package com.example.be.service;
 
 import com.example.be.entity.SanPham;
 import org.springframework.data.domain.Page;
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface SanPhamService {
-    List<SanPham> getAll();
-    Page<SanPham> getPage(int pageNo, int pageSize);
-    Page<SanPham> searchFilter(String keyword, Long idThuongHieu, Long idLoaiGiay, Integer trangThai, String sort, int pageNo, int pageSize);
-    SanPham getById(Long id);
+    Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, Pageable pageable);
+    SanPham findById(Long id);
     SanPham save(SanPham sanPham);
-    SanPham update(Long id, SanPham sanPham);
-    void delete(Long id);
-    void toggleStatus(Long id);
+    void deleteById(Long id);
+    boolean existsByTenSanPham(String tenSanPham);
+    boolean existsByMaSanPham(String maSanPham);
 }
