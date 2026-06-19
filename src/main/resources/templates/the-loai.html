@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Danh Mục | VShoes</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/khach-hang.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- Nội dung chính -->
+        <main class="main-content">
+            <div class="screen-header" style="margin-bottom: 24px;">
+                <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý danh mục</h1>
+                <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">Quản lý danh sách, thêm mới và cập nhật các danh mục sản phẩm</p>
+            </div>
+
+            <!-- Card Bộ Lọc -->
+            <div class="filter-card">
+                <div class="filter-header">
+                    <span class="filter-title">Bộ lọc tìm kiếm</span>
+                    <a href="/the-loai" class="refresh-btn" title="Làm mới bộ lọc">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                    </a>
+                </div>
+                
+                <form action="/the-loai" method="GET">
+                    <div class="filter-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="form-group">
+                            <label for="keyword">Tên danh mục</label>
+                            <input type="text" name="keyword" id="keyword" class="input-control" placeholder="Tìm kiếm" th:value="${keyword}">
+                        </div>
+                        <div class="form-group">
+                            <label for="trangThai">Trạng thái</label>
+                            <select name="trangThai" id="trangThai" class="input-control">
+                                <option value="">Tất cả</option>
+                                <option value="true" th:selected="${trangThai == true}">Đang sử dụng</option>
+                                <option value="false" th:selected="${trangThai == false}">Ngừng sử dụng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="action-row" style="margin-top: 20px; justify-content: center;">
+                        <button type="submit" class="btn-primary-action">Tìm kiếm</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Card Danh Sách -->
+            <div class="customer-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span class="card-title-table" style="margin-bottom: 0;">Danh sách danh mục</span>
+                    <div class="action-row" style="margin-bottom: 0;">
+                        <button class="btn-primary-action" data-bs-toggle="modal" data-bs-target="#addModal">
+                            <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Thêm mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="custom-table-container">
+                    <table class="customer-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">STT</th>
+                                <th>Mã Danh Mục</th>
+                                <th>Tên Danh Mục</th>
+                                <th>Trạng Thái</th>
+                                <th style="width: 100px; text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Lặp qua danh sách danh mục (Loại Giày) -->
+                            <tr th:each="item, stat : ${pageData.content}">
+                                <td style="text-align: center;" th:text="${(pageData.number * pageData.size) + stat.index + 1}">1</td>
+                                <td th:text="${item.maDanhMuc}">TL01</td>
+                                <td th:text="${item.tenDanhMuc}">Công việc</td>
+                                <td>
+                                    <span th:if="${item.trangThai}" class="status-badge active">Đang sử dụng</span>
+                                    <span th:unless="${item.trangThai}" class="status-badge inactive">Ngừng sử dụng</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div class="action-buttons" style="justify-content: center;">
+                                        <button class="btn-icon" title="Chỉnh sửa" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${item.id}" style="border: none; background: none;">
+                                            <i data-lucide="edit" style="width: 18px; height: 18px; color: #0284c7;"></i>
+                                        </button>
+                                        <a th:href="@{'/the-loai/delete/' + ${item.id}}" class="btn-icon text-danger" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');">
+                                            <i data-lucide="trash-2" style="width: 18px; height: 18px; color: #ef4444;"></i>
+                                        </a>
+                                    </div>
+                                </td>
+
+                                <!-- Modal Chỉnh Sửa cho mỗi dòng -->
+                                <div class="modal fade" th:id="'editModal' + ${item.id}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content text-start">
+                                            <form th:action="@{'/the-loai/update/' + ${item.id}}" method="POST">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">Chỉnh Sửa Danh Mục</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Mã Danh Mục</label>
+                                                        <input type="text" class="form-control" name="maDanhMuc" th:value="${item.maDanhMuc}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Tên Danh Mục</label>
+                                                        <input type="text" class="form-control" name="tenDanhMuc" th:value="${item.tenDanhMuc}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Trạng Thái</label>
+                                                        <select class="form-select" name="trangThai">
+                                                            <option value="true" th:selected="${item.trangThai == true}">Đang sử dụng</option>
+                                                            <option value="false" th:selected="${item.trangThai == false}">Ngừng sử dụng</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Edit Modal -->
+
+                            </tr>
+                            
+                            <tr th:if="${#lists.isEmpty(pageData.content)}">
+                                <td colspan="5" class="text-center text-muted py-4">Không tìm thấy dữ liệu</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Thanh phân trang -->
+                <div class="d-flex justify-content-between align-items-center mt-4" th:if="${pageData.totalPages > 1}">
+                    <div class="text-muted" style="font-size: 14px;">
+                        Hiển thị <span th:text="${pageData.number * pageData.size + 1}" class="fw-medium text-dark"></span> 
+                        đến <span th:text="${(pageData.number * pageData.size) + pageData.numberOfElements}" class="fw-medium text-dark"></span> 
+                        trong tổng số <span th:text="${pageData.totalElements}" class="fw-medium text-dark"></span> mục
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" th:if="${pageData.totalPages > 0}"
+    th:with="startPage=${pageData.number <= 1 ? 0 : (pageData.number >= pageData.totalPages - 2 ? pageData.totalPages - 3 : pageData.number - 1)},
+             actualStartPage=${startPage < 0 ? 0 : startPage},
+             endPage=${pageData.totalPages <= 3 ? pageData.totalPages - 1 : actualStartPage + 2}">
+    <!-- Nút Trước -->
+    <li class="page-item" th:classappend="${pageData.first ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{/the-loai(page=${pageData.number - 1}, size=${pageData.size}, keyword=${keyword}, trangThai=${trangThai})}">Trước</a>
+    </li>
+    <!-- Ellipsis Đầu -->
+    <li class="page-item disabled" th:if="${actualStartPage > 0}">
+        <a class="page-link" href="#">...</a>
+    </li>
+    <!-- Các số trang -->
+    <li class="page-item" th:each="i : ${#numbers.sequence(actualStartPage, endPage)}" th:classappend="${pageData.number == i ? 'active' : ''}">
+        <a class="page-link" th:href="@{/the-loai(page=${i}, size=${pageData.size}, keyword=${keyword}, trangThai=${trangThai})}" th:text="${i + 1}"></a>
+    </li>
+    <!-- Ellipsis Cuối -->
+    <li class="page-item disabled" th:if="${endPage < pageData.totalPages - 1}">
+        <a class="page-link" href="#">...</a>
+    </li>
+    <!-- Nút Sau -->
+    <li class="page-item" th:classappend="${pageData.last ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{/the-loai(page=${pageData.number + 1}, size=${pageData.size}, keyword=${keyword}, trangThai=${trangThai})}">Sau</a>
+    </li>
+</ul>
+                    </nav>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Thêm Mãới -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="/the-loai/add" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Thêm Danh Mục Mãới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Mã Danh Mục</label>
+                            <input type="text" class="form-control" name="maDanhMuc" placeholder="Nhập mã (VD: TL01)" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Tên Danh Mục</label>
+                            <input type="text" class="form-control" name="tenDanhMuc" placeholder="Nhập tên danh mục" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Trạng Thái</label>
+                            <select class="form-select" name="trangThai">
+                                <option value="true">Đang sử dụng</option>
+                                <option value="false">Ngừng sử dụng</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Thêm mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var successMsg = /*[[${successMessage}]]*/ null;
+        var errorMsg = /*[[${errorMessage}]]*/ null;
+        /*]]>*/
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            if (successMsg) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: successMsg,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+            if (errorMsg) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: errorMsg,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+

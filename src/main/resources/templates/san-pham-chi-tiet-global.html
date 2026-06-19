@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm chi tiết | VShoes</title>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/sidebar.css?v=2">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Poppins', sans-serif; color: #334155; }
+        .content-card { background-color: #ffffff; border-radius: 8px; padding: 20px 25px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); margin-bottom: 24px; }
+        .card-header-title { font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; }
+        
+        .filter-form .form-label { font-size: 13px; font-weight: 500; color: #475569; margin-bottom: 0; }
+        .filter-form .form-control, .filter-form .form-select { border-radius: 6px; font-size: 13px; border: 1px solid #cbd5e1; padding: 6px 12px; box-shadow: none; }
+        .filter-form .form-control:focus, .filter-form .form-select:focus { border-color: #3b82f6; outline: none; }
+        
+        .btn-search { background-color: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; }
+        .btn-reset { background-color: #ffffff; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; }
+        .btn-qr { background-color: #ffffff; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-excel { background-color: #ffffff; color: #16a34a; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 16px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-update-product { background-color: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+        
+        .custom-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .custom-table thead th { background-color: #f8fafc; color: #475569; font-weight: 600; font-size: 14px; padding: 16px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+        .custom-table tbody td { padding: 16px; vertical-align: middle; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
+        .custom-table tbody tr:hover { background-color: #f8fafc; }
+        .custom-table tbody tr.row-selected td { background-color: #e0f2fe; border-bottom: 1px solid #bae6fd; }
+        
+        .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .status-badge { padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; display: inline-block;}
+        .status-active { background-color: #dcfce7; color: #16a34a; }
+        .status-inactive { background-color: #fee2e2; color: #dc2626; }
+        
+        .action-btn { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; margin: 0 2px; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { background-color: #f1f5f9; }
+        .btn-view { color: #f59e0b; }
+        .btn-edit { color: #0284c7; }
+        .btn-delete { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <main class="main-content">
+
+            <!-- Tiêu đề -->
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <h2 class="h4 mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">Quản lý sản phẩm chi tiết</h2>
+            </div>
+
+            <div class="content-card">
+                <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-funnel me-2"></i>Bộ Lọc</h6>
+                <form action="#" method="GET" class="filter-form" id="filterForm">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex gap-2">
+                            <input type="text" id="searchInput" class="form-control" style="width: 250px;" placeholder="Nhập tên sản phẩm hoặc mã...">
+                            <button type="button" id="btnSearch" class="btn-search">Tìm kiếm</button>
+                            <button type="button" id="btnReset" class="btn-reset">Làm mới</button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn-qr" data-bs-toggle="modal" data-bs-target="#qrModal"><i class="bi bi-qr-code-scan"></i> QR Code sản phẩm</button>
+                            <button type="button" class="btn-excel ms-2" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Chất Liệu :</label>
+                            <select class="form-select filter-select" id="filterChatLieu">
+                                <option value="">Tất cả</option>
+                                <option th:each="item : ${listChatLieu}" th:value="${item.id}" th:text="${item.tenChatLieu}"></option>
+                            </select>
+                        </div>
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Thương Hiệu :</label>
+                            <select class="form-select filter-select" id="filterThuongHieu">
+                                <option value="">Tất cả</option>
+                                <option th:each="item : ${listThuongHieu}" th:value="${item.id}" th:text="${item.tenThuongHieu}"></option>
+                            </select>
+                        </div>
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Loại giày :</label>
+                            <select class="form-select filter-select" id="filterLoaiGiay">
+                                <option value="">Tất cả</option>
+                                <option th:each="item : ${listLoaiGiay}" th:value="${item.id}" th:text="${item.tenLoaiGiay}"></option>
+                            </select>
+                        </div>
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Kích cỡ :</label>
+                            <select class="form-select filter-select" id="filterKichCo">
+                                <option value="">Tất cả</option>
+                                <option th:each="item : ${listCoGiay}" th:value="${item.sizeGiay}" th:text="${item.sizeGiay}"></option>
+                            </select>
+                        </div>
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Màu Sắc :</label>
+                            <select class="form-select filter-select" id="filterMauSac">
+                                <option value="">Tất cả</option>
+                                <option th:each="item : ${listMauSac}" th:value="${item.tenMauSac}" th:text="${item.tenMauSac}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Danh Mục :</label>
+                            <select class="form-select filter-select" id="filterDanhMuc">
+                                <option value="">Tất cả</option>
+                                <option th:each="item : ${listDanhMuc}" th:value="${item.id}" th:text="${item.tenDanhMuc}"></option>
+                            </select>
+                        </div>
+                        <div class="col d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Trạng Thái :</label>
+                            <select class="form-select filter-select" id="filterTrangThai">
+                                <option value="">Tất cả</option>
+                                <option value="1">Đang kinh doanh</option>
+                                <option value="0">Ngừng kinh doanh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-center gap-2">
+                            <label class="form-label text-nowrap">Khoảng giá :</label>
+                            <input type="range" class="form-range filter-select" id="filterGia" min="0" max="10000000" step="500000" value="10000000">
+                            <span id="priceDisplay" class="ms-2 fw-bold text-danger">10,000,000</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="content-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="card-header-title mb-0 border-0 pb-0">
+                        <i class="bi bi-list-ul" style="font-size: 24px;"></i> Danh sách sản phẩm chi tiết
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="form-check-input" id="selectAll"></th>
+                                <th>STT <i class="bi bi-chevron-expand"></i></th>
+                                <th>Ảnh</th>
+                                <th>Tên Sản Phẩm <i class="bi bi-chevron-expand"></i></th>
+                                <th>Số Lượng <i class="bi bi-chevron-expand"></i></th>
+                                <th>Giá Nhập <i class="bi bi-chevron-expand"></i></th>
+                                <th>Giá Bán <i class="bi bi-chevron-expand"></i></th>
+                                <th>Kích Thước <i class="bi bi-chevron-expand"></i></th>
+                                <th>Màu Sắc</th>
+                                <th>Trạng Thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="variantTableBody">
+                            <tr th:each="ct, stat : ${pageData.content}" class="variant-row"
+                                th:data-kichco="${ct.coGiay != null ? ct.coGiay.sizeGiay : ''}"
+                                th:data-mausac="${ct.mauSac != null ? ct.mauSac.tenMauSac : ''}"
+                                th:data-trangthai="${ct.trangThai}"
+                                th:data-gia="${ct.giaBan}"
+                                th:data-ten="${ct.sanPham.tenSanPham + ' ' + (ct.ma != null ? ct.ma : '')}"
+                                th:data-ma="${ct.ma}"
+                                th:data-soluong="${ct.soLuongTon}"
+                                th:data-chatlieu="${ct.sanPham.chatLieu != null ? ct.sanPham.chatLieu.id : ''}"
+                                th:data-thuonghieu="${ct.sanPham.thuongHieu != null ? ct.sanPham.thuongHieu.id : ''}"
+                                th:data-loaigiay="${ct.sanPham.loaiGiay != null ? ct.sanPham.loaiGiay.id : ''}"
+                                th:data-danhmuc="${ct.sanPham.danhMuc != null ? ct.sanPham.danhMuc.id : ''}"
+                                th:data-chatlieuname="${ct.sanPham.chatLieu != null ? ct.sanPham.chatLieu.tenChatLieu : ''}"
+                                th:data-thuonghieuname="${ct.sanPham.thuongHieu != null ? ct.sanPham.thuongHieu.tenThuongHieu : ''}"
+                                th:data-loaigiayname="${ct.sanPham.loaiGiay != null ? ct.sanPham.loaiGiay.tenLoaiGiay : ''}"
+                                th:data-danhmucname="${ct.sanPham.danhMuc != null ? ct.sanPham.danhMuc.tenDanhMuc : ''}">
+                                <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                                <td th:text="${(pageData.number * pageData.size) + stat.index + 1}">1</td>
+                                <td>
+                                    <!-- Fallback image logic if image is null -->
+                                    <a href="#" data-bs-toggle="modal" th:data-bs-target="'#imageGalleryModal' + ${ct.id}" title="Xem tất cả ảnh">
+                                        <img th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" 
+                                             th:src="${#strings.contains(ct.hinhAnh, ',') ? #strings.arraySplit(ct.hinhAnh, ',')[0] : ct.hinhAnh}" 
+                                             class="product-img" alt="Ảnh SP" style="cursor: pointer; border: 2px solid transparent; transition: 0.3s;" onmouseover="this.style.borderColor='#0ea5e9'" onmouseout="this.style.borderColor='transparent'">
+                                        <img th:unless="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" src="/images/logo.png" class="product-img" alt="Chưa có ảnh" style="opacity: 0.5; padding: 5px; background: #f8fafc; border: 1px dashed #cbd5e1;">
+                                    </a>
+                                </td>
+                                <td class="text-start">
+                                    <span th:text="${ct.sanPham.tenSanPham}">Giày Sneakers</span>
+                                    <br>
+                                    <small class="text-muted" th:text="'[ ' + (${ct.coGiay != null ? ct.coGiay.sizeGiay : 'N/A'}) + ' - ' + (${ct.mauSac != null ? ct.mauSac.tenMauSac : 'N/A'}) + ' ]'">[ 36 - LightGoldenrodYellow ]</small>
+                                </td>
+                                <td th:text="${ct.soLuongTon}">121</td>
+                                <td th:text="${ct.giaNhap != null ? #numbers.formatDecimal(ct.giaNhap, 0, 'COMMA', 0, 'POINT') + ' VNĐ' : ''}"></td>
+                                <td th:text="${#numbers.formatDecimal(ct.giaBan, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">4.000.000 VNĐ</td>
+                                <td th:text="${ct.coGiay != null ? ct.coGiay.sizeGiay : ''}">36</td>
+                                <td>
+                                    <span th:text="${ct.mauSac != null ? ct.mauSac.tenMauSac : 'N/A'}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${ct.trangThai == 1}" class="status-badge status-active">Đang kinh doanh</span>
+                                    <span th:unless="${ct.trangThai == 1}" class="status-badge status-inactive">Ngừng kinh doanh</span>
+                                </td>
+                                <td>
+                                    <a class="action-btn btn-view" title="Xem chi tiết"
+                                       th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <button class="action-btn btn-edit" title="Chỉnh sửa"
+                                            data-bs-toggle="modal" 
+                                            th:data-bs-target="'#editVariantModal' + ${ct.id}">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <a class="action-btn btn-delete" title="Xóa"
+                                       th:href="@{'/san-pham/delete-variant/' + ${ct.id}}"
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa biến thể này không?');">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
+
+                                <!-- Modal Thư Viện Ảnh (Carousel) -->
+                                <div class="modal fade" th:id="'imageGalleryModal' + ${ct.id}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header border-0 pb-0">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-center pt-0">
+                                                <div th:id="'carousel' + ${ct.id}" class="carousel slide" data-bs-ride="carousel">
+                                                    <div class="carousel-inner" style="border-radius: 12px; overflow: hidden; background: #f8f9fa;">
+                                                        <th:block th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}">
+                                                            <div th:each="imgUrl, stat : ${#strings.arraySplit(ct.hinhAnh, ',')}" 
+                                                                 th:class="'carousel-item ' + ${stat.index == 0 ? 'active' : ''}">
+                                                                <img th:src="${imgUrl}" class="d-block w-100" style="max-height: 500px; object-fit: contain;" alt="Ảnh SP">
+                                                            </div>
+                                                        </th:block>
+                                                        <div th:unless="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" class="carousel-item active">
+                                                            <img src="/images/logo.png" class="d-block w-100 p-5" style="max-height: 500px; object-fit: contain; opacity: 0.3;" alt="Chưa có ảnh">
+                                                        </div>
+                                                    </div>
+                                                    <button class="carousel-control-prev" type="button" th:data-bs-target="'#carousel' + ${ct.id}" data-bs-slide="prev" style="filter: invert(100%);">
+                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Previous</span>
+                                                    </button>
+                                                    <button class="carousel-control-next" type="button" th:data-bs-target="'#carousel' + ${ct.id}" data-bs-slide="next" style="filter: invert(100%);">
+                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                        <span class="visually-hidden">Next</span>
+                                                    </button>
+                                                </div>
+                                                <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
+                                                    <th:block th:if="${ct.hinhAnh != null}">
+                                                        <img th:each="imgUrl, stat : ${#strings.arraySplit(ct.hinhAnh, ',')}" 
+                                                             th:src="${imgUrl}" 
+                                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #ddd;"
+                                                             th:data-bs-target="'#carousel' + ${ct.id}" th:data-bs-slide-to="${stat.index}">
+                                                    </th:block>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Modal Xem Chi Tiết Biến Thể Đã Bị Xóa Để Dùng Trang Riêng -->
+
+                                <!-- Modal Chỉnh Sửa Biến Thể -->
+                                <div class="modal fade" th:id="'editVariantModal' + ${ct.id}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content text-start">
+                                            <form th:action="@{'/san-pham/update-variant/' + ${ct.id}}" method="POST" onsubmit="return validateVariantModal(this)">
+                                                <input type="hidden" th:id="'imageBase64_' + ${ct.id}" name="imageBase64">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">Chỉnh Sửa Biến Thể</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Ảnh Sản Phẩm (Tối đa 6 ảnh)</label>
+                                                        <input type="file" class="form-control" accept="image/*" multiple th:onchange="|previewVariantImage(this, ${ct.id})|">
+                                                        <div class="mt-3 d-flex flex-wrap gap-2 justify-content-center" th:id="'previewContainer_' + ${ct.id}">
+                                                            <!-- Existing images -->
+                                                            <th:block th:if="${ct.hinhAnh != null}">
+                                                                <img th:each="imgUrl : ${#strings.arraySplit(ct.hinhAnh, ',')}" 
+                                                                     th:src="${imgUrl}" 
+                                                                     style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                            </th:block>
+                                                            <img th:unless="${ct.hinhAnh != null}" src="https://via.placeholder.com/100?text=No+Image" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Giá Nhập (VNĐ)</label>
+                                                        <input type="number" class="form-control" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Giá Bán (VNĐ)</label>
+                                                        <input type="number" class="form-control" name="giaBan" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Số Lượng Tồn</label>
+                                                        <input type="number" class="form-control" name="soLuongTon" th:value="${ct.soLuongTon}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-medium">Trạng Thái</label>
+                                                        <select class="form-select" name="trangThai">
+                                                            <option value="1" th:selected="${ct.trangThai == 1}">Đang kinh doanh</option>
+                                                            <option value="0" th:selected="${ct.trangThai == 0}">Ngừng kinh doanh</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary" style="background-color: #3b82f6;">Lưu thay đổi</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(pageData.content)}">
+                                <td colspan="10" class="text-center text-muted py-4">Sản phẩm này chưa có chi tiết biến thể nào</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Phân trang -->
+                <div class="d-flex justify-content-between align-items-center mt-4" th:if="${pageData.totalElements > 0}">
+                    <div class="text-muted" style="font-size: 14px;">
+                        Hiển thị <span th:text="${pageData.number * pageData.size + 1}" class="fw-medium text-dark"></span> 
+                        đến <span th:text="${(pageData.number * pageData.size) + pageData.numberOfElements}" class="fw-medium text-dark"></span> 
+                        trong tổng số <span th:text="${pageData.totalElements}" class="fw-medium text-dark"></span> mục
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" th:if="${pageData.totalPages > 0}"
+    th:with="startPage=${pageData.number <= 1 ? 0 : (pageData.number >= pageData.totalPages - 2 ? pageData.totalPages - 3 : pageData.number - 1)},
+             actualStartPage=${startPage < 0 ? 0 : startPage},
+             endPage=${pageData.totalPages <= 3 ? pageData.totalPages - 1 : actualStartPage + 2}">
+    <!-- Nút Trước -->
+    <li class="page-item" th:classappend="${pageData.first ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number - 1}, size=${pageData.size})}">Trước</a>
+    </li>
+    <!-- Ellipsis Đầu -->
+    <li class="page-item disabled" th:if="${actualStartPage > 0}">
+        <a class="page-link" href="#">...</a>
+    </li>
+    <!-- Các số trang -->
+    <li class="page-item" th:each="i : ${#numbers.sequence(actualStartPage, endPage)}" th:classappend="${pageData.number == i ? 'active' : ''}">
+        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${i}, size=${pageData.size})}" th:text="${i + 1}"></a>
+    </li>
+    <!-- Ellipsis Cuối -->
+    <li class="page-item disabled" th:if="${endPage < pageData.totalPages - 1}">
+        <a class="page-link" href="#">...</a>
+    </li>
+    <!-- Nút Sau -->
+    <li class="page-item" th:classappend="${pageData.last ? 'disabled' : ''}">
+        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number + 1}, size=${pageData.size})}">Sau</a>
+    </li>
+</ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+        <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold text-center w-100" id="qrModalLabel">Quét để xem chi tiết</h5>
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center pb-4 pt-2">
+                        <div id="qrcode" class="d-flex justify-content-center mt-3 mb-3 p-3 bg-white rounded-3 shadow-sm border"></div>
+                        <p class="text-muted small mb-0">Sử dụng điện thoại để quét mã QR</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var successMsg = /*[[${successMessage}]]*/ null;
+        /*]]>*/
+        
+        function exportToExcel() {
+            var originalTable = document.querySelector(".custom-table");
+            var selectedCheckboxes = originalTable.querySelectorAll(".row-checkbox:checked");
+            
+            var rowsToExport = [];
+            
+            if (selectedCheckboxes.length > 0) {
+                selectedCheckboxes.forEach(function(cb) {
+                    var tr = cb.closest('tr');
+                    rowsToExport.push(tr);
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa chọn sản phẩm',
+                    text: 'Vui lòng tích chọn ít nhất 1 sản phẩm để xuất Excel.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return; // Không xuất gì cả nếu chưa check
+            }
+
+            var exportData = [];
+            
+            rowsToExport.forEach(function(tr, index) {
+                var maBienThe = tr.getAttribute('data-ma') || '';
+                var soLuong = tr.getAttribute('data-soluong') || '0';
+                var gia = tr.getAttribute('data-gia') || '0';
+                var kichCo = tr.getAttribute('data-kichco') || '';
+                var mauSac = tr.getAttribute('data-mausac') || '';
+                var thuongHieu = tr.getAttribute('data-thuonghieuname') || '';
+                var chatLieu = tr.getAttribute('data-chatlieuname') || '';
+                var loaiGiay = tr.getAttribute('data-loaigiayname') || '';
+                var danhMuc = tr.getAttribute('data-danhmucname') || '';
+                
+                var trangThaiCode = tr.getAttribute('data-trangthai');
+                var trangThaiStr = (trangThaiCode === '1') ? 'Đang kinh doanh' : 'Ngừng kinh doanh';
+                
+                var rawTenSanPham = tr.getAttribute('data-ten') || '';
+                var tenParts = rawTenSanPham.split(' CT-');
+                var currentTenSanPham = tenParts[0];
+                
+                exportData.push({
+                    "STT": index + 1,
+                    "Mã Biến Thể": maBienThe,
+                    "Tên Sản Phẩm": currentTenSanPham,
+                    "Thương Hiệu": thuongHieu,
+                    "Loại Giày": loaiGiay,
+                    "Danh Mục": danhMuc,
+                    "Chất Liệu": chatLieu,
+                    "Kích Cỡ": kichCo,
+                    "Màu Sắc": mauSac,
+                    "Giá Bán (VNĐ)": parseFloat(gia),
+                    "Số Lượng": parseInt(soLuong),
+                    "Trạng Thái": trangThaiStr
+                });
+            });
+            
+            var ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Tự động căn chỉnh độ rộng cột
+            var wscols = [
+                {wch: 5},  // STT
+                {wch: 15}, // Mã Biến Thể
+                {wch: 30}, // Tên Sản Phẩm
+                {wch: 15}, // Thương Hiệu
+                {wch: 15}, // Loại Giày
+                {wch: 15}, // Danh Mục
+                {wch: 15}, // Chất Liệu
+                {wch: 10}, // Kích Cỡ
+                {wch: 15}, // Màu Sắc
+                {wch: 15}, // Giá Bán (VNĐ)
+                {wch: 10}, // Số Lượng
+                {wch: 20}  // Trạng Thái
+            ];
+            ws['!cols'] = wscols;
+
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "DanhSachBienThe");
+            XLSX.writeFile(wb, "TatCaSanPhamChiTiet.xlsx");
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // SweetAlert2 Notification
+            if (successMsg) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: successMsg,
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            // Checkbox highlight row logic
+            const selectAll = document.getElementById('selectAll');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+            if(selectAll) {
+                selectAll.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    rowCheckboxes.forEach(cb => {
+                        const tr = cb.closest('tr');
+                        if (tr.style.display !== 'none') {
+                            cb.checked = isChecked;
+                            if (isChecked) {
+                                tr.classList.add('row-selected');
+                            } else {
+                                tr.classList.remove('row-selected');
+                            }
+                        }
+                    });
+                });
+            }
+
+            rowCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const tr = this.closest('tr');
+                    if (this.checked) {
+                        tr.classList.add('row-selected');
+                    } else {
+                        tr.classList.remove('row-selected');
+                    }
+                    
+                    const visibleCheckboxes = Array.from(rowCheckboxes).filter(c => c.closest('tr').style.display !== 'none');
+                    const allChecked = visibleCheckboxes.length > 0 && visibleCheckboxes.every(c => c.checked);
+                    const someChecked = visibleCheckboxes.some(c => c.checked);
+                    
+                    if (selectAll) {
+                        selectAll.checked = allChecked;
+                        selectAll.indeterminate = someChecked && !allChecked;
+                    }
+                });
+            });
+
+            // Hiển thị giá khi kéo thanh range
+            const filterGia = document.getElementById('filterGia');
+            const priceDisplay = document.getElementById('priceDisplay');
+            
+            if(filterGia && priceDisplay) {
+                filterGia.addEventListener('input', function() {
+                    const val = parseInt(this.value);
+                    priceDisplay.textContent = val.toLocaleString('en-US') + ' đ';
+                    filterVariants();
+                });
+            }
+
+            // Logic Lọc Dữ Liệu
+            const searchInput = document.getElementById('searchInput');
+            const btnSearch = document.getElementById('btnSearch');
+            const btnReset = document.getElementById('btnReset');
+            
+            const filterSelects = document.querySelectorAll('.filter-select');
+            
+            function filterVariants() {
+                const searchTxt = searchInput.value.toLowerCase();
+                const selKichCo = document.getElementById('filterKichCo').value;
+                const selMauSac = document.getElementById('filterMauSac').value;
+                const selTrangThai = document.getElementById('filterTrangThai').value;
+                const maxGia = parseInt(document.getElementById('filterGia').value);
+                const selChatLieu = document.getElementById('filterChatLieu').value;
+                const selThuongHieu = document.getElementById('filterThuongHieu').value;
+                const selLoaiGiay = document.getElementById('filterLoaiGiay').value;
+                const selDanhMuc = document.getElementById('filterDanhMuc').value;
+                
+                const rows = document.querySelectorAll('#variantTableBody .variant-row');
+                
+                rows.forEach(row => {
+                    const ten = row.getAttribute('data-ten').toLowerCase();
+                    const kichCo = row.getAttribute('data-kichco');
+                    const mauSac = row.getAttribute('data-mausac');
+                    const trangThai = row.getAttribute('data-trangthai');
+                    const gia = parseFloat(row.getAttribute('data-gia'));
+                    const chatLieu = row.getAttribute('data-chatlieu');
+                    const thuongHieu = row.getAttribute('data-thuonghieu');
+                    const loaiGiay = row.getAttribute('data-loaigiay');
+                    const danhMuc = row.getAttribute('data-danhmuc');
+                    
+                    let match = true;
+                    
+                    if(searchTxt && !ten.includes(searchTxt)) match = false;
+                    if(selKichCo && kichCo !== selKichCo) match = false;
+                    if(selMauSac && mauSac !== selMauSac) match = false;
+                    if(selTrangThai && trangThai !== selTrangThai) match = false;
+                    if(selChatLieu && chatLieu !== selChatLieu) match = false;
+                    if(selThuongHieu && thuongHieu !== selThuongHieu) match = false;
+                    if(selLoaiGiay && loaiGiay !== selLoaiGiay) match = false;
+                    if(selDanhMuc && danhMuc !== selDanhMuc) match = false;
+                    if(maxGia && gia > maxGia) match = false;
+                    
+                    if(match) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+
+            // Gắn event listener
+            if(btnSearch) btnSearch.addEventListener('click', filterVariants);
+            if(searchInput) searchInput.addEventListener('keyup', function(e) {
+                if(e.key === 'Enter') filterVariants();
+            });
+            
+            filterSelects.forEach(sel => {
+                sel.addEventListener('change', filterVariants);
+            });
+            
+            if(btnReset) {
+                btnReset.addEventListener('click', function() {
+                    searchInput.value = '';
+                    filterSelects.forEach(sel => {
+                        if(sel.id !== 'filterGia') sel.value = '';
+                    });
+                    document.getElementById('filterGia').value = 10000000;
+                    document.getElementById('priceDisplay').textContent = '10,000,000 đ';
+                    filterVariants();
+                });
+            }
+
+            const qrModal = document.getElementById('qrModal');
+            if(qrModal) {
+                qrModal.addEventListener('shown.bs.modal', function () {
+                    const qrContainer = document.getElementById('qrcode');
+                    qrContainer.innerHTML = '';
+                    const url = window.location.origin + '/san-pham/chi-tiet-global';
+                    new QRCode(qrContainer, {
+                        text: url,
+                        width: 180,
+                        height: 180,
+                        colorDark : "#0f172a",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                });
+            }
+        });
+        function previewVariantImage(input, variantId) {
+            var container = document.getElementById('previewContainer_' + variantId);
+            var base64Input = document.getElementById('imageBase64_' + variantId);
+            
+            if (input.files && input.files.length > 0) {
+                var files = Array.from(input.files);
+                
+                // Giới hạn tối đa 6 ảnh
+                if (files.length > 6) {
+                    alert("Bạn chỉ được phép chọn tối đa 6 ảnh!");
+                    files = files.slice(0, 6);
+                    // Reset input files to only have 6 (not directly possible, so we just process 6)
+                }
+                
+                // Xóa các ảnh cũ trong container
+                container.innerHTML = '';
+                var base64Array = [];
+                
+                files.forEach(function(file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Tạo thẻ img mới cho mỗi ảnh
+                        var img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.style.width = '100px';
+                        img.style.height = '100px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '8px';
+                        img.style.border = '1px solid #ccc';
+                        img.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        container.appendChild(img);
+                        
+                        // Push vào mảng base64
+                        base64Array.push(e.target.result);
+                        
+                        // Cập nhật input hidden khi tất cả ảnh đã load xong
+                        if (base64Array.length === files.length) {
+                            base64Input.value = JSON.stringify(base64Array);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function validateVariantModal(form) {
+            let giaNhapStr = form.querySelector('input[name="giaNhap"]').value;
+            let giaBanStr = form.querySelector('input[name="giaBan"]').value;
+            let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
+            let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
+            
+            if (giaNhap >= giaBan) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Giá nhập phải nhỏ hơn giá bán!',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

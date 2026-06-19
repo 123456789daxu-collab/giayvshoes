@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết hóa đơn | VShoes</title>
+    
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/store.css">
+    <link rel="stylesheet" href="/css/invoice-detail.css?v=1.5">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Nhúng Sidebar dùng chung -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- Nội dung chính -->
+        <main class="main-content">
+            <div class="detail-container">
+                <!-- Nút quay lại và tiêu đề -->
+                <div class="detail-header-row">
+                    <button class="btn-back" onclick="window.location.href='/hoa-don'">
+                        <i data-lucide="arrow-left"></i> Quay lại
+                    </button>
+                    <div class="page-title-group">
+                        <i data-lucide="receipt" class="header-icon"></i>
+                        <h1 class="page-title">Chi tiết hóa đơn</h1>
+                    </div>
+                </div>
+
+                <!-- TIMELINE SECTION -->
+                <div class="detail-card timeline-card">
+                    <div class="timeline-container">
+                        <div class="timeline">
+                            <div class="timeline-item" id="step-0">
+                                <div class="step-label">Chờ xác nhận</div>
+                                <div class="step-time" id="time-0">-</div>
+                                <div class="step-circle"><i data-lucide="check"></i></div>
+                            </div>
+                            <div class="timeline-item" id="step-1">
+                                <div class="step-label">Đã xác nhận</div>
+                                <div class="step-time" id="time-1">-</div>
+                                <div class="step-circle"><i data-lucide="check"></i></div>
+                            </div>
+                            <div class="timeline-item" id="step-2">
+                                <div class="step-label">Đang xử lý</div>
+                                <div class="step-time" id="time-2">-</div>
+                                <div class="step-circle"><i data-lucide="check"></i></div>
+                            </div>
+                            <div class="timeline-item" id="step-3">
+                                <div class="step-label">Đang giao</div>
+                                <div class="step-time" id="time-3">-</div>
+                                <div class="step-circle"><i data-lucide="check"></i></div>
+                            </div>
+                            <div class="timeline-item" id="step-4">
+                                <div class="step-label">Đã giao</div>
+                                <div class="step-time" id="time-4">-</div>
+                                <div class="step-circle"><i data-lucide="check"></i></div>
+                            </div>
+                            <div class="timeline-item" id="step-6">
+                                <div class="step-label">Hoàn thành</div>
+                                <div class="step-time" id="time-6">-</div>
+                                <div class="step-circle"><i data-lucide="check"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS ROW -->
+                <div class="action-buttons-row">
+                    <button class="btn-primary-action" id="btnChangeStatus">
+                        <i data-lucide="refresh-cw"></i> <span id="lblChangeStatusText">Đổi trạng thái</span>
+                    </button>
+                    <div class="action-buttons-right">
+                        <button class="btn-secondary-action" id="btnTimelineHistory">
+                            <i data-lucide="history"></i> Chi tiết
+                        </button>
+                        <button class="btn-secondary-action" id="btnPrintInvoice">
+                            <i data-lucide="file-text"></i> Xuất hóa đơn
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GENERAL ORDER INFO -->
+                <div class="detail-card order-info-card">
+                    <div class="order-info-header">
+                        <div class="header-title-row">
+                            <span class="order-title">Thông tin đơn hàng</span>
+                            <span class="status-badge-orange" id="lblOrderBadgeStatus">Đang giao</span>
+                            <span class="type-badge-gray" id="lblOrderBadgeType">Đơn hàng Tại quầy - giao hàng</span>
+                        </div>
+                        <div class="header-price-row">
+                            <div class="price-summary-right">
+                                <span class="price-label">Tổng thanh toán</span>
+                                <span class="price-val" id="lblGrandTotalHeader">0 đ</span>
+                                <span class="price-sub" id="lblPaidAmountSub">Đã thanh toán: 0 đ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-info-subtext" id="lblOrderSubtext">
+                        Mã: HD... • Tạo lúc: ... • NV xử lý: ...
+                    </div>
+                </div>
+
+                <!-- 3 CARDS INFO GRID -->
+                <div class="info-grid-row">
+                    <!-- Customer Card -->
+                    <div class="detail-card info-sub-card">
+                        <div class="card-subheader">
+                            <i data-lucide="user"></i>
+                            <span>Khách hàng</span>
+                        </div>
+                        <div class="info-rows">
+                            <div class="info-row">
+                                <span class="label">Họ tên</span>
+                                <span class="value font-bold" id="infoCustomerName">...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">SĐT</span>
+                                <span class="value" id="infoCustomerPhone">...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Email</span>
+                                <span class="value" id="infoCustomerEmail">...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Địa chỉ</span>
+                                <span class="value" id="infoCustomerAddress">...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Card -->
+                    <div class="detail-card info-sub-card">
+                        <div class="card-subheader">
+                            <i data-lucide="truck"></i>
+                            <span>Giao nhận</span>
+                        </div>
+                        <div class="info-rows">
+                            <div class="info-row">
+                                <span class="label">Người nhận</span>
+                                <span class="value font-bold" id="infoShippingName">...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">SĐT nhận</span>
+                                <span class="value" id="infoShippingPhone">...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Địa chỉ nhận</span>
+                                <span class="value" id="infoShippingAddress">...</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Phí vận chuyển</span>
+                                <span class="value" id="infoShippingFee">0 đ</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Ghi chú</span>
+                                <span class="value" id="infoShippingNote">...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Values Card -->
+                    <div class="detail-card info-sub-card">
+                        <div class="card-subheader">
+                            <i data-lucide="dollar-sign"></i>
+                            <span>Giá trị đơn</span>
+                        </div>
+                        <div class="info-rows">
+                            <div class="info-row">
+                                <span class="label">Tổng tiền</span>
+                                <span class="value" id="valTotalGoods">0 đ</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Giảm giá</span>
+                                <span class="value discount" id="valDiscount">0 đ</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="label">Phí vận chuyển</span>
+                                <span class="value" id="valShipping">0 đ</span>
+                            </div>
+                            <div class="info-row total-pay-row">
+                                <span class="label font-bold text-dark">Phải trả</span>
+                                <span class="value font-bold total-price-red" id="valGrandTotal">0 đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HORIZONTAL STATUS SUMMARY ROW -->
+                <div class="status-summary-card">
+                    <div class="summary-item">
+                        <span class="label">Trạng thái hiện tại</span>
+                        <span class="value active-status-text" id="summaryCurrentStatus">...</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Số SP</span>
+                        <span class="value" id="summaryProductCount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Đơn giá trị</span>
+                        <span class="value" id="summaryTotalGoods">0 đ</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">Còn lại</span>
+                        <span class="value" id="summaryBalance">0 đ</span>
+                    </div>
+                </div>
+
+                <!-- PAYMENT HISTORY BLOCK -->
+                <div class="detail-card payment-history-section">
+                    <div class="card-subheader">
+                        <i data-lucide="credit-card"></i>
+                        <span>Lịch sử thanh toán</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="invoice-table py-table">
+                            <thead>
+                                <tr>
+                                    <th>Số tiền</th>
+                                    <th>Thời gian</th>
+                                    <th>Mã giao dịch</th>
+                                    <th>Phương thức</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentTableBody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PRODUCT LIST BLOCK -->
+                <div class="detail-card product-list-card">
+                    <div class="card-subheader">
+                        <i data-lucide="shopping-bag"></i>
+                        <span>Sản phẩm</span>
+                    </div>
+                    <div class="table-container" style="margin-top: 15px;">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">STT</th>
+                                    <th style="width: 80px;">Ảnh</th>
+                                    <th>Sản phẩm</th>
+                                    <th style="width: 100px;">Số lượng</th>
+                                    <th>Đơn giá</th>
+                                    <th>Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL XÁC NHẬN ĐỔI TRẠNG THÁI -->
+    <div class="modal-overlay" id="confirmStatusModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 500px; width: 95%; background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative;">
+            <span class="close" id="confirmStatusModalClose" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; color: #64748b; font-weight: bold;">&times;</span>
+            
+            <h2 style="font-size: 16px; margin-top: 0; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: #1e293b;">
+                <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #eab308;"></i> Xác nhận đổi trạng thái
+            </h2>
+            
+            <div style="font-size: 13px; color: #475569; margin-bottom: 15px;">
+                Hóa đơn: <strong id="confirmInvoiceCode" style="color: #0f172a;">...</strong>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Ghi chú</label>
+                <textarea class="glass-input" id="confirmStatusNote" rows="3" style="width: 100%; height: 80px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none;"></textarea>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569; margin-bottom: 15px; flex-wrap: wrap;">
+                <span>Trạng thái hiện tại:</span>
+                <span class="status-badge-orange" id="confirmCurrentStatusBadge" style="margin: 0; padding: 3px 10px; border-radius: 12px; font-weight: 600;">Đang xử lý</span>
+                <i data-lucide="arrow-right" style="width: 16px; height: 16px; color: #94a3b8;"></i>
+                <span>Trạng thái mới:</span>
+                <span class="status-badge-blue" id="confirmNewStatusBadge" style="margin: 0; background-color: #dbeafe; border: 1px solid #bfdbfe; color: #1e40af; padding: 3px 10px; border-radius: 12px; font-weight: 600;">Đang giao</span>
+            </div>
+            
+            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 20px;">
+                Hành động này sẽ cập nhật trạng thái và ghi lịch sử hóa đơn.
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-secondary-action" id="btnCancelConfirmStatus" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569;">Hủy</button>
+                <button type="button" class="btn-primary-action" id="btnSubmitConfirmStatus" style="background-color: #2563eb; color: #ffffff;">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LỊCH SỬ THAO TÁC -->
+    <div class="modal-overlay" id="historyModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 850px; width: 95%; background: #ffffff; padding: 25px; border-radius: 12px; border: 1px solid #cbd5e1; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative;">
+            <span class="close" id="historyModalClose" style="position: absolute; top: 15px; right: 20px; cursor: pointer; font-size: 24px; color: #64748b; font-weight: bold;">&times;</span>
+            <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 20px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: #1b2a47;">
+                <i data-lucide="history" style="width: 20px; height: 20px; color: #2563eb;"></i> Chi tiết lịch sử
+            </h2>
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Trạng thái</th>
+                            <th>Thời gian</th>
+                            <th>Mã NV</th>
+                            <th>Tên NV</th>
+                            <th>Hành động</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyModalTableBody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-secondary-action" id="btnCloseHistoryModal">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Javascript -->
+    <script src="/js/invoice-detail.js?v=1.5" defer></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

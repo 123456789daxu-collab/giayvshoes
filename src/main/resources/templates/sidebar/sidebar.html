@@ -38,11 +38,24 @@
             <span>Quản lý hóa đơn</span>
         </a>
 
-        <!-- Sản phẩm -->
-        <a href="/san-pham" class="menu-item">
-            <i data-lucide="package" class="menu-icon"></i>
-            <span>Sản phẩm</span>
-        </a>
+        <!-- Quản lý Sản phẩm (Menu Cha - Dropdown) -->
+        <div class="submenu-container">
+            <a href="#" class="menu-item" id="toggle-submenu-sanpham">
+                <i data-lucide="package" class="menu-icon"></i>
+                <span>Quản lý sản phẩm</span>
+                <i data-lucide="chevron-down" class="arrow-icon"></i>
+            </a>
+            <!-- Danh sách các mục sản phẩm con -->
+            <ul class="submenu" id="submenu-sanpham">
+                <li>
+                    <a href="/san-pham" class="submenu-item">Sản Phẩm</a>
+                </li>
+                <li>
+                    <a href="/san-pham/chi-tiet-global" class="submenu-item">Sản Phẩm Chi Tiết</a>
+                </li>
+
+            </ul>
+        </div>
 
         <!-- Phiếu giảm giá -->
         <a href="/phieu-giam-gia" class="menu-item">
@@ -89,42 +102,53 @@
             // Tìm tất cả các thẻ <a> liên kết trong Sidebar
             const menuLinks = document.querySelectorAll(".sidebar-menu a");
             
+            // Tìm link phù hợp nhất (dài nhất) để tránh trùng lặp active
+            let bestMatch = null;
+            let bestMatchLength = 0;
+
             menuLinks.forEach(link => {
                 const href = link.getAttribute("href");
+                if (!href || href === '#' || href === '/') return;
                 
-                // So sánh đường dẫn hiện tại với thuộc tính href của thẻ <a>
-                if (currentPath === href) {
-                    // Thêm class 'active' để làm nổi bật mục menu hiện tại
-                    link.classList.add("active");
-                    
-                    // Nếu link đang active nằm trong một menu con (submenu)
-                    const parentSubmenu = link.closest(".submenu");
-                    if (parentSubmenu) {
-                        // Mở rộng menu con ra bằng cách thêm class 'open'
-                        parentSubmenu.classList.add("open");
-                        // Xoay mũi tên chỉ xuống của menu cha
-                        const parentMenuItem = parentSubmenu.previousElementSibling;
-                        if (parentMenuItem) {
-                            parentMenuItem.classList.add("open-parent");
-                        }
+                // So sánh đường dẫn hiện tại với thuộc tính href
+                if (currentPath === href || currentPath.startsWith(href + '/')) {
+                    if (href.length > bestMatchLength) {
+                        bestMatch = link;
+                        bestMatchLength = href.length;
                     }
                 }
             });
 
-            // Xử lý sự kiện click đóng/mở menu con "Tài khoản" khi click vào menu cha
-            const toggleSubmenuBtn = document.getElementById("toggle-submenu");
-            const submenu = document.getElementById("submenu-tai-khoan");
-            
-            if (toggleSubmenuBtn && submenu) {
-                toggleSubmenuBtn.addEventListener("click", function(e) {
+            if (bestMatch) {
+                // Thêm class 'active' để làm nổi bật mục menu hiện tại
+                bestMatch.classList.add("active");
+                
+                // Nếu link đang active nằm trong một menu con (submenu)
+                const parentSubmenu = bestMatch.closest(".submenu");
+                if (parentSubmenu) {
+                    // Mở rộng menu con ra bằng cách thêm class 'open'
+                    parentSubmenu.classList.add("open");
+                    // Xoay mũi tên chỉ xuống của menu cha
+                    const parentMenuItem = parentSubmenu.previousElementSibling;
+                    if (parentMenuItem) {
+                        parentMenuItem.classList.add("open-parent");
+                    }
+                }
+            }
+
+            // Xử lý sự kiện click đóng/mở menu con khi click vào menu cha
+            const submenuToggles = document.querySelectorAll(".submenu-container > a");
+            submenuToggles.forEach(btn => {
+                btn.addEventListener("click", function(e) {
                     e.preventDefault(); // Ngăn trình duyệt nhảy trang lên đầu khi click href="#"
                     
-                    // Toggle class 'open' để trượt mở hoặc đóng submenu
-                    submenu.classList.toggle("open");
-                    // Toggle class 'open-parent' để xoay mũi tên
-                    toggleSubmenuBtn.classList.toggle("open-parent");
+                    const submenu = btn.nextElementSibling;
+                    if (submenu && submenu.classList.contains("submenu")) {
+                        submenu.classList.toggle("open");
+                        btn.classList.toggle("open-parent");
+                    }
                 });
-            }
+            });
         });
     </script>
 

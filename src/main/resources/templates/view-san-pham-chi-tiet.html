@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi Tiết Biến Thể | VSHOES</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Select2 CSS & Theme -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css(v=3)}">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
+        }
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+        .card-detail {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: #fff;
+            padding: 30px;
+        }
+        .img-gallery {
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: 400px;
+            object-fit: cover;
+            width: 100%;
+        }
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.3s;
+        }
+        .thumbnail:hover, .thumbnail.active {
+            border-color: #0ea5e9;
+        }
+        .info-label {
+            color: #475569;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .info-row {
+            margin-bottom: 20px;
+        }
+        .form-control-custom, .form-select-custom {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            width: 100%;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+        }
+        .form-control-custom:focus, .form-select-custom:focus {
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="app-container" style="display: flex;">
+    <!-- Sidebar -->
+    <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+<div class="main-content" style="flex: 1;">
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div th:if="${successMessage}" class="toast align-items-center text-bg-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" th:text="${successMessage}"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <form id="updateVariantForm" th:action="@{'/san-pham/update-variant-full/' + ${ct.id}}" method="POST">
+        <input type="hidden" id="imageBase64Full" name="imageBase64">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="text-dark m-0">Thông tin chi tiết sản phẩm</h3>
+                <p class="text-muted mt-1 mb-0">Cập nhật thông tin chi tiết của sản phẩm</p>
+            </div>
+            <div>
+                <a th:href="@{'/san-pham/edit/' + ${ct.sanPham.id}}" class="btn btn-outline-secondary rounded-pill px-4 me-2">
+                    Quay lại
+                </a>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    Lưu thay đổi
+                </button>
+            </div>
+        </div>
+
+        <div class="card-detail">
+            <div class="row g-5">
+                <!-- Cột Trái: Thư Viện Ảnh -->
+                <div class="col-lg-4">
+                    <div th:id="'carouselVariant'" class="carousel slide mb-3 shadow-sm rounded-4" data-bs-ride="carousel" style="overflow: hidden; border: 1px solid #e2e8f0;">
+                        <div class="carousel-inner" id="imagePreviewContainer" style="background: #ffffff;">
+                            <th:block th:if="${ct.hinhAnh != null}">
+                                <div th:each="imgUrl, stat : ${#strings.arraySplit(ct.hinhAnh, ',')}" 
+                                     th:class="'carousel-item ' + ${stat.index == 0 ? 'active' : ''}">
+                                    <img th:src="${imgUrl}" class="d-block w-100" style="height: 350px; object-fit: cover;">
+                                </div>
+                            </th:block>
+                            <div th:unless="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" class="carousel-item active">
+                                <img src="/images/logo.png" class="d-block w-100 p-5" style="height: 350px; object-fit: contain; opacity: 0.3;" alt="Chưa có ảnh">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselVariant" data-bs-slide="prev" style="filter: invert(100%);">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselVariant" data-bs-slide="next" style="filter: invert(100%);">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4 p-4 border rounded-4" style="background-color: #f8fafc; border-color: #e2e8f0 !important;">
+                        <label class="form-label text-dark fw-bold" style="font-size: 14px;">Tải lên ảnh mới</label>
+                        <p class="text-muted mb-3" style="font-size: 12px;">Sẽ được thêm vào cùng ảnh cũ (tối đa 6 ảnh).</p>
+                        <input type="file" class="form-control" id="productImagesFull" accept="image/*" multiple style="font-size: 13px;">
+                    </div>
+                </div>
+
+                <!-- Cột Phải: Thông tin chi tiết -->
+                <div class="col-lg-8">
+                    <div class="mb-4 pb-3 border-bottom">
+                        <span class="badge bg-primary px-3 py-2 mb-3" style="border-radius: 6px; font-weight: 500; font-size: 12px; letter-spacing: 0.5px;">THÔNG TIN SẢN PHẨM</span>
+                        <h2 class="text-dark m-0 fw-bold" style="font-size: 1.8rem;" th:text="${ct.sanPham.tenSanPham}"></h2>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-muted fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 1px;"><i class="bi bi-tag me-2"></i>Thuộc tính chung</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <span class="info-label">Thương hiệu</span>
+                                <select class="form-select-custom text-dark" name="idThuongHieu" required>
+                                    <option th:each="item : ${listThuongHieu}" th:value="${item.id}" th:text="${item.tenThuongHieu}" th:selected="${ct.sanPham.thuongHieu != null and ct.sanPham.thuongHieu.id == item.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="info-label">Chất liệu</span>
+                                <select class="form-select-custom text-dark" name="idChatLieu" required>
+                                    <option th:each="item : ${listChatLieu}" th:value="${item.id}" th:text="${item.tenChatLieu}" th:selected="${ct.sanPham.chatLieu != null and ct.sanPham.chatLieu.id == item.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="info-label">Danh mục</span>
+                                <select class="form-select-custom text-dark" name="idDanhMuc" required>
+                                    <option th:each="item : ${listDanhMuc}" th:value="${item.id}" th:text="${item.tenDanhMuc}" th:selected="${ct.sanPham.danhMuc != null and ct.sanPham.danhMuc.id == item.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="info-label">Loại giày</span>
+                                <select class="form-select-custom text-dark" name="idLoaiGiay" required>
+                                    <option th:each="item : ${listLoaiGiay}" th:value="${item.id}" th:text="${item.tenLoaiGiay}" th:selected="${ct.sanPham.loaiGiay != null and ct.sanPham.loaiGiay.id == item.id}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted" style="opacity: 0.15;">
+
+                    <div class="mb-4">
+                        <h6 class="mb-3 text-muted fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 1px;"><i class="bi bi-box-seam me-2"></i>Phân loại biến thể</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <span class="info-label">Màu sắc</span>
+                                <select class="form-select-custom text-dark" name="idMauSac" required>
+                                    <option th:each="item : ${listMauSac}" th:value="${item.id}" th:text="${item.tenMauSac}" th:selected="${ct.mauSac != null and ct.mauSac.id == item.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="info-label">Kích cỡ (size)</span>
+                                <select class="form-select-custom text-dark" name="idCoGiay" required>
+                                    <option th:each="item : ${listCoGiay}" th:value="${item.id}" th:text="${item.sizeGiay}" th:selected="${ct.coGiay != null and ct.coGiay.id == item.id}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="info-label">Trạng thái</span>
+                                <select class="form-select-custom text-dark" name="trangThai" required>
+                                    <option value="1" th:selected="${ct.trangThai == 1}">Đang kinh doanh</option>
+                                    <option value="0" th:selected="${ct.trangThai == 0}">Ngừng kinh doanh</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="info-label">Giá nhập (vnđ)</span>
+                                <input type="number" class="form-control-custom text-dark fw-bold text-primary" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
+                            </div>
+                            <div class="col-md-4">
+                                <span class="info-label">Giá bán (vnđ)</span>
+                                <input type="number" class="form-control-custom text-dark fw-bold text-success" name="giaBan" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="info-label">Số lượng tồn</span>
+                                <input type="number" class="form-control-custom text-dark fw-bold" name="soLuongTon" th:value="${ct.soLuongTon}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 text-muted" style="opacity: 0.15;">
+
+                    <div class="mb-2">
+                        <h6 class="mb-3 text-muted fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 1px;"><i class="bi bi-card-text me-2"></i>Mô tả sản phẩm</h6>
+                        <textarea class="form-control-custom text-dark" name="moTaChiTiet" rows="5" th:text="${ct.sanPham.moTaChiTiet}" style="background-color: #ffffff; resize: vertical; border-radius: 12px;"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Khởi tạo Select2 cho các dropdown
+        $('.form-select-custom').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: 'Chọn một tùy chọn'
+        });
+
+        const imageInput = document.getElementById('productImagesFull');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imageBase64Input = document.getElementById('imageBase64Full');
+        
+        /*<![CDATA[*/
+        var hinhAnhHienTai = /*[[${ct.hinhAnh}]]*/ null;
+        /*]]>*/
+        
+        let existingImagesCount = 0;
+        if(hinhAnhHienTai) {
+            existingImagesCount = hinhAnhHienTai.split(',').length;
+        }
+
+        imageInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length + existingImagesCount > 6) {
+                alert('Sản phẩm chỉ được có tối đa 6 ảnh! Bạn đã có ' + existingImagesCount + ' ảnh, chỉ có thể thêm ' + (6 - existingImagesCount) + ' ảnh nữa.');
+                this.value = '';
+                return;
+            }
+
+            // Xóa chỉ các preview của ảnh mới (chưa lưu), giữ nguyên ảnh cũ
+            const currentPreviews = imagePreviewContainer.querySelectorAll('.new-preview');
+            currentPreviews.forEach(p => p.remove());
+            
+            const base64Promises = files.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        resolve(e.target.result);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(base64Promises).then(base64DataArray => {
+                imageBase64Input.value = JSON.stringify(base64DataArray);
+                
+                base64DataArray.forEach((data, index) => {
+                    const hasActive = imagePreviewContainer.querySelector('.active');
+                    const activeClass = hasActive ? '' : 'active';
+                    imagePreviewContainer.innerHTML += `
+                        <div class="carousel-item new-preview ${activeClass}">
+                            <img src="${data}" class="d-block w-100 img-gallery">
+                        </div>
+                    `;
+                });
+            });
+        });
+
+        // Validation: Giá nhập phải nhỏ hơn giá bán
+        document.getElementById('updateVariantForm').addEventListener('submit', function(e) {
+            let giaNhapStr = document.querySelector('input[name="giaNhap"]').value;
+            let giaBanStr = document.querySelector('input[name="giaBan"]').value;
+            let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
+            let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
+            
+            if (giaNhap >= giaBan) {
+                e.preventDefault();
+                alert("Giá nhập phải nhỏ hơn giá bán!");
+                return false;
+            }
+        });
+    });
+</script>
+</body>
+</html>
