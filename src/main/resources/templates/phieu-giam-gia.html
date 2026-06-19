@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <!-- Nhúng CSS riêng của trang phiếu giảm giá -->
     <link rel="stylesheet" href="/css/phieu-giam-gia.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
@@ -17,11 +19,16 @@
 
         <!-- NỘI DUNG CHÍNH -->
         <main class="main-content">
+            <!-- TIÊU ĐỀ MÀN HÌNH -->
+            <div class="screen-header" style="margin-bottom: 24px;">
+                <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý phiếu giảm giá</h1>
+            </div>
+
             <div class="voucher-container">
 
                 <!-- PANEL 1: DANH SÁCH PHIẾU GIẢM GIÁ (LISTING PANEL) -->
                 <div id="list-panel" class="tab-panel active">
-                    
+
                     <!-- BỘ LỌC TÌM KIẾM -->
                     <div class="filter-card">
                         <div class="filter-header">
@@ -30,12 +37,13 @@
                                 <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
                             </button>
                         </div>
-                        
+
                         <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 2fr;">
                             <!-- Tên hoặc mã phiếu -->
                             <div class="form-group">
                                 <label for="filter-search">Tên hoặc mã phiếu giảm giá</label>
-                                <input type="text" id="filter-search" class="input-control" placeholder="Nhập tên hoặc mã phiếu..." oninput="applyVoucherFilters()">
+                                <input type="text" id="filter-search" class="input-control"
+                                    placeholder="Nhập tên hoặc mã phiếu..." oninput="applyVoucherFilters()">
                             </div>
 
                             <!-- Kiểu giảm -->
@@ -62,9 +70,11 @@
                             <div class="form-group">
                                 <label>Khoảng ngày áp dụng</label>
                                 <div class="date-range-container">
-                                    <input type="date" id="filter-start-date" class="input-control" onchange="applyVoucherFilters()">
+                                    <input type="date" id="filter-start-date" class="input-control"
+                                        onchange="applyVoucherFilters()">
                                     <span class="date-separator">&rarr;</span>
-                                    <input type="date" id="filter-end-date" class="input-control" onchange="applyVoucherFilters()">
+                                    <input type="date" id="filter-end-date" class="input-control"
+                                        onchange="applyVoucherFilters()">
                                 </div>
                             </div>
                         </div>
@@ -72,7 +82,8 @@
 
                     <!-- CARD DANH SÁCH -->
                     <div class="customer-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <span class="card-title-table" style="margin-bottom: 0;">Danh sách phiếu giảm giá</span>
                             <div class="action-row" style="margin-bottom: 0;">
                                 <button class="btn-primary-action" onclick="openAddVoucherForm()">
@@ -91,14 +102,15 @@
                                 <thead>
                                     <tr>
                                         <th style="width: 50px; text-align: center;">STT</th>
-                                        <th style="width: 110px;">Mã</th>
-                                        <th style="width: 160px;">Tên</th>
-                                        <th style="width: 100px;">Loại</th>
-                                        <th style="width: 100px;">Đối tượng</th>
-                                        <th style="width: 100px; text-align: center;">Số lượng</th>
-                                        <th style="width: 240px;">Chi tiết ưu đãi</th>
-                                        <th style="width: 220px;">Thời gian áp dụng</th>
-                                        <th style="width: 130px;">Trạng thái</th>
+                                        <th style="width: 120px; text-align: center;">Mã giảm giá</th>
+                                        <th style="width: 160px; text-align: center;">Tên giảm giá</th>
+                                        <th style="width: 120px; text-align: center;">Loại phiếu</th>
+                                        <th style="width: 120px; text-align: center;">Giá trị giảm</th>
+                                        <th style="width: 150px; text-align: center;">Đơn hàng tối thiểu</th>
+                                        <th style="width: 90px; text-align: center;">Số lượng</th>
+                                        <th style="width: 120px; text-align: center;">Ngày bắt đầu</th>
+                                        <th style="width: 120px; text-align: center;">Ngày kết thúc</th>
+                                        <th style="width: 130px; text-align: center;">Trạng thái</th>
                                         <th style="width: 100px; text-align: center;">Hành động</th>
                                     </tr>
                                 </thead>
@@ -117,7 +129,8 @@
                                 <!-- Nút trang -->
                             </div>
                             <div class="page-size-selector">
-                                <select class="page-size-select" id="voucher-page-size" onchange="changeVoucherPageSize(this.value)">
+                                <select class="page-size-select" id="voucher-page-size"
+                                    onchange="changeVoucherPageSize(this.value)">
                                     <option value="10">10 / page</option>
                                     <option value="20">20 / page</option>
                                     <option value="50">50 / page</option>
@@ -129,7 +142,7 @@
 
                 <!-- PANEL 2: THÊM MỚI / CHỈNH SỬA PHIẾU GIẢM GIÁ (FORM PANEL) -->
                 <div id="form-panel" class="tab-panel">
-                    
+
                     <button class="back-link" onclick="backToListPanel()">
                         <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
                         Quay lại danh sách
@@ -146,8 +159,10 @@
                             <!-- Hàng 1: Tên phiếu -->
                             <div class="form-grid-2">
                                 <div class="form-group" style="grid-column: span 2;">
-                                    <label for="voucher-name">Tên phiếu giảm giá <span class="required-star">*</span></label>
-                                    <input type="text" id="voucher-name" class="input-control" required placeholder="Nhập tên phiếu giảm giá...">
+                                    <label for="voucher-name">Tên phiếu giảm giá <span
+                                            class="required-star">*</span></label>
+                                    <input type="text" id="voucher-name" class="input-control" required
+                                        placeholder="Nhập tên phiếu giảm giá...">
                                 </div>
                             </div>
 
@@ -157,11 +172,13 @@
                                     <label>Hình thức giảm <span class="required-star">*</span></label>
                                     <div class="radio-group">
                                         <label class="radio-control">
-                                            <input type="radio" name="loaiGiamGia" value="Phần trăm" checked onchange="toggleDiscountType()">
+                                            <input type="radio" name="loaiGiamGia" value="Phần trăm" checked
+                                                onchange="toggleDiscountType()">
                                             % Phần trăm
                                         </label>
                                         <label class="radio-control">
-                                            <input type="radio" name="loaiGiamGia" value="Tiền mặt" onchange="toggleDiscountType()">
+                                            <input type="radio" name="loaiGiamGia" value="Tiền mặt"
+                                                onchange="toggleDiscountType()">
                                             VNĐ Tiền mặt
                                         </label>
                                     </div>
@@ -171,11 +188,13 @@
                                     <label>Loại phiếu <span class="required-star">*</span></label>
                                     <div class="radio-group">
                                         <label class="radio-control">
-                                            <input type="radio" name="loaiPhieu" value="Công khai" checked onchange="toggleVoucherType()">
+                                            <input type="radio" name="loaiPhieu" value="Công khai" checked
+                                                onchange="toggleVoucherType()">
                                             Công khai
                                         </label>
                                         <label class="radio-control">
-                                            <input type="radio" name="loaiPhieu" value="Cá nhân" onchange="toggleVoucherType()">
+                                            <input type="radio" name="loaiPhieu" value="Cá nhân"
+                                                onchange="toggleVoucherType()">
                                             Cá nhân
                                         </label>
                                     </div>
@@ -185,20 +204,33 @@
                             <!-- Hàng 3: Giá trị giảm & Giảm tối đa -->
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="voucher-discount-val">Giá trị giảm <span class="required-star">*</span></label>
+                                    <label for="voucher-discount-val">Giá trị giảm <span
+                                            class="required-star">*</span></label>
                                     <div class="number-input-wrapper">
-                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('voucher-discount-val', -10)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
-                                        <input type="number" id="voucher-discount-val" class="input-control number-input-control" required min="1" placeholder="Nhập giá trị...">
-                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('voucher-discount-val', 10)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                        <button type="button" class="number-input-btn minus"
+                                            onclick="adjustNumberInput('voucher-discount-val', -10)"><i
+                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="text" id="voucher-discount-val"
+                                            class="input-control number-input-control currency-input" required min="1"
+                                            placeholder="Nhập giá trị..." oninput="handleCurrencyInput(this)">
+                                        <button type="button" class="number-input-btn plus"
+                                            onclick="adjustNumberInput('voucher-discount-val', 10)"><i
+                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
                                     </div>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="voucher-max-discount">Giảm tối đa (VNĐ)</label>
                                     <div class="number-input-wrapper">
-                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('voucher-max-discount', -10000)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
-                                        <input type="number" id="voucher-max-discount" class="input-control number-input-control" min="0" placeholder="Nhập mức giảm tối đa...">
-                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('voucher-max-discount', 10000)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                        <button type="button" class="number-input-btn minus"
+                                            onclick="adjustNumberInput('voucher-max-discount', -10000)"><i
+                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="text" id="voucher-max-discount"
+                                            class="input-control number-input-control currency-input" min="0"
+                                            placeholder="Nhập mức giảm tối đa..." oninput="handleCurrencyInput(this)">
+                                        <button type="button" class="number-input-btn plus"
+                                            onclick="adjustNumberInput('voucher-max-discount', 10000)"><i
+                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -206,20 +238,33 @@
                             <!-- Hàng 4: Hóa đơn tối thiểu & Số lượng -->
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="voucher-min-order">Hóa đơn tối thiểu (VNĐ) <span class="required-star">*</span></label>
+                                    <label for="voucher-min-order">Hóa đơn tối thiểu (VNĐ) <span
+                                            class="required-star">*</span></label>
                                     <div class="number-input-wrapper">
-                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('voucher-min-order', -20000)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
-                                        <input type="number" id="voucher-min-order" class="input-control number-input-control" required min="0" placeholder="Nhập hạn mức hóa đơn tối thiểu...">
-                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('voucher-min-order', 20000)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                        <button type="button" class="number-input-btn minus"
+                                            onclick="adjustNumberInput('voucher-min-order', -20000)"><i
+                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="text" id="voucher-min-order"
+                                            class="input-control number-input-control currency-input" required min="0"
+                                            placeholder="Nhập hạn mức hóa đơn tối thiểu..." oninput="handleCurrencyInput(this)">
+                                        <button type="button" class="number-input-btn plus"
+                                            onclick="adjustNumberInput('voucher-min-order', 20000)"><i
+                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
                                     </div>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="voucher-quantity">Số lượng sử dụng</label>
                                     <div class="number-input-wrapper">
-                                        <button type="button" class="number-input-btn minus" id="btn-qty-minus" onclick="adjustNumberInput('voucher-quantity', -1)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
-                                        <input type="number" id="voucher-quantity" class="input-control number-input-control" min="1" placeholder="Nhập số lượng phát hành...">
-                                        <button type="button" class="number-input-btn plus" id="btn-qty-plus" onclick="adjustNumberInput('voucher-quantity', 1)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                        <button type="button" class="number-input-btn minus" id="btn-qty-minus"
+                                            onclick="adjustNumberInput('voucher-quantity', -1)"><i data-lucide="minus"
+                                                style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="voucher-quantity"
+                                            class="input-control number-input-control" min="1"
+                                            placeholder="Nhập số lượng phát hành...">
+                                        <button type="button" class="number-input-btn plus" id="btn-qty-plus"
+                                            onclick="adjustNumberInput('voucher-quantity', 1)"><i data-lucide="plus"
+                                                style="width: 14px; height: 14px;"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -227,12 +272,14 @@
                             <!-- Hàng 5: Ngày bắt đầu & Ngày kết thúc -->
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="voucher-start-date">Ngày bắt đầu <span class="required-star">*</span></label>
+                                    <label for="voucher-start-date">Ngày bắt đầu <span
+                                            class="required-star">*</span></label>
                                     <input type="date" id="voucher-start-date" class="input-control" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="voucher-end-date">Ngày kết thúc <span class="required-star">*</span></label>
+                                    <label for="voucher-end-date">Ngày kết thúc <span
+                                            class="required-star">*</span></label>
                                     <input type="date" id="voucher-end-date" class="input-control" required>
                                 </div>
                             </div>
@@ -241,7 +288,9 @@
                             <div class="form-group" style="margin-bottom: 24px;">
                                 <label for="voucher-desc">Mô tả phiếu giảm giá</label>
                                 <div class="textarea-wrapper">
-                                    <textarea id="voucher-desc" class="input-control" rows="3" maxlength="500" placeholder="Nhập thông tin mô tả chi tiết về phiếu..." oninput="updateCharCount(this)"></textarea>
+                                    <textarea id="voucher-desc" class="input-control" rows="3" maxlength="500"
+                                        placeholder="Nhập thông tin mô tả chi tiết về phiếu..."
+                                        oninput="updateCharCount(this)"></textarea>
                                     <span class="char-counter" id="desc-char-count">0/500</span>
                                 </div>
                             </div>
@@ -249,27 +298,29 @@
                             <!-- PHẦN CHỌN KHÁCH HÀNG (CHỈ HIỆN KHI LÀ PHIẾU CÁ NHÂN) -->
                             <div id="customer-select-section" class="customer-section" style="display: none;">
                                 <div class="customer-section-title">Danh sách khách hàng nhận phiếu</div>
-                                
+
                                 <div class="customer-filter-bar">
-                                    <!-- Search -->
-                                    <div class="customer-filter-left">
-                                        <input type="text" id="cust-filter-search" class="input-control" placeholder="Tìm theo mã / tên / SĐT / email..." oninput="applyCustFilters()">
-                                    </div>
-                                    <!-- Filters -->
-                                    <div class="customer-filter-right">
-                                        <span style="font-size: 13px; font-weight: 500; color: #64748b;">Theo tháng đặt:</span>
-                                        <select id="cust-filter-month" class="input-control" style="width: 110px;" onchange="applyCustFilters()">
-                                            <option value="">Tháng</option>
-                                            <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}" th:text="${'Tháng ' + m}"></option>
-                                        </select>
-                                        <select id="cust-filter-year" class="input-control" style="width: 100px;" onchange="applyCustFilters()">
-                                            <option value="">Năm</option>
-                                            <option value="2026">2026</option>
-                                            <option value="2025">2025</option>
-                                            <option value="2024">2024</option>
-                                        </select>
-                                        <button type="button" class="btn-secondary" style="height: 40px;" onclick="selectAllCurrentPageCustomers()">Chọn tất cả</button>
-                                    </div>
+                                    <input type="text" id="cust-filter-search" class="input-control"
+                                        placeholder="Tìm theo mã / tên / SĐT / email..." oninput="applyCustFilters()">
+
+                                    <span
+                                        style="font-size: 13px; font-weight: 500; color: #64748b; margin-left: 8px;">Theo
+                                        tháng đặt:</span>
+                                    <select id="cust-filter-month" class="input-control" style="width: 110px;"
+                                        onchange="applyCustFilters()">
+                                        <option value="">Tháng</option>
+                                        <option th:each="m : ${#numbers.sequence(1, 12)}" th:value="${m}"
+                                            th:text="${'Tháng ' + m}"></option>
+                                    </select>
+                                    <select id="cust-filter-year" class="input-control" style="width: 100px;"
+                                        onchange="applyCustFilters()">
+                                        <option value="">Năm</option>
+                                        <option value="2026">2026</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2024">2024</option>
+                                    </select>
+                                    <button type="button" class="btn-secondary" style="height: 40px;"
+                                        onclick="selectAllCurrentPageCustomers()">Chọn tất cả</button>
                                 </div>
 
                                 <div style="margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #1e3a8a;">
@@ -282,7 +333,8 @@
                                         <thead>
                                             <tr>
                                                 <th class="checkbox-cell">
-                                                    <input type="checkbox" id="check-all-customers" onchange="toggleSelectAllPage(this.checked)">
+                                                    <input type="checkbox" id="check-all-customers"
+                                                        onchange="toggleSelectAllPage(this.checked)">
                                                 </th>
                                                 <th style="width: 140px;">Mã KH</th>
                                                 <th style="width: 180px;">Tên KH</th>
@@ -307,7 +359,8 @@
                                         <!-- Nút phân trang -->
                                     </div>
                                     <div class="page-size-selector">
-                                        <select class="page-size-select" id="cust-page-size" onchange="changeCustPageSize(this.value)">
+                                        <select class="page-size-select" id="cust-page-size"
+                                            onchange="changeCustPageSize(this.value)">
                                             <option value="5">5 / page</option>
                                             <option value="10">10 / page</option>
                                             <option value="20">20 / page</option>
@@ -317,7 +370,8 @@
                             </div>
 
                             <!-- Footer nút bấm -->
-                            <div class="modal-footer" style="padding-top: 20px; border-top: 1px solid #f1f5f9; margin-top: 28px;">
+                            <div class="modal-footer"
+                                style="padding-top: 20px; border-top: 1px solid #f1f5f9; margin-top: 28px;">
                                 <button type="button" class="btn-secondary" onclick="backToListPanel()">Hủy</button>
                                 <button type="submit" class="btn-primary-action">Lưu thông tin</button>
                             </div>
@@ -348,11 +402,11 @@
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
             loadVouchersTable();
-            
+
             // Đặt ngày mặc định cho bộ lọc và biểu mẫu thêm mới
             const startInput = document.getElementById("voucher-start-date");
             const endInput = document.getElementById("voucher-end-date");
-            
+
             // Mặc định ngày bắt đầu là hiện tại, kết thúc sau 3 ngày
             const now = new Date();
             const future = new Date();
@@ -435,62 +489,48 @@
 
                 // STT
                 const sttTd = `<td style="text-align: center; font-weight: 500; color: #64748b;">${vCurrentPage * vPageSize + index + 1}</td>`;
-                
-                // Mã & Tên
-                const maTd = `<td style="font-weight: 600; color: #0f172a;">${voucher.maVoucher}</td>`;
-                const tenTd = `<td><div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${voucher.tenVoucher}">${voucher.tenVoucher}</div></td>`;
 
-                // Loại & Đối tượng Badges
-                const loaiBadge = voucher.loaiGiamGia === "Tiền mặt" 
-                    ? `<span class="badge badge-cash">Tiền mặt</span>` 
-                    : `<span class="badge badge-percent">Phần trăm</span>`;
-                const loaiTd = `<td>${loaiBadge}</td>`;
+                // Mã giảm giá
+                const maTd = `<td style="font-weight: 600; color: #0f172a; text-align: center;">${voucher.maVoucher}</td>`;
 
-                const doiTuongBadge = voucher.loaiPhieu === "Cá nhân" 
-                    ? `<span class="badge badge-individual">Cá nhân</span>` 
+                // Tên giảm giá
+                const tenTd = `<td style="text-align: center;"><div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0 auto;" title="${voucher.tenVoucher}">${voucher.tenVoucher}</div></td>`;
+
+                const isCash = voucher.loaiGiamGia && (
+                    voucher.loaiGiamGia.includes("Tiền mặt") ||
+                    voucher.loaiGiamGia.includes("Ti?n") ||
+                    voucher.loaiGiamGia.toLowerCase().includes("ti")
+                );
+
+                // Loại phiếu (Công khai / Cá nhân)
+                const doiTuongBadge = voucher.loaiPhieu === "Cá nhân"
+                    ? `<span class="badge badge-individual">Cá nhân</span>`
                     : `<span class="badge badge-public">Công khai</span>`;
-                const doiTuongTd = `<td>${doiTuongBadge}</td>`;
+                const loaiPhieuTd = `<td style="text-align: center;">${doiTuongBadge}</td>`;
+
+                // Giá trị giảm
+                const giaTriGiamText = !isCash
+                    ? `${voucher.giaTriGiam}%`
+                    : `${formatCurrency(voucher.giaTriGiam)}`;
+                const giaTriGiamTd = `<td style="text-align: center; font-weight: 500; color: #334155;">${giaTriGiamText}</td>`;
+
+                // Đơn hàng tối thiểu
+                const donToiThieuTd = `<td style="text-align: center; font-weight: 500; color: #334155;">${formatCurrency(voucher.donToiThieu)}</td>`;
 
                 // Số lượng
-                const soLuongTd = `
-                    <td style="text-align: center;">
-                        <span style="font-weight: 600; color: #334155;">${voucher.soLuong}</span>
-                        <div style="font-size: 11px; color: #64748b;">Đã dùng: ${voucher.soLuongDaDung || 0}</div>
-                    </td>
-                `;
+                const soLuongTd = `<td style="text-align: center; font-weight: 500; color: #334155;">${voucher.soLuong}</td>`;
 
-                // Chi tiết ưu đãi
-                const giamText = voucher.loaiGiamGia === "Phần trăm" 
-                    ? `Giảm: <span class="text-danger">${voucher.giaTriGiam}%</span>`
-                    : `Giảm: <span class="text-danger">${formatCurrency(voucher.giaTriGiam)} đ</span>`;
-                
-                const toiDaText = voucher.loaiGiamGia === "Phần trăm"
-                    ? `Tối đa: ${formatCurrency(voucher.giamToiDa)} đ`
-                    : `Tối đa: 0 đ`;
+                // Ngày bắt đầu
+                const ngayBatDauText = formatDateTimeStrShort(voucher.ngayBatDau);
+                const ngayBatDauTd = `<td style="text-align: center; color: #334155;">${ngayBatDauText}</td>`;
 
-                const uuDaiTd = `
-                    <td>
-                        <div class="detail-text">
-                            <div>${giamText}</div>
-                            <div class="text-muted">${toiDaText}</div>
-                            <div class="text-muted">Đơn tối thiểu: ${formatCurrency(voucher.donToiThieu)} đ</div>
-                        </div>
-                    </td>
-                `;
-
-                // Thời gian áp dụng
-                const thoiGianTd = `
-                    <td>
-                        <div style="font-size: 12px; line-height: 1.5; color: #334155;">
-                            <div><span class="text-muted">Từ:</span> ${formatDateTimeStr(voucher.ngayBatDau)}</div>
-                            <div><span class="text-muted">Đến:</span> ${formatDateTimeStr(voucher.ngayKetThuc)}</div>
-                        </div>
-                    </td>
-                `;
+                // Ngày kết thúc
+                const ngayKetThucText = formatDateTimeStrShort(voucher.ngayKetThuc);
+                const ngayKetThucTd = `<td style="text-align: center; color: #334155;">${ngayKetThucText}</td>`;
 
                 // Tính toán trạng thái thực tế dựa trên thời gian và db
                 const statusInfo = getVoucherStatus(voucher);
-                const trangThaiTd = `<td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>`;
+                const trangThaiTd = `<td style="text-align: center;"><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>`;
 
                 // Hành động (Sửa, Switch trạng thái)
                 const isChecked = voucher.trangThai === 1 ? 'checked' : '';
@@ -512,7 +552,7 @@
                     </td>
                 `;
 
-                tr.innerHTML = sttTd + maTd + tenTd + loaiTd + doiTuongTd + soLuongTd + uuDaiTd + thoiGianTd + trangThaiTd + hanhDongTd;
+                tr.innerHTML = sttTd + maTd + tenTd + loaiPhieuTd + giaTriGiamTd + donToiThieuTd + soLuongTd + ngayBatDauTd + ngayKetThucTd + trangThaiTd + hanhDongTd;
                 tbody.appendChild(tr);
             });
 
@@ -525,7 +565,7 @@
             if (voucher.trangThai === 0) {
                 return { text: "Ngừng áp dụng", class: "badge-status-inactive" };
             }
-            
+
             const now = new Date();
             const start = new Date(voucher.ngayBatDau);
             const end = new Date(voucher.ngayKetThuc);
@@ -541,8 +581,8 @@
 
         // Định dạng tiền tệ VND
         function formatCurrency(val) {
-            if (val === null || val === undefined) return "0";
-            return new Intl.NumberFormat('vi-VN').format(val);
+            if (val === null || val === undefined) return "0 ₫";
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
         }
 
         // Định dạng datetime JSON thành dd/MM/yyyy HH:mm:ss
@@ -567,6 +607,23 @@
             const mm = String(date.getMinutes()).padStart(2, '0');
             const ss = String(date.getSeconds()).padStart(2, '0');
             return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+        }
+
+        // Định dạng datetime JSON thành dd/MM/yyyy
+        function formatDateTimeStrShort(dateArr) {
+            if (!dateArr) return "-";
+            if (Array.isArray(dateArr)) {
+                const yyyy = dateArr[0];
+                const MM = String(dateArr[1]).padStart(2, '0');
+                const dd = String(dateArr[2]).padStart(2, '0');
+                return `${dd}/${MM}/${yyyy}`;
+            }
+            const date = new Date(dateArr);
+            if (isNaN(date.getTime())) return dateArr;
+            const dd = String(date.getDate()).padStart(2, '0');
+            const MM = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            return `${dd}/${MM}/${yyyy}`;
         }
 
         // Vẽ các nút phân trang voucher
@@ -667,19 +724,42 @@
         function adjustNumberInput(id, delta) {
             const input = document.getElementById(id);
             if (input.disabled) return;
-            
-            let val = parseInt(input.value) || 0;
+
+            const isCurrency = input.classList.contains('currency-input');
+            let val = isCurrency ? parseCurrencyFromInput(input.value) : (parseInt(input.value) || 0);
             val += delta;
-            
+
             if (input.min !== "" && val < parseInt(input.min)) {
                 val = parseInt(input.min);
             }
-            
-            input.value = val;
-            
+
+            input.value = isCurrency ? formatCurrencyToInput(val) : val;
+
             // Kích hoạt sự kiện oninput nếu có
             const event = new Event('input', { bubbles: true });
             input.dispatchEvent(event);
+        }
+
+        // Chuyển string format về số
+        function parseCurrencyFromInput(str) {
+            if (!str) return 0;
+            return parseInt(str.toString().replace(/[^\d]/g, ''), 10) || 0;
+        }
+
+        // Chuyển số về string format cho input
+        function formatCurrencyToInput(val) {
+            if (val === null || val === undefined || val === '') return '';
+            return new Intl.NumberFormat('vi-VN').format(val);
+        }
+
+        // Xử lý sự kiện nhập liệu cho input tiền tệ
+        function handleCurrencyInput(input) {
+            let val = parseCurrencyFromInput(input.value);
+            if (input.value === '') {
+                input.value = '';
+                return;
+            }
+            input.value = formatCurrencyToInput(val);
         }
 
         // Đếm ký tự cho textarea mô tả
@@ -693,7 +773,7 @@
             const checkedRadio = document.querySelector('input[name="loaiGiamGia"]:checked');
             const loaiGiamVal = checkedRadio ? checkedRadio.value : "Phần trăm";
             const maxDiscountInput = document.getElementById("voucher-max-discount");
-            
+
             if (loaiGiamVal === "Tiền mặt") {
                 maxDiscountInput.disabled = true;
                 maxDiscountInput.value = "";
@@ -721,7 +801,7 @@
                 btnQtyMinus.style.opacity = "0.5";
                 btnQtyPlus.style.pointerEvents = "none";
                 btnQtyPlus.style.opacity = "0.5";
-                
+
                 customerSection.style.display = "block";
                 loadCustomersTable();
             } else {
@@ -731,7 +811,7 @@
                 btnQtyMinus.style.opacity = "1";
                 btnQtyPlus.style.pointerEvents = "auto";
                 btnQtyPlus.style.opacity = "1";
-                
+
                 customerSection.style.display = "none";
             }
         }
@@ -741,7 +821,7 @@
             document.getElementById("voucher-form").reset();
             document.getElementById("voucher-id").value = "";
             document.getElementById("form-panel-title").innerText = "Thêm mới phiếu giảm giá";
-            
+
             selectedCustomerIds.clear();
             document.getElementById("cust-selected-label").innerText = "0";
 
@@ -761,7 +841,7 @@
             // Chuyển panel
             document.getElementById("list-panel").classList.remove("active");
             document.getElementById("form-panel").classList.add("active");
-            
+
             window.scrollTo(0, 0);
             lucide.createIcons();
         }
@@ -776,12 +856,18 @@
                 // Điền thông tin cơ bản vào form
                 document.getElementById("voucher-id").value = voucher.id;
                 document.getElementById("voucher-name").value = voucher.tenVoucher;
-                
+
                 // Chọn radio button hình thức giảm
                 const radiosLoaiGiam = document.querySelectorAll('input[name="loaiGiamGia"]');
                 let foundGiam = false;
+                const isCash = voucher.loaiGiamGia && (
+                    voucher.loaiGiamGia.includes("Tiền mặt") ||
+                    voucher.loaiGiamGia.includes("Ti?n") ||
+                    voucher.loaiGiamGia.toLowerCase().includes("ti")
+                );
+                const targetValue = isCash ? "Tiền mặt" : "Phần trăm";
                 radiosLoaiGiam.forEach(r => {
-                    r.checked = (r.value === voucher.loaiGiamGia);
+                    r.checked = (r.value === targetValue);
                     if (r.checked) foundGiam = true;
                 });
                 if (!foundGiam && radiosLoaiGiam.length > 0) {
@@ -799,17 +885,17 @@
                     radiosLoaiPhieu[0].checked = true; // mặc định Công khai
                 }
 
-                document.getElementById("voucher-discount-val").value = voucher.giaTriGiam;
-                document.getElementById("voucher-max-discount").value = voucher.giamToiDa || "";
-                document.getElementById("voucher-min-order").value = voucher.donToiThieu;
+                document.getElementById("voucher-discount-val").value = formatCurrencyToInput(voucher.giaTriGiam);
+                document.getElementById("voucher-max-discount").value = voucher.giamToiDa ? formatCurrencyToInput(voucher.giamToiDa) : "";
+                document.getElementById("voucher-min-order").value = formatCurrencyToInput(voucher.donToiThieu);
                 document.getElementById("voucher-quantity").value = voucher.soLuong;
-                
+
                 // Format date về dạng ISO local datetime string
                 document.getElementById("voucher-start-date").value = formatIsoString(voucher.ngayBatDau);
                 const endInput = document.getElementById("voucher-end-date");
                 endInput.value = formatIsoString(voucher.ngayKetThuc);
                 endInput.min = formatDateLocalDate(new Date());
-                
+
                 selectedCustomerIds.clear();
 
                 // Nếu là phiếu cá nhân thì lấy danh sách ID khách hàng cũ đã gán
@@ -820,9 +906,9 @@
                         ids.forEach(cid => selectedCustomerIds.add(cid));
                     }
                 }
-                
+
                 document.getElementById("cust-selected-label").innerText = selectedCustomerIds.size;
-                
+
                 // Thiết lập trạng thái UI và nạp bảng khách hàng
                 toggleDiscountType();
                 toggleVoucherType();
@@ -876,10 +962,10 @@
             const loaiGiamGia = checkedLoaiGiam ? checkedLoaiGiam.value : "Phần trăm";
             const checkedLoaiPhieu = document.querySelector('input[name="loaiPhieu"]:checked');
             const loaiPhieu = checkedLoaiPhieu ? checkedLoaiPhieu.value : "Công khai";
-            const giaTriGiam = parseFloat(document.getElementById("voucher-discount-val").value);
+            const giaTriGiam = parseCurrencyFromInput(document.getElementById("voucher-discount-val").value);
             const giamToiDaVal = document.getElementById("voucher-max-discount").value;
-            const giamToiDa = giamToiDaVal !== "" ? parseFloat(giamToiDaVal) : null;
-            const donToiThieu = parseFloat(document.getElementById("voucher-min-order").value);
+            const giamToiDa = giamToiDaVal !== "" ? parseCurrencyFromInput(giamToiDaVal) : null;
+            const donToiThieu = parseCurrencyFromInput(document.getElementById("voucher-min-order").value);
             const soLuongVal = document.getElementById("voucher-quantity").value;
             const soLuong = soLuongVal !== "" ? parseInt(soLuongVal) : 0;
             const ngayBatDauVal = document.getElementById("voucher-start-date").value;
@@ -1018,10 +1104,10 @@
                 const sdtTd = `<td>${customer.soDienThoai || "-"}</td>`;
                 const emailTd = `<td>${customer.email || "-"}</td>`;
                 const dobTd = `<td>${formatDate(customer.ngaySinh)}</td>`;
-                
+
                 const ngayDatTd = `<td>${formatDateTimeStr(customer.ngayDatGanNhat)}</td>`;
                 const soLanDatTd = `<td style="text-align: center; font-weight: 500;">${customer.soLanDat}</td>`;
-                const tongTienTd = `<td style="text-align: right; font-weight: 600; color: #1e3a8a;">${formatCurrency(customer.tongTienDaDat)} đ</td>`;
+                const tongTienTd = `<td style="text-align: right; font-weight: 600; color: #1e3a8a;">${formatCurrency(customer.tongTienDaDat)}</td>`;
 
                 tr.innerHTML = checkboxTd + maTd + tenTd + sdtTd + emailTd + dobTd + ngayDatTd + soLanDatTd + tongTienTd;
                 tbody.appendChild(tr);
@@ -1052,10 +1138,10 @@
             } else {
                 selectedCustomerIds.delete(customerId);
             }
-            
+
             // Cập nhật số lượng đã chọn hiển thị trên UI
             document.getElementById("cust-selected-label").innerText = selectedCustomerIds.size;
-            
+
             // Gán lại số lượng sử dụng của phiếu tự động
             document.getElementById("voucher-quantity").value = selectedCustomerIds.size;
 
@@ -1069,7 +1155,7 @@
                 headerCheckbox.checked = false;
                 return;
             }
-            
+
             const allChecked = displayedCustomerIdsOnPage.every(id => selectedCustomerIds.has(id));
             headerCheckbox.checked = allChecked;
         }
@@ -1124,7 +1210,7 @@
             next.innerHTML = `<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>`;
             next.onclick = () => { if (custCurrentPage < custTotalPages - 1) { custCurrentPage++; loadCustomersTable(); } };
             nav.appendChild(next);
-            
+
             lucide.createIcons();
         }
 
@@ -1142,4 +1228,5 @@
         }
     </script>
 </body>
+
 </html>
