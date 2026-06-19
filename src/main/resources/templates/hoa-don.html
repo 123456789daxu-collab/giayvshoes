@@ -4,20 +4,241 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hóa đơn | VShoes</title>
+    
+    <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/khach-hang.css">
+    <link rel="stylesheet" href="/css/store.css">
+    <link rel="stylesheet" href="/css/invoice.css?v=1.5">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính đơn giản -->
+        <!-- Nội dung chính -->
         <main class="main-content">
-            <div class="content-card">
-                <h1 class="content-title">Quản lý hóa đơn</h1>
-                <p class="content-desc">Nội dung của trang quản lý hóa đơn sẽ hiển thị ở đây.</p>
+            <div class="invoice-container">
+                <div class="page-header-row">
+                    <div class="page-header-title">
+                        <i data-lucide="receipt"></i>
+                        <span>Quản lý hoá đơn</span>
+                    </div>
+                </div>
+
+                <!-- BỘ LỌC (Filter Section) -->
+                <div class="filter-card">
+                    <div class="filter-header">
+                        <span class="filter-title">Bộ lọc tìm kiếm</span>
+                        <button class="refresh-btn" id="btnReset" title="Làm mới bộ lọc">
+                            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;">
+                        <div class="form-group">
+                            <label>Tìm kiếm</label>
+                            <input type="text" id="searchKeyword" class="input-control" placeholder="Nhập mã hóa đơn / tên khách / SĐT...">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Loại hóa đơn</label>
+                            <select id="filterType" class="input-control">
+                                <option value="">Tất cả</option>
+                                <option value="Tại quầy">Tại quầy</option>
+                                <option value="Online">Online</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Từ ngày</label>
+                            <input type="date" id="startDate" class="input-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Đến ngày</label>
+                            <input type="date" id="endDate" class="input-control">
+                        </div>
+
+                        <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">
+                                <span>Tổng tiền tối đa</span>
+                                <span id="priceSliderValue" style="color: #ef4444; font-weight: 700;">3.000.000 đ</span>
+                            </div>
+                            <div style="display: flex; align-items: center; height: 38px;">
+                                <input type="range" id="priceSlider" min="0" max="3000000" step="50000" value="3000000" style="width: 100%; accent-color: #2563eb; cursor: pointer;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH HÓA ĐƠN -->
+                <div class="customer-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div>
+                            <span class="card-title-table" style="margin-bottom: 0; display: block;">Danh sách hóa đơn</span>
+                            <span class="list-subtitle" style="font-size: 13px; color: #64748b;">Lọc nhanh theo trạng thái</span>
+                        </div>
+                        <div class="action-row" style="margin-bottom: 0;">
+                            <button class="btn-primary-action" id="btnAddInvoice" style="display: none;">
+                                <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                                Thêm mới
+                            </button>
+                            <button class="btn-icon" title="Xuất Excel" id="btnExportTop">
+                                <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Tabs -->
+                    <div class="status-tabs-container">
+                        <div class="status-tabs">
+                            <button class="status-tab active" data-status="">Tất cả</button>
+                            <button class="status-tab" data-status="0">Chờ xác nhận</button>
+                            <button class="status-tab" data-status="1">Đã xác nhận</button>
+                            <button class="status-tab" data-status="3">Đang giao</button>
+                            <button class="status-tab" data-status="4">Đã giao</button>
+                            <button class="status-tab" data-status="6">Hoàn thành</button>
+                            <button class="status-tab" data-status="7">Đã huỷ</button>
+                            <button class="status-tab" data-status="8">Yêu cầu huỷ</button>
+                            <button class="status-tab" data-status="9">Đã hoàn tiền</button>
+                        </div>
+                    </div>
+                    
+                    <div class="custom-table-container">
+                        <table class="customer-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">STT</th>
+                                    <th>Mã hóa đơn</th>
+                                    <th>Tên nhân viên</th>
+                                    <th>Khách hàng</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Loại hóa đơn</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Ngày tạo</th>
+                                    <th style="text-align: center;">Trạng thái</th>
+                                    <th style="text-align: center; width: 100px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceTableBody">
+                                <!-- Data populated by invoice.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Phân trang danh sách hóa đơn -->
+                    <div class="table-footer">
+                        <div class="total-count" id="paginationInfo">
+                            Tổng 0 hóa đơn
+                        </div>
+                        <div class="pagination-nav" id="page-numbers-container">
+                            <!-- Nút trang -->
+                        </div>
+                        <div class="page-size-selector">
+                            <select class="page-size-select" id="pageSizeSelect">
+                                <option value="5">5 / page</option>
+                                <option value="10">10 / page</option>
+                                <option value="20">20 / page</option>
+                                <option value="50">50 / page</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
+
+    <!-- MODAL THÊM / SỬA HÓA ĐƠN -->
+    <div class="modal-overlay" id="invoiceModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 600px; width: 95%;">
+            <span class="close" id="modalClose" style="position: absolute; top: 20px; right: 25px; cursor: pointer; font-size: 28px; color: #64748b;">&times;</span>
+            <h2 id="modalTitle" class="gradient-text" style="font-size: 22px; margin-top: 0; margin-bottom: 25px; font-weight: 800;">Thêm Hóa Đơn</h2>
+
+            <form id="invoiceForm">
+                <input type="hidden" id="invId">
+                
+                <div class="modal-body-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tên người nhận <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="glass-input" id="invCustomerName" placeholder="Nhập tên..." required style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Số điện thoại <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="glass-input" id="invCustomerPhone" placeholder="Nhập SĐT..." required style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Loại hóa đơn</label>
+                        <select class="glass-input" id="invType" style="width: 100%; box-sizing: border-box;">
+                            <option value="Tại quầy">Tại quầy</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Trạng thái</label>
+                        <select class="glass-input" id="invStatus" style="width: 100%; box-sizing: border-box;">
+                            <option value="1">Hoàn thành</option>
+                            <option value="2">Sắp diễn ra</option>
+                            <option value="0">Hủy</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tổng tiền thanh toán (VNĐ)</label>
+                        <input type="number" class="glass-input" id="invTotal" value="0" style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Ghi chú</label>
+                    <textarea class="glass-input" id="invNote" rows="3" placeholder="Ghi chú thêm..." style="width: 100%; resize: none; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-reset" id="btnCancelInv" style="background-color: #94a3b8; color: white;">Hủy</button>
+                    <button type="submit" class="btn-add" style="min-width: 120px;">Lưu hóa đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT HÓA ĐƠN -->
+    <div class="modal-overlay" id="invoiceDetailModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 550px; width: 95%; padding: 30px;">
+            <span class="close" id="detailModalClose" style="position: absolute; top: 20px; right: 25px; cursor: pointer; font-size: 28px; color: #64748b;">&times;</span>
+            <h2 class="gradient-text" style="font-size: 20px; margin-top: 0; margin-bottom: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="receipt"></i> Chi Tiết Hóa Đơn
+            </h2>
+            
+            <div id="detailContent" class="invoice-receipt-detail">
+                <!-- Data populated dynamically via JS -->
+            </div>
+            
+            <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-action btn-export" id="btnPrintDetail">
+                    <i data-lucide="printer"></i> In Hóa Đơn
+                </button>
+                <button type="button" class="btn-action btn-reset" id="btnCloseDetail" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/invoice.js?v=1.5" defer></script>
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>

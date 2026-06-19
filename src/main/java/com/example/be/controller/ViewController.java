@@ -31,7 +31,15 @@ public class ViewController {
         return "hoa-don";
     }
 
+    @GetMapping("/hoa-don/{id}")
+    public String hoaDonChiTiet() {
+        return "hoa-don-chi-tiet";
+    }
 
+//    @GetMapping("/san-pham")
+//    public String sanPham() {
+//        return "san-pham";
+//    }
 
     @GetMapping("/phieu-giam-gia")
     public String phieuGiamGia() {
