@@ -30,50 +30,24 @@ public class NhanVienController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody NhanVien nhanVien) {
-        try {
-            return ResponseEntity.ok(nhanVienService.save(nhanVien));
-        } catch (Exception e) {
-            String msg = e.getMessage();
-            return ResponseEntity.badRequest().body(msg != null ? msg : "Đã xảy ra lỗi hệ thống (NullPointerException hoặc tương tự)!");
-        }
+    public ResponseEntity<NhanVien> create(@RequestBody NhanVien nhanVien) {
+        return ResponseEntity.ok(nhanVienService.save(nhanVien));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody NhanVien nhanVien) {
-        try {
-            return nhanVienService.findById(id)
-                    .map(existing -> {
-                        existing.setHoTen(nhanVien.getHoTen());
-                        existing.setEmail(nhanVien.getEmail());
-                        existing.setSoDienThoai(nhanVien.getSoDienThoai());
-                        existing.setChucVu(nhanVien.getChucVu());
-                        existing.setTrangThai(nhanVien.getTrangThai());
-                        existing.setGioiTinh(nhanVien.getGioiTinh());
-                        existing.setNgaySinh(nhanVien.getNgaySinh());
-                        existing.setDiaChi(nhanVien.getDiaChi());
-                        if (nhanVien.getMatKhau() != null && !nhanVien.getMatKhau().trim().isEmpty()) {
-                            existing.setMatKhau(nhanVien.getMatKhau());
-                        }
-                        if (nhanVien.getAnhDaiDien() != null) {
-                            existing.setAnhDaiDien(nhanVien.getAnhDaiDien());
-                        }
-                        return ResponseEntity.ok(nhanVienService.save(existing));
-                    })
-                    .orElse(ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<NhanVien> update(@PathVariable Long id, @RequestBody NhanVien nhanVien) {
+        return nhanVienService.findById(id)
+                .map(existing -> {
+                    nhanVien.setId(id);
+                    return ResponseEntity.ok(nhanVienService.save(nhanVien));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        try {
-            nhanVienService.deleteById(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        nhanVienService.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/search")
@@ -87,12 +61,8 @@ public class NhanVienController {
     }
 
     @PutMapping("/{id}/toggle-trang-thai")
-    public ResponseEntity<?> toggleTrangThai(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(nhanVienService.toggleTrangThai(id));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<NhanVien> toggleTrangThai(@PathVariable Long id) {
+        return ResponseEntity.ok(nhanVienService.toggleTrangThai(id));
     }
 
     @PostMapping("/{id}/avatar")
@@ -119,14 +89,5 @@ public class NhanVienController {
                     }
                 })
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/next-code")
-    public ResponseEntity<?> getNextCode() {
-        try {
-            return ResponseEntity.ok(java.util.Map.of("code", nhanVienService.getNextMaNhanVien()));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
-        }
     }
 }

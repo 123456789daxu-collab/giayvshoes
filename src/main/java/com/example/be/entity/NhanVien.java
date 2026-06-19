@@ -20,10 +20,10 @@ public class NhanVien {
     @Column(name = "ma_nhan_vien")
     private String maNhanVien;
 
-    @Column(name = "ho_ten", columnDefinition = "nvarchar(255)")
+    @Column(name = "ho_ten")
     private String hoTen;
 
-    @Column(name = "email", columnDefinition = "nvarchar(255)")
+    @Column(name = "email")
     private String email;
 
     @Column(name = "so_dien_thoai")
@@ -38,16 +38,13 @@ public class NhanVien {
     @Column(name = "gioi_tinh")
     private Boolean gioiTinh;
 
-    @Column(name = "dia_chi", columnDefinition = "nvarchar(255)")
+    @Column(name = "dia_chi")
     private String diaChi;
 
-    @Column(name = "chuc_vu", columnDefinition = "nvarchar(255)")
+    @Column(name = "chuc_vu")
     private String chucVu;
 
-    @Column(name = "cccd", columnDefinition = "nvarchar(20)")
-    private String cccd;
-
-    @Column(name = "anh_dai_dien", columnDefinition = "nvarchar(max)")
+    @Column(name = "anh_dai_dien")
     private String anhDaiDien;
 
     @Column(name = "trang_thai")

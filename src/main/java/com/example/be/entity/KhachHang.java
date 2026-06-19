@@ -39,10 +39,7 @@ public class KhachHang {
     @Column(name = "gioi_tinh")
     private Boolean gioiTinh;
 
-    @Column(name = "anh_dai_dien")
-    private String anhDaiDien;
-
-    @Column(name = "ngay_tao")
+    @Transient
     private LocalDateTime ngayTao;
 
     @Column(name = "trang_thai")

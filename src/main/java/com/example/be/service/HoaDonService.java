@@ -34,6 +34,7 @@ public class HoaDonService {
         this.lichSuHoaDonRepository = lichSuHoaDonRepository;
     }
 
+<<<<<<< HEAD
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<HoaDonDTO> search(String keyword, Integer trangThai, String loaiHoaDon,
             BigDecimal minPrice, BigDecimal maxPrice,
@@ -52,6 +53,21 @@ public class HoaDonService {
         List<HoaDon> hoaDons = hoaDonRepository.searchHoaDon(
                 keyword, trangThai, loaiHoaDonDb, minPrice, maxPrice, startDate, endDate);
 
+=======
+    public List<HoaDonDTO> search(String keyword, Integer trangThai, String loaiHoaDon, 
+                                  BigDecimal minPrice, BigDecimal maxPrice, 
+                                  LocalDateTime startDate, LocalDateTime endDate) {
+        Boolean loaiHoaDonBool = null;
+        if ("Tại quầy".equalsIgnoreCase(loaiHoaDon) || "Tai quay".equalsIgnoreCase(loaiHoaDon)) {
+            loaiHoaDonBool = false;
+        } else if ("Online".equalsIgnoreCase(loaiHoaDon) || "Trực tuyến".equalsIgnoreCase(loaiHoaDon)) {
+            loaiHoaDonBool = true;
+        }
+
+        List<HoaDon> hoaDons = hoaDonRepository.searchHoaDon(
+                keyword, trangThai, loaiHoaDonBool, minPrice, maxPrice, startDate, endDate);
+                
+>>>>>>> origin/feature-lehung
         return hoaDons.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
@@ -146,7 +162,7 @@ public class HoaDonService {
 
         String loaiHdStr = "N/A";
         if (h.getLoaiHoaDon() != null) {
-            loaiHdStr = h.getLoaiHoaDon();
+            loaiHdStr = h.getLoaiHoaDon() ? "Trực tuyến" : "Tại quầy";
         }
 
         String email = "";
@@ -332,17 +348,16 @@ public class HoaDonService {
                 System.out.println("No SanPhamChiTiet found or error fetching: " + e.getMessage());
             }
 
-            for (int i = 1; i <= 15; i++) {
+            for (int i = 1; i <= 5; i++) {
                 BigDecimal invoiceTotal = new BigDecimal("350000").multiply(new BigDecimal(i));
-                LocalDateTime ngayTao = LocalDateTime.now().minusDays(i % 7);
                 HoaDon hd = HoaDon.builder()
                         .maHoaDon("HD_" + System.currentTimeMillis() + "_" + i)
-                        .loaiHoaDon(i % 2 == 0 ? "Online" : "Tại quầy")
+                        .loaiHoaDon(i % 2 == 0)
                         .tenNguoiNhan("Khách hàng Test " + i)
                         .sdtNguoiNhan("098765432" + i)
                         .tongTien(invoiceTotal)
                         .trangThai(i % 3)
-                        .ngayTao(ngayTao)
+                        .ngayTao(LocalDateTime.now())
                         .nguoiTao("Nhân viên " + i)
                         .build();
                 hd = hoaDonRepository.save(hd);

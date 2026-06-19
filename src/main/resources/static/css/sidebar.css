@@ -26,8 +26,8 @@ body {
 .sidebar {
     width: 280px; /* Chiều rộng thanh Sidebar */
     height: 100vh; /* Cao bằng 100% màn hình */
-    background-color: #ffffff; /* Nền trắng (trùng màu logo) */
-    border-right: 1px solid #e2e8f0; /* Thêm viền nhẹ vì nền trắng */
+    background-color: #ffffff; /* Nền trắng tinh tế */
+    border-right: 1px solid #e2e8f0; /* Đường viền bên phải mảnh (slate 200) */
     position: fixed; /* Cố định thanh Sidebar ở bên trái */
     top: 0;
     left: 0;
@@ -103,7 +103,7 @@ body {
     align-items: center;
     padding: 12px 16px;
     margin-bottom: 6px;
-    color: #475569; /* Chữ xám đậm (slate 600) trên nền sáng */
+    color: #475569; /* Chữ xám trung tính (slate 600) */
     text-decoration: none;
     border-radius: 8px; /* Bo góc tròn nhẹ */
     font-size: 14px;
@@ -118,7 +118,7 @@ body {
     width: 20px;
     height: 20px;
     margin-right: 14px;
-    color: inherit; /* Icon cùng màu với text */
+    color: #64748b; /* Icon xám (slate 500) */
     transition: color 0.25s ease;
 }
 
@@ -132,23 +132,23 @@ body {
 
 /* HIỆU ỨNG HOVER */
 .menu-item:hover {
-    background-color: #f1f5f9; /* Nền sáng nhẹ khi hover */
-    color: #0f172a; /* Chữ đen đậm */
+    background-color: #f8fafc; /* Nền xám rất nhạt khi hover */
+    color: #0f172a; /* Chữ đổi sang màu đậm hơn */
 }
 
 .menu-item:hover .menu-icon {
-    color: #0f172a; /* Icon đen khi hover */
+    color: #0f172a; /* Icon đậm hơn khi hover */
 }
 
 /* MỤC ĐANG ACTIVE (TRANG HIỆN TẠI) */
 .menu-item.active {
-    background-color: rgba(2, 132, 199, 0.15); /* Nền xanh dương nhạt trong suốt */
-    color: #38bdf8; /* Màu chữ xanh dương sáng (sky 400) */
+    background-color: #e0f2fe; /* Màu nền xanh dương nhạt (sky 100) */
+    color: #0369a1; /* Màu chữ xanh dương đậm (sky 700) */
     font-weight: 600; /* Chữ đậm hơn */
 }
 
 .menu-item.active .menu-icon {
-    color: #38bdf8; /* Icon chuyển sang màu xanh dương sáng */
+    color: #0284c7; /* Icon chuyển sang màu xanh dương */
 }
 
 /* Đường vạch nhỏ đứng màu xanh bên trái khi active */
@@ -180,7 +180,7 @@ body {
 
 /* Khi submenu được mở */
 .submenu.open {
-    max-height: 300px; /* Cho phép hiển thị hết chiều cao của các mục con */
+    max-height: 200px; /* Cho phép hiển thị hết chiều cao của các mục con */
 }
 
 /* Xoay mũi tên khi submenu mở */
@@ -205,7 +205,7 @@ body {
 .submenu-item::before {
     content: '•';
     margin-right: 10px;
-    color: #94a3b8;
+    color: #cbd5e1;
     font-size: 12px;
 }
 
@@ -215,13 +215,13 @@ body {
 }
 
 .submenu-item.active {
-    color: #38bdf8;
+    color: #0284c7;
     font-weight: 600;
-    background-color: rgba(2, 132, 199, 0.15);
+    background-color: #f0f9ff;
 }
 
 .submenu-item.active::before {
-    color: #38bdf8;
+    color: #0284c7;
 }
 
 /* PHẦN CHỨA NỘI DUNG CHÍNH (BÊN PHẢI SIDEBAR) */
@@ -354,127 +354,4 @@ body {
 .badge-warning { background-color: #fef9c3; color: #a16207; }
 .badge-danger { background-color: #fee2e2; color: #b91c1c; }
 .badge-info { background-color: #e0f2fe; color: #0369a1; }
-
-/* SYSTEM TOAST NOTIFICATIONS */
-#toast-container {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 999999;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 400px;
-    width: calc(100% - 48px);
-    pointer-events: none;
-}
-
-.custom-toast {
-    display: flex;
-    align-items: flex-start;
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-    pointer-events: auto;
-    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    position: relative;
-    overflow: hidden;
-}
-
-@keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes toastFadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95);
-    }
-}
-
-.toast-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    margin-right: 14px;
-    margin-top: 2px;
-    flex-shrink: 0;
-}
-
-.toast-icon.success {
-    background-color: #22c55e;
-    color: #ffffff;
-}
-
-.toast-icon.error {
-    background-color: #ef4444;
-    color: #ffffff;
-}
-
-.toast-icon.warning {
-    background-color: #f59e0b;
-    color: #ffffff;
-}
-
-.toast-icon.info {
-    background-color: #3b82f6;
-    color: #ffffff;
-}
-
-.toast-content {
-    flex: 1;
-    padding-right: 20px;
-}
-
-.toast-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #0f172a;
-    margin-bottom: 4px;
-    line-height: 1.4;
-}
-
-.toast-message {
-    font-size: 13px;
-    color: #475569;
-    line-height: 1.5;
-}
-
-.toast-close-btn {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: #94a3b8;
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.15s, color 0.15s;
-}
-
-.toast-close-btn:hover {
-    background-color: #f1f5f9;
-    color: #475569;
-}
-
 

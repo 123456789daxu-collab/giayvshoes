@@ -63,8 +63,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá với ID: " + id));
     }
 
-    @Override
-    public String getNextMaVoucher() {
+    private String generateMaVoucher() {
         Optional<PhieuGiamGia> lastVoucher = phieuGiamGiaRepository.findFirstByMaVoucherStartingWithOrderByMaVoucherDesc("PGG");
         if (lastVoucher.isEmpty()) {
             return "PGG001";
@@ -83,7 +82,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     public PhieuGiamGia createVoucher(PhieuGiamGiaDto dto) {
         String code = dto.getMaVoucher();
         if (code == null || code.trim().isEmpty()) {
-            code = getNextMaVoucher();
+            code = generateMaVoucher();
         } else {
             code = code.trim();
         }
@@ -369,20 +368,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             }
 
             if (loaiGiamGia != null && !loaiGiamGia.trim().isEmpty()) {
-                String cleanLoai = loaiGiamGia.trim().toLowerCase();
-                if (cleanLoai.contains("ph") || cleanLoai.contains("tram") || cleanLoai.contains("trăm")) {
-                    predicates.add(criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ph%n%tr%m%"),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ph%n%tram%")
-                    ));
-                } else if (cleanLoai.contains("ti") || cleanLoai.contains("m") || cleanLoai.contains("mat") || cleanLoai.contains("mặt")) {
-                    predicates.add(criteriaBuilder.or(
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ti%n%m%t%"),
-                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ti%n%m%")
-                    ));
-                } else {
-                    predicates.add(criteriaBuilder.equal(root.get("loaiGiamGia"), loaiGiamGia.trim()));
-                }
+                predicates.add(criteriaBuilder.equal(root.get("loaiGiamGia"), loaiGiamGia.trim()));
             }
 
             if (loaiPhieu != null && !loaiPhieu.trim().isEmpty()) {

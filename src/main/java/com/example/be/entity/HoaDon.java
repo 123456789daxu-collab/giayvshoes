@@ -34,7 +34,8 @@ public class HoaDon {
     private String maHoaDon;
 
     @Column(name = "loai_hoa_don")
-    private String loaiHoaDon;
+    @Setter(lombok.AccessLevel.NONE)
+    private Boolean loaiHoaDon; // bit in DB
 
     @Column(name = "ten_nguoi_nhan")
     private String tenNguoiNhan;
@@ -121,6 +122,22 @@ public class HoaDon {
         return this.ngayThanhToan;
     }
 
-
+    // Jackson / API compatibility for loaiHoaDon String or Boolean values
+    public void setLoaiHoaDon(Object val) {
+        if (val instanceof Boolean) {
+            this.loaiHoaDon = (Boolean) val;
+        } else if (val instanceof String) {
+            String s = (String) val;
+            if ("Online".equalsIgnoreCase(s) || "Trực tuyến".equalsIgnoreCase(s)) {
+                this.loaiHoaDon = true;
+            } else if ("Tại quầy".equalsIgnoreCase(s) || "Tai quay".equalsIgnoreCase(s)) {
+                this.loaiHoaDon = false;
+            } else {
+                this.loaiHoaDon = null;
+            }
+        } else {
+            this.loaiHoaDon = null;
+        }
+    }
 }
 

@@ -4,18 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hóa đơn | VShoes</title>
-    
+
     <!-- CSS Stylesheets -->
     <link rel="stylesheet" href="/css/sidebar.css">
-    <link rel="stylesheet" href="/css/khach-hang.css">
     <link rel="stylesheet" href="/css/store.css">
-    <link rel="stylesheet" href="/css/invoice.css?v=1.5">
-    
+    <link rel="stylesheet" href="/css/invoice.css?v=4.3">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -27,73 +26,80 @@
         <!-- Nội dung chính -->
         <main class="main-content">
             <div class="invoice-container">
-                <div class="page-header-row">
-                    <div class="page-header-title">
-                        <i data-lucide="receipt"></i>
-                        <span>Quản lý hoá đơn</span>
-                    </div>
-                </div>
 
-                <!-- BỘ LỌC (Filter Section) -->
-                <div class="filter-card">
-                    <div class="filter-header">
-                        <span class="filter-title">Bộ lọc tìm kiếm</span>
-                        <button class="refresh-btn" id="btnReset" title="Làm mới bộ lọc">
-                            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;">
-                        <div class="form-group">
-                            <label>Tìm kiếm</label>
-                            <input type="text" id="searchKeyword" class="input-control" placeholder="Nhập mã hóa đơn / tên khách / SĐT...">
+                <!-- ===== BỘ LỌC TÌM KIẾM ===== -->
+                <div class="filter-section-card">
+                    <p class="filter-section-title">Bộ lọc tìm kiếm</p>
+                    <div class="filter-inline-row">
+
+                        <!-- Tìm kiếm -->
+                        <div class="fi-col fi-col-search">
+                            <label class="fi-label">Tìm kiếm</label>
+                            <div class="fi-search-wrap">
+                                <i data-lucide="search" class="fi-search-icon"></i>
+                                <input type="text" id="searchKeyword" class="fi-input"
+                                       placeholder="Nhập tên hoặc mã đơn hàng...">
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Loại hóa đơn</label>
-                            <select id="filterType" class="input-control">
+                        <!-- Khoảng ngày -->
+                        <div class="fi-col fi-col-date">
+                            <label class="fi-label">Khoảng ngày áp dụng</label>
+                            <div class="fi-date-range">
+                                <input type="date" id="startDate" class="fi-input fi-date-input">
+                                <span class="fi-date-dash">—</span>
+                                <input type="date" id="endDate" class="fi-input fi-date-input">
+                            </div>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="fi-col fi-col-status">
+                            <label class="fi-label">Trạng thái</label>
+                            <select id="filterType" class="fi-input fi-select">
                                 <option value="">Tất cả</option>
                                 <option value="Tại quầy">Tại quầy</option>
-                                <option value="Online">Online</option>
+                                <option value="Trực tuyến">Trực tuyến</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Từ ngày</label>
-                            <input type="date" id="startDate" class="input-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Đến ngày</label>
-                            <input type="date" id="endDate" class="input-control">
+
+                        <!-- Bộ lọc giá -->
+                        <div class="fi-col fi-col-price">
+                            <label class="fi-label">
+                                Tổng tiền tối đa:
+                                <span id="priceSliderValue" class="fi-price-val">3.000.000 đ</span>
+                            </label>
+                            <div class="fi-slider-wrap">
+                                <input type="range" id="priceSlider"
+                                       min="0" max="3000000" step="50000" value="3000000"
+                                       class="fi-slider">
+                            </div>
                         </div>
 
-                        <div class="form-group" style="display: flex; flex-direction: column; justify-content: flex-end;">
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 6px;">
-                                <span>Tổng tiền tối đa</span>
-                                <span id="priceSliderValue" style="color: #ef4444; font-weight: 700;">50.000.000 đ</span>
-                            </div>
-                            <div style="display: flex; align-items: center; height: 38px;">
-                                <input type="range" id="priceSlider" min="0" max="50000000" step="100000" value="50000000" style="width: 100%; accent-color: #2563eb; cursor: pointer;">
-                            </div>
+                        <!-- Nút Reset -->
+                        <div class="fi-col fi-col-btn">
+                            <label class="fi-label">&nbsp;</label>
+                            <button class="fi-reset-btn" id="btnReset" title="Đặt lại bộ lọc">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
                         </div>
+
+                    </div>
+
+                    <!-- VALIDATION MESSAGES -->
+                    <div id="filterValidationBox" class="filter-validation-box" style="display:none;">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
 
-                <!-- DANH SÁCH HÓA ĐƠN -->
-                <div class="customer-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <div>
-                            <span class="card-title-table" style="margin-bottom: 0; display: block;">Danh sách hóa đơn</span>
-                            <span class="list-subtitle" style="font-size: 13px; color: #64748b;">Lọc nhanh theo trạng thái</span>
-                        </div>
-                        <div class="action-row" style="margin-bottom: 0;">
-                            <button class="btn-primary-action" id="btnAddInvoice" style="display: none;">
-                                <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
-                                Thêm mới
-                            </button>
-                            <button class="btn-icon" title="Xuất Excel" id="btnExportTop">
-                                <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                <!-- ===== DANH SÁCH HÓA ĐƠN ===== -->
+                <div class="list-section">
+
+                    <!-- Header: Title + Actions -->
+                    <div class="list-header-row">
+                        <h2 class="list-heading">Danh sách hóa đơn</h2>
+                        <div class="list-header-actions">
+                            <button class="btn-export-excel" id="btnExport">
+                                <i data-lucide="file-spreadsheet"></i> Xuất Excel
                             </button>
                         </div>
                     </div>
@@ -101,23 +107,24 @@
                     <!-- Status Tabs -->
                     <div class="status-tabs-container">
                         <div class="status-tabs">
-                            <button class="status-tab active" data-status="">Tất cả</button>
-                            <button class="status-tab" data-status="0">Chờ xác nhận</button>
-                            <button class="status-tab" data-status="1">Đã xác nhận</button>
-                            <button class="status-tab" data-status="3">Đang giao</button>
-                            <button class="status-tab" data-status="4">Đã giao</button>
-                            <button class="status-tab" data-status="6">Hoàn thành</button>
-                            <button class="status-tab" data-status="7">Đã huỷ</button>
-                            <button class="status-tab" data-status="8">Yêu cầu huỷ</button>
-                            <button class="status-tab" data-status="9">Đã hoàn tiền</button>
+                            <button class="status-tab active" data-status="">Tất cả <span class="status-count-badge" id="count-all">0</span></button>
+                            <button class="status-tab" data-status="0">Chờ xác nhận <span class="status-count-badge" id="count-0">0</span></button>
+                            <button class="status-tab" data-status="1">Đã xác nhận <span class="status-count-badge" id="count-1">0</span></button>
+                            <button class="status-tab" data-status="3">Đang giao <span class="status-count-badge" id="count-3">0</span></button>
+                            <button class="status-tab" data-status="4">Đã giao <span class="status-count-badge" id="count-4">0</span></button>
+                            <button class="status-tab" data-status="6">Hoàn thành <span class="status-count-badge" id="count-6">0</span></button>
+                            <button class="status-tab" data-status="7">Đã huỷ <span class="status-count-badge" id="count-7">0</span></button>
+                            <button class="status-tab" data-status="8">Yêu cầu huỷ <span class="status-count-badge" id="count-8">0</span></button>
+                            <button class="status-tab" data-status="9">Đã hoàn tiền <span class="status-count-badge" id="count-9">0</span></button>
                         </div>
                     </div>
-                    
-                    <div class="custom-table-container">
-                        <table class="customer-table">
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <table class="invoice-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 50px;">STT</th>
+                                    <th style="width:50px;">STT</th>
                                     <th>Mã hóa đơn</th>
                                     <th>Tên nhân viên</th>
                                     <th>Khách hàng</th>
@@ -125,8 +132,8 @@
                                     <th>Loại hóa đơn</th>
                                     <th>Tổng tiền</th>
                                     <th>Ngày tạo</th>
-                                    <th style="text-align: center;">Trạng thái</th>
-                                    <th style="text-align: center; width: 100px;">Hành động</th>
+                                    <th style="text-align:center;">Trạng thái</th>
+                                    <th style="text-align:center;width:110px;">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="invoiceTableBody">
@@ -134,20 +141,28 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- Phân trang danh sách hóa đơn -->
-                    <div class="table-footer">
-                        <div class="total-count" id="paginationInfo">
-                            Tổng 0 hóa đơn
+
+                    <!-- Pagination -->
+                    <div class="pagination-container">
+                        <div class="pagination-info" id="paginationInfo">Hiển thị 0 / 0 hóa đơn</div>
+
+                        <div class="pagination-controls-wrapper">
+                            <button class="btn-page-arrow" id="btnPrevPage">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <span class="pagination-label">Trang</span>
+                            <div class="page-number-box" id="currentPageBox">1</div>
+                            <button class="btn-page-arrow" id="btnNextPage">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
                         </div>
-                        <div class="pagination-nav" id="page-numbers-container">
-                            <!-- Nút trang -->
-                        </div>
+
                         <div class="page-size-selector">
-                            <select class="page-size-select" id="pageSizeSelect">
-                                <option value="5">5 / page</option>
-                                <option value="10">10 / page</option>
-                                <option value="20">20 / page</option>
-                                <option value="50">50 / page</option>
+                            <select id="pageSizeSelect" class="fi-input fi-select" style="width:auto;">
+                                <option value="5">5 bản ghi / trang</option>
+                                <option value="10" selected>10 bản ghi / trang</option>
+                                <option value="20">20 bản ghi / trang</option>
+                                <option value="50">50 bản ghi / trang</option>
                             </select>
                         </div>
                     </div>
@@ -164,7 +179,7 @@
 
             <form id="invoiceForm">
                 <input type="hidden" id="invId">
-                
+
                 <div class="modal-body-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div>
                         <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tên người nhận <span style="color: #ef4444;">*</span></label>
@@ -178,7 +193,7 @@
                         <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Loại hóa đơn</label>
                         <select class="glass-input" id="invType" style="width: 100%; box-sizing: border-box;">
                             <option value="Tại quầy">Tại quầy</option>
-                            <option value="Online">Online</option>
+                            <option value="Trực tuyến">Trực tuyến</option>
                         </select>
                     </div>
                     <div>
@@ -201,8 +216,8 @@
                 </div>
 
                 <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="btn-reset" id="btnCancelInv" style="background-color: #94a3b8; color: white;">Hủy</button>
-                    <button type="submit" class="btn-add" style="min-width: 120px;">Lưu hóa đơn</button>
+                    <button type="button" class="btn-premium-secondary" id="btnCancelInv">Hủy</button>
+                    <button type="submit" class="btn-premium" style="min-width: 120px;">Lưu hóa đơn</button>
                 </div>
             </form>
         </div>
@@ -215,18 +230,16 @@
             <h2 class="gradient-text" style="font-size: 20px; margin-top: 0; margin-bottom: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="receipt"></i> Chi Tiết Hóa Đơn
             </h2>
-            
+
             <div id="detailContent" class="invoice-receipt-detail">
                 <!-- Data populated dynamically via JS -->
             </div>
-            
+
             <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="btn-action btn-export" id="btnPrintDetail">
+                <button type="button" class="btn-premium" id="btnPrintDetail">
                     <i data-lucide="printer"></i> In Hóa Đơn
                 </button>
-                <button type="button" class="btn-action btn-reset" id="btnCloseDetail" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
-                    Đóng
-                </button>
+                <button type="button" class="btn-premium-secondary" id="btnCloseDetail">Đóng</button>
             </div>
         </div>
     </div>
@@ -234,9 +247,13 @@
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/js/invoice.js?v=1.5" defer></script>
+    <!-- Javascript -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error("JS Error: " + message + "\nLine: " + lineno);
+        };
+    </script>
+    <script src="/js/invoice.js?v=5.0" defer></script>
     <script>
         lucide.createIcons();
     </script>

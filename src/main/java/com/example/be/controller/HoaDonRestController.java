@@ -1,6 +1,7 @@
 package com.example.be.controller;
 
 import com.example.be.dto.HoaDonDTO;
+import com.example.be.service.EmailService;
 import com.example.be.service.HoaDonService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +16,11 @@ import java.util.List;
 public class HoaDonRestController {
 
     private final HoaDonService hoaDonService;
+    private final EmailService emailService;
 
-    public HoaDonRestController(HoaDonService hoaDonService) {
+    public HoaDonRestController(HoaDonService hoaDonService, EmailService emailService) {
         this.hoaDonService = hoaDonService;
+        this.emailService = emailService;
     }
 
     @GetMapping("/search")
@@ -93,7 +96,7 @@ public class HoaDonRestController {
         
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.setContentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-        headers.set(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"danh_sach_hoa_don.xlsx\"");
+        headers.setContentDispositionFormData("attachment", "danh_sach_hoa_don.xlsx");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
         
         return new ResponseEntity<>(bytes, headers, org.springframework.http.HttpStatus.OK);
@@ -104,4 +107,14 @@ public class HoaDonRestController {
         hoaDonService.generateTestData();
         return ResponseEntity.ok("Đã tạo dữ liệu mẫu thành công!");
     }
+
+    @PostMapping("/{id}/send-email")
+    public ResponseEntity<Void> sendInvoiceEmail(@PathVariable Long id) {
+        hoaDonService.findById(id).ifPresent(invoice -> {
+            List<java.util.Map<String, Object>> items = hoaDonService.getItemsByHoaDonId(id);
+            emailService.sendInvoiceEmail(invoice, items);
+        });
+        return ResponseEntity.ok().build();
+    }
 }
+

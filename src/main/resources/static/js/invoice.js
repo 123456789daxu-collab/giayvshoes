@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const priceSlider = document.getElementById("priceSlider");
     const priceSliderValue = document.getElementById("priceSliderValue");
     const btnReset = document.getElementById("btnReset");
-    const btnExport = document.getElementById("btnExportTop");
+    const btnExport = document.getElementById("btnExport");
     const btnAddInvoice = document.getElementById("btnAddInvoice");
     const pageSizeSelect = document.getElementById("pageSizeSelect");
     const statusTabs = document.querySelectorAll(".status-tab");
@@ -45,17 +45,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnCancelInv = document.getElementById("btnCancelInv");
     const invoiceForm = document.getElementById("invoiceForm");
     
+    // Set default date range: today
+    const todayStr = new Date().toLocaleDateString('en-CA'); // Gets YYYY-MM-DD in local time
+    
     // Load saved filters if any
     const saved = sessionStorage.getItem("invoiceFilterState");
     if (saved) {
         try {
             const state = JSON.parse(saved);
             searchKeyword.value = state.keyword || "";
-            startDate.value = state.startDate || "";
-            endDate.value = state.endDate || "";
+            startDate.value = state.startDate || todayStr;
+            endDate.value = state.endDate || todayStr;
             filterType.value = state.filterType || "";
             if (priceSlider) {
-                priceSlider.value = state.maxPrice !== undefined ? state.maxPrice : 50000000;
+                priceSlider.value = state.maxPrice !== undefined ? state.maxPrice : 3000000;
                 if (priceSliderValue) {
                     priceSliderValue.textContent = new Intl.NumberFormat('vi-VN').format(priceSlider.value) + " đ";
                 }
@@ -78,12 +81,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (e) {
             console.error("Error loading filter state:", e);
-            startDate.value = "";
-            endDate.value = "";
+            startDate.value = todayStr;
+            endDate.value = todayStr;
         }
     } else {
-        startDate.value = "";
-        endDate.value = "";
+        startDate.value = todayStr;
+        endDate.value = todayStr;
     }
 
     window.showToast = (message, type = "success") => {
@@ -150,13 +153,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnReset.addEventListener("click", () => {
         searchKeyword.value = "";
-        startDate.value = "";
-        endDate.value = "";
+        startDate.value = todayStr;
+        endDate.value = todayStr;
         filterType.value = "";
         if (priceSlider) {
-            priceSlider.value = 50000000;
+            priceSlider.value = 3000000;
             if (priceSliderValue) {
-                priceSliderValue.textContent = "50.000.000 đ";
+                priceSliderValue.textContent = "3.000.000 đ";
             }
         }
         activeStatus = "";
@@ -168,8 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Excel Export
-    if (btnExport) {
-        btnExport.addEventListener("click", () => {
+    btnExport.addEventListener("click", () => {
         if (filteredInvoices.length === 0) {
             showToast("Không có dữ liệu để xuất file!", "error");
             return;
@@ -179,17 +181,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const loaiHoaDon = document.getElementById("filterType").value;
         const startDateVal = document.getElementById("startDate").value;
         const endDateVal = document.getElementById("endDate").value;
-        const maxPriceVal = document.getElementById("priceSlider") ? document.getElementById("priceSlider").value : "50000000";
+        const maxPriceVal = document.getElementById("priceSlider") ? document.getElementById("priceSlider").value : "3000000";
 
         const params = new URLSearchParams();
         if (keyword) params.append("keyword", keyword);
         if (loaiHoaDon) params.append("loaiHoaDon", loaiHoaDon);
         if (startDateVal) params.append("startDate", startDateVal + "T00:00:00");
-        if (endDateVal) {
-            const [ey, em, ed] = endDateVal.split('-').map(Number);
-            const next = new Date(ey, em - 1, ed + 1);
-            params.append("endDate", next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0') + '-' + String(next.getDate()).padStart(2, '0') + 'T00:00:00');
-        }
+        if (endDateVal) params.append("endDate", endDateVal + "T23:59:59");
         if (maxPriceVal) params.append("maxPrice", maxPriceVal);
         
         if (activeStatus !== "") {
@@ -198,8 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         showToast("Đang chuẩn bị tải file Excel cho các hóa đơn...");
         window.location.href = `/api/hoa-don/export?${params.toString()}`;
-        });
-    }
+    });
 
     // Modal Logic
     const detailModal = document.getElementById("invoiceDetailModal");
@@ -306,10 +303,8 @@ function validateFilters() {
     const priceSlider  = document.getElementById("priceSlider");
 
     // Clear previous states
-    if (validationBox) {
-        validationBox.innerHTML = "";
-        validationBox.style.display = "none";
-    }
+    validationBox.innerHTML = "";
+    validationBox.style.display = "none";
     [searchKeyword, startDate, endDate].forEach(el => {
         if (el) {
             el.classList.remove("input-error", "input-warning");
@@ -378,7 +373,7 @@ function validateFilters() {
     }
 
     // ── Render messages ──────────────────────────────────────
-    if (messages.length > 0 && validationBox) {
+    if (messages.length > 0) {
         validationBox.style.display = "flex";
         messages.forEach(msg => {
             const item = document.createElement("div");
@@ -400,17 +395,13 @@ function fetchInvoices() {
     const loaiHoaDon = document.getElementById("filterType").value;
     const startDateVal = document.getElementById("startDate").value;
     const endDateVal = document.getElementById("endDate").value;
-    const maxPriceVal = document.getElementById("priceSlider") ? document.getElementById("priceSlider").value : "50000000";
+    const maxPriceVal = document.getElementById("priceSlider") ? document.getElementById("priceSlider").value : "3000000";
 
     const params = new URLSearchParams();
     if (keyword) params.append("keyword", keyword);
     if (loaiHoaDon) params.append("loaiHoaDon", loaiHoaDon);
     if (startDateVal) params.append("startDate", startDateVal + "T00:00:00");
-    if (endDateVal) {
-        const [ey, em, ed] = endDateVal.split('-').map(Number);
-        const next = new Date(ey, em - 1, ed + 1);
-        params.append("endDate", next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0') + '-' + String(next.getDate()).padStart(2, '0') + 'T00:00:00');
-    }
+    if (endDateVal) params.append("endDate", endDateVal + "T23:59:59");
     if (maxPriceVal) params.append("maxPrice", maxPriceVal);
 
     fetch(`/api/hoa-don/search?${params.toString()}`)
@@ -482,8 +473,7 @@ function renderTable() {
     if (totalElements === 0) {
         tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:40px; color: #64748b;">Không tìm thấy hóa đơn nào</td></tr>`;
         document.getElementById("paginationInfo").textContent = "Hiển thị 0 / 0 hoá đơn";
-        const cpb = document.getElementById("currentPageBox");
-        if (cpb) cpb.textContent = "1";
+        document.getElementById("currentPageBox").textContent = "1";
         return;
     }
 
@@ -570,8 +560,7 @@ function renderTable() {
     lucide.createIcons();
 
     document.getElementById("paginationInfo").textContent = `Hiển thị ${startIdx + 1}-${endIdx} / tổng ${totalElements} bản ghi`;
-    const cpb2 = document.getElementById("currentPageBox");
-    if (cpb2) cpb2.textContent = currentPage + 1;
+    document.getElementById("currentPageBox").textContent = currentPage + 1;
     
     // Setup Prev/Next button states and listeners
     const btnPrev = document.getElementById("btnPrevPage");
@@ -610,7 +599,7 @@ function saveFilterState() {
         startDate: startDateEl ? startDateEl.value : "",
         endDate: endDateEl ? endDateEl.value : "",
         filterType: filterTypeEl ? filterTypeEl.value : "",
-        maxPrice: priceSliderEl ? priceSliderEl.value : 50000000,
+        maxPrice: priceSliderEl ? priceSliderEl.value : 3000000,
         activeStatus: activeStatus,
         pageSize: pageSize,
         currentPage: currentPage

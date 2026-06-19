@@ -32,14 +32,9 @@ public class ViewController {
     }
 
     @GetMapping("/hoa-don/{id}")
-    public String hoaDonChiTiet() {
+    public String hoaDonChiTiet(@org.springframework.web.bind.annotation.PathVariable Long id) {
         return "hoa-don-chi-tiet";
     }
-
-//    @GetMapping("/san-pham")
-//    public String sanPham() {
-//        return "san-pham";
-//    }
 
     @GetMapping("/phieu-giam-gia")
     public String phieuGiamGia() {

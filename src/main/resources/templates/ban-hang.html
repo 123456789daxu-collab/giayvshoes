@@ -5,159 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bán hàng | VShoes</title>
     <link rel="stylesheet" href="/css/sidebar.css">
-    <link rel="stylesheet" href="/css/ban-hang.css">
 </head>
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính -->
-        <main class="main-content" style="padding: 0; display: flex; flex-direction: column;">
-            
-            <!-- Khu vực Bán hàng POS -->
-            <div class="pos-container">
-                <!-- Tabs Hóa đơn -->
-                <div class="pos-tabs" id="invoiceTabs">
-                    <!-- Tabs will be rendered here by JS -->
-                    <div class="pos-add-tab" id="btnAddInvoice">+</div>
-                </div>
-
-                <div class="pos-content">
-                    <!-- Trái: Danh sách Sản phẩm -->
-                    <div class="pos-left">
-                        <div class="search-bar">
-                            <input type="text" id="searchProduct" placeholder="Tìm kiếm mã hoặc tên sản phẩm...">
-                            <button onclick="loadProducts()">Tìm</button>
-                        </div>
-                        <div class="product-list">
-                            <table class="product-table">
-                                <thead>
-                                    <tr>
-                                        <th>Mã</th>
-                                        <th>Tên sản phẩm</th>
-                                        <th>Màu sắc</th>
-                                        <th>Size</th>
-                                        <th>Tồn kho</th>
-                                        <th>Giá bán</th>
-                                        <th>Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productTableBody">
-                                    <!-- Rendered by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Phải: Giỏ hàng & Thanh toán -->
-                    <div class="pos-right">
-                        <!-- Danh sách sản phẩm trong hóa đơn -->
-                        <div class="cart-section">
-                            <div class="cart-header">Giỏ hàng</div>
-                            <div class="cart-items" id="cartItems">
-                                <!-- Rendered by JS -->
-                                <div class="empty-state">Vui lòng chọn hóa đơn hoặc thêm sản phẩm</div>
-                            </div>
-                        </div>
-
-                        <!-- Khách hàng -->
-                        <div class="customer-section">
-                            <div class="section-title">
-                                Khách hàng
-                                <button class="btn-action" style="padding: 4px 8px; font-size: 12px;" onclick="openCustomerModal()">Chọn KH</button>
-                            </div>
-                            <div id="customerInfo" style="font-size: 14px; color: #475569;">
-                                Khách lẻ (Không lưu thông tin)
-                            </div>
-                        </div>
-
-                        <!-- Phiếu giảm giá -->
-                        <div class="voucher-section">
-                            <div class="section-title">
-                                Phiếu giảm giá
-                                <button class="btn-action" style="padding: 4px 8px; font-size: 12px;" onclick="openVoucherModal()">Chọn Voucher</button>
-                            </div>
-                            <div id="voucherInfo" style="font-size: 14px; color: #475569;">
-                                Chưa áp dụng
-                            </div>
-                        </div>
-
-                        <!-- Tính tiền -->
-                        <div class="summary-section">
-                            <div class="summary-row">
-                                <span>Tổng tiền hàng</span>
-                                <span id="lblTongTienHang">0 đ</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>Giảm giá</span>
-                                <span id="lblTienGiamGia">0 đ</span>
-                            </div>
-                            <div class="summary-row total">
-                                <span>Khách cần trả</span>
-                                <span class="total-amount" id="lblTongThanhToan">0 đ</span>
-                            </div>
-                        </div>
-
-                        <!-- Thanh toán -->
-                        <div class="checkout-section">
-                            <textarea id="txtGhiChu" placeholder="Ghi chú hóa đơn..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; resize: none; font-family: inherit; font-size: 13px;" rows="2"></textarea>
-                            <button class="btn-checkout" onclick="thanhToan()">Thanh Toán</button>
-                        </div>
-                    </div>
-                </div>
+        <!-- Nội dung chính đơn giản -->
+        <main class="main-content">
+            <div class="content-card">
+                <h1 class="content-title">Bán hàng</h1>
+                <p class="content-desc">Nội dung của trang bán hàng sẽ hiển thị ở đây.</p>
             </div>
         </main>
     </div>
-
-    <!-- Modal Khách Hàng -->
-    <div class="modal" id="customerModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>Chọn Khách Hàng</span>
-                <button class="close-modal" onclick="closeModal('customerModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="search-bar" style="margin-bottom: 15px;">
-                    <input type="text" id="searchCustomer" placeholder="Tìm theo tên, SĐT...">
-                    <button onclick="loadCustomers()">Tìm</button>
-                </div>
-                <button class="btn-action" style="margin-bottom: 10px; width: 100%" onclick="chonKhachHang(null)">Bỏ chọn (Khách lẻ)</button>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="product-table">
-                        <thead><tr><th>Tên</th><th>SĐT</th><th></th></tr></thead>
-                        <tbody id="customerTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Voucher -->
-    <div class="modal" id="voucherModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>Chọn Phiếu Giảm Giá</span>
-                <button class="close-modal" onclick="closeModal('voucherModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <button class="btn-action" style="margin-bottom: 10px; width: 100%" onclick="chonVoucher(null)">Bỏ áp dụng Voucher</button>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="product-table">
-                        <thead><tr><th>Mã</th><th>Tên</th><th>Giảm</th><th>Đơn tối thiểu</th><th></th></tr></thead>
-                        <tbody id="voucherTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">Message here</div>
-
-    <!-- SweetAlert2 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="/js/ban-hang.js"></script>
 </body>
 </html>

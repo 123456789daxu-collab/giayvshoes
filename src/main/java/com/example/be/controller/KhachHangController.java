@@ -210,15 +210,4 @@ public class KhachHangController {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi import Excel: " + e.getMessage()));
         }
     }
-
-    // 14. Lấy mã khách hàng tiếp theo
-    @GetMapping("/next-code")
-    public ResponseEntity<?> getNextCustomerCode() {
-        try {
-            String nextCode = khachHangService.getNextMaKhachHang();
-            return ResponseEntity.ok(Map.of("code", nextCode));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
-        }
-    }
 }

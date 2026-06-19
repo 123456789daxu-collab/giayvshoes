@@ -29,6 +29,42 @@
     }
 }
 
+/* Badge Styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.badge-active {
+    background-color: #e6f4ea;
+    color: #137333;
+    border: 1px solid #c2e7cd;
+}
+
+.badge-expired {
+    background-color: #fce8e6;
+    color: #c5221f;
+    border: 1px solid #fad2cf;
+}
+
+.badge-pending {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.badge-inactive {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
 /* Detail Text */
 .detail-text {
     font-size: 13px;

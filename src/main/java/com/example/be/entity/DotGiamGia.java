@@ -26,12 +26,6 @@ public class DotGiamGia {
     @Column(name = "phan_tram_giam")
     private Integer phanTramGiam;
 
-    @Column(name = "gia_tri_giam")
-    private java.math.BigDecimal giaTriGiam;
-
-    @Column(name = "hinh_thuc_giam")
-    private String hinhThucGiam;
-
     @Column(name = "ngay_bat_dau")
     private LocalDateTime ngayBatDau;
 

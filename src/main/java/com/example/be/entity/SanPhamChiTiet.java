@@ -49,24 +49,4 @@ public class SanPhamChiTiet {
 
     @Column(name = "trang_thai")
     private Integer trangThai;
-
-    @Transient
-    public java.util.List<String> getDanhSachHinhAnh() {
-        if (hinhAnh == null || hinhAnh.trim().isEmpty()) {
-            return new java.util.ArrayList<>();
-        }
-        String trimmed = hinhAnh.trim();
-        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-            // Mảng JSON chuỗi: ["img1", "img2"]
-            if (trimmed.length() <= 4) { // Dạng [] hoặc [""]
-                return new java.util.ArrayList<>();
-            }
-            // Cắt bỏ 2 ký tự đầu `["` và 2 ký tự cuối `"]`
-            String cleanStr = trimmed.substring(2, trimmed.length() - 2);
-            // Cắt chuỗi theo `","`
-            String[] parts = cleanStr.split("\",\"");
-            return java.util.Arrays.asList(parts);
-        }
-        return java.util.Arrays.asList(trimmed.split(","));
-    }
 }

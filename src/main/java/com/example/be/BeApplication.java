@@ -1,19 +1,7 @@
 package com.example.be;
 
-import com.example.be.entity.PhieuGiamGia;
-import com.example.be.entity.PhieuGiamGiaKhachHang;
-import com.example.be.entity.KhachHang;
-import com.example.be.repository.PhieuGiamGiaRepository;
-import com.example.be.repository.PhieuGiamGiaKhachHangRepository;
-import com.example.be.repository.KhachHangRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @SpringBootApplication
 public class BeApplication {
@@ -22,6 +10,7 @@ public class BeApplication {
         SpringApplication.run(BeApplication.class, args);
     }
 
+<<<<<<< HEAD
     @Bean
     public CommandLineRunner initVoucherData(
             PhieuGiamGiaRepository phieuGiamGiaRepository,
@@ -113,4 +102,6 @@ public class BeApplication {
             hoaDonService.generateTestData();
         };
     }
+=======
+>>>>>>> origin/feature-lehung
 }

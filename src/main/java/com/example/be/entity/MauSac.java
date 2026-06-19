@@ -22,5 +22,5 @@ public class MauSac {
     private String tenMauSac;
 
     @Column(name = "trang_thai")
-    private Boolean trangThai;
+    private Integer trangThai;
 }

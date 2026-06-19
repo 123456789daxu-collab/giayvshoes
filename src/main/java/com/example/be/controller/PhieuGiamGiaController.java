@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +38,7 @@ public class PhieuGiamGiaController {
         try {
             LocalDateTime start = null;
             LocalDateTime end = null;
-
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             
             if (ngayBatDau != null && !ngayBatDau.trim().isEmpty()) {
                 start = LocalDateTime.parse(ngayBatDau);
@@ -158,17 +158,6 @@ public class PhieuGiamGiaController {
             return new ResponseEntity<>(fileData, headers, HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi xuất file Excel: " + e.getMessage()));
-        }
-    }
-
-    // 9. Lấy mã phiếu giảm giá tiếp theo
-    @GetMapping("/next-code")
-    public ResponseEntity<?> getNextCode() {
-        try {
-            String nextCode = phieuGiamGiaService.getNextMaVoucher();
-            return ResponseEntity.ok(Map.of("code", nextCode));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 }
