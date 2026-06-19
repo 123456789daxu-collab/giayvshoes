@@ -2,7 +2,7 @@ package com.example.be.controller;
 
 import com.example.be.entity.DotGiamGia;
 import com.example.be.dto.DotGiamGiaDto;
-import com.example.be.dto.SanPhamChiTietDto;
+import com.example.be.dto.SanPhamGiamGiaDto;
 import com.example.be.service.DotGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -31,13 +31,14 @@ public class DotGiamGiaController {
             @RequestParam(value = "ngayBatDau", required = false) String ngayBatDau,
             @RequestParam(value = "ngayKetThuc", required = false) String ngayKetThuc,
             @RequestParam(value = "trangThai", required = false) Integer trangThai,
+            @RequestParam(value = "hinhThucGiam", required = false) String hinhThucGiam,
+            @RequestParam(value = "giaTriGiam", required = false) java.math.BigDecimal giaTriGiam,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
             LocalDateTime start = null;
             LocalDateTime end = null;
-
 
             if (ngayBatDau != null && !ngayBatDau.trim().isEmpty()) {
                 start = LocalDateTime.parse(ngayBatDau);
@@ -46,7 +47,7 @@ public class DotGiamGiaController {
                 end = LocalDateTime.parse(ngayKetThuc);
             }
 
-            Page<DotGiamGia> result = dotGiamGiaService.searchCampaigns(search, start, end, trangThai, page, size);
+            Page<DotGiamGia> result = dotGiamGiaService.searchCampaigns(search, start, end, trangThai, hinhThucGiam, giaTriGiam, page, size);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi tìm kiếm đợt giảm giá: " + e.getMessage()));
@@ -111,6 +112,17 @@ public class DotGiamGiaController {
         }
     }
 
+    // Xóa đợt giảm giá
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCampaign(@PathVariable("id") Long id) {
+        try {
+            dotGiamGiaService.deleteCampaign(id);
+            return ResponseEntity.ok(Map.of("message", "Xóa đợt giảm giá thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // 7. Lấy danh sách sản phẩm chi tiết kèm phân trang để chọn
     @GetMapping("/san-pham-chi-tiet")
     public ResponseEntity<?> getProductDetails(
@@ -119,7 +131,7 @@ public class DotGiamGiaController {
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
-            Page<SanPhamChiTietDto> result = dotGiamGiaService.getProductDetails(search, page, size);
+            Page<com.example.be.dto.SanPhamChiTietGiamGiaDto> result = dotGiamGiaService.getProductDetails(search, page, size);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi lấy danh sách sản phẩm: " + e.getMessage()));
@@ -132,7 +144,9 @@ public class DotGiamGiaController {
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "ngayBatDau", required = false) String ngayBatDau,
             @RequestParam(value = "ngayKetThuc", required = false) String ngayKetThuc,
-            @RequestParam(value = "trangThai", required = false) Integer trangThai
+            @RequestParam(value = "trangThai", required = false) Integer trangThai,
+            @RequestParam(value = "hinhThucGiam", required = false) String hinhThucGiam,
+            @RequestParam(value = "giaTriGiam", required = false) java.math.BigDecimal giaTriGiam
     ) {
         try {
             LocalDateTime start = null;
@@ -145,7 +159,7 @@ public class DotGiamGiaController {
                 end = LocalDateTime.parse(ngayKetThuc);
             }
 
-            byte[] fileData = dotGiamGiaService.exportExcel(search, start, end, trangThai);
+            byte[] fileData = dotGiamGiaService.exportExcel(search, start, end, trangThai, hinhThucGiam, giaTriGiam);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);

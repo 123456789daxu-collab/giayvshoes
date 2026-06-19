@@ -1,25 +1,295 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài khoản nhân viên | VShoes</title>
+    
+    <!-- 1. CSS Stylesheets -->
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/store.css">
+    <link rel="stylesheet" href="/css/employee.css">
+    <link rel="stylesheet" href="/css/khach-hang.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+        }
+        
+        .modal-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .modal-body-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính đơn giản -->
-        <main class="main-content">
-            <div class="content-card">
-                <h1 class="content-title">Quản lý tài khoản nhân viên</h1>
+        <!-- Nội dung chính -->
+        <main class="main-content" style="padding: 20px; background: #f8f9fa;">
+            <!-- TIÊU ĐỀ MÀN HÌNH -->
+            <div class="screen-header" style="margin-bottom: 24px;">
+                <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý tài khoản nhân viên</h1>
+                <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">Quản lý hồ sơ tài khoản và phân quyền nhân viên</p>
+            </div>
+            <!-- CARD 1: BỘ LỌC TÌM KIẾM -->
+            <div class="filter-card">
+                <div class="filter-header">
+                    <span class="filter-title">Bộ lọc tìm kiếm</span>
+                    <button class="refresh-btn" onclick="location.reload()" title="Làm mới bộ lọc">
+                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+
+                <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 1.5fr;">
+                    <!-- Tìm kiếm Tên/SĐT/Email -->
+                    <div class="form-group">
+                        <label>Họ và tên, sđt, email</label>
+                        <input type="text" id="searchInput" class="input-control" placeholder="Nhập họ và tên, sđt, email">
+                    </div>
+
+                    <!-- Lọc Giới tính -->
+                    <div class="form-group">
+                        <label>Giới tính</label>
+                        <div class="gender-row" style="margin-top: 8px;">
+                            <label class="gender-checkbox">
+                                <input type="radio" name="filterGender" value="true"> Nam
+                            </label>
+                            <label class="gender-checkbox">
+                                <input type="radio" name="filterGender" value="false"> Nữ
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Lọc Ngày sinh -->
+                    <div class="form-group">
+                        <label>Ngày sinh</label>
+                        <input type="date" id="filterDob" class="input-control">
+                    </div>
+
+                    <!-- Lọc Trạng thái -->
+                    <div class="form-group">
+                        <label>Trạng thái</label>
+                        <div class="gender-row" style="margin-top: 8px;">
+                            <label class="gender-checkbox">
+                                <input type="radio" name="filterStatus" value="1"> Hoạt động
+                            </label>
+                            <label class="gender-checkbox">
+                                <input type="radio" name="filterStatus" value="0"> Ngừng hoạt động
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW CHỨA CÁC NÚT THAO TÁC XUẤT/NHẬP/THÊM -->
+            <div class="action-row">
+                <button class="btn-icon" title="Tải lên">
+                    <i data-lucide="upload" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="btn-icon" title="Tải xuống">
+                    <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="btn-icon" title="Xuất file">
+                    <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="btn-primary-action" id="btnAddEmployee">
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                    Thêm Nhân viên
+                </button>
+            </div>
+
+            <!-- CARD 2: DANH SÁCH NHÂN VIÊN -->
+            <div class="customer-card">
+                <div class="card-title-table">Danh sách nhân viên</div>
+                
+                <!-- Table -->
+                <div class="custom-table-container">
+                    <table class="customer-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
+                                <th style="width: 70px; text-align: center;">Ảnh</th>
+                                <th style="width: 150px;">Họ và tên</th>
+                                <th style="width: 120px;">Vai trò</th>
+                                <th style="width: 90px;">Giới tính</th>
+                                <th style="width: 110px;">Ngày sinh</th>
+                                <th style="width: 220px;">Liên hệ</th>
+                                <th style="width: 320px;">Địa chỉ</th>
+                                <th style="width: 130px;">Trạng thái</th>
+                                <th style="width: 120px; text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                            <!-- dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- BẢNG PHÂN TRANG -->
+                <div class="table-footer" id="paginationWrapper" style="display: none;">
+                    <div class="total-count" id="paginationInfo" style="display: none;">Hiển thị...</div>
+                    <div class="pagination-nav" id="paginationControls"></div>
+                </div>
             </div>
         </main>
     </div>
-</body>
 
+    <!-- ADD/EDIT MODAL -->
+    <div class="modal" id="employeeModal">
+        <div class="modal-content" style="max-width: 750px;">
+            <div class="modal-header">
+                <span id="modalTitle" class="modal-title">Thêm Nhân viên</span>
+                <button class="close-btn" id="modalClose">&times;</button>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 15px; margin-top: -10px;">
+                <button type="button" class="btn-primary-action" id="btnScanCCCD" style="font-size: 13px; padding: 6px 15px; background: #059669; border-color: #059669;"><i data-lucide="scan" style="width: 14px; height: 14px; margin-right: 5px; vertical-align: text-bottom;"></i> Quét CCCD</button>
+            </div>
+
+            <!-- Scanner Modal (Standalone popup overlay) -->
+            <div id="qrReaderModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.2); overflow: hidden;">
+                    <!-- Modal Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">
+                        <span style="font-weight: 600; font-size: 15px; color: #1e293b;">Quét QR CCCD</span>
+                        <button type="button" id="btnCancelScan" style="background: #ef4444; border: none; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white;">
+                            <span style="font-size: 16px; line-height: 1;">&times;</span>
+                        </button>
+                    </div>
+                    <!-- Camera Viewport -->
+                    <div style="padding: 0;">
+                        <div id="qr-reader" style="width: 100%; border: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="employeeForm">
+                <!-- Hidden Employee ID -->
+                <input type="hidden" id="empId">
+                
+                <div class="modal-grid">
+                    <!-- Code field -->
+                    <div class="form-group">
+                        <label>Mã nhân viên</label>
+                        <input type="text" class="input-control" id="empCode" readonly style="background-color: #f3f4f6; cursor: not-allowed; font-weight: 500; color: #475569;" />
+                    </div>
+
+                    <!-- Name field -->
+                    <div class="form-group">
+                        <label>Họ &amp; Tên nhân viên <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="input-control" id="empName" placeholder="Nhập họ và tên..." required />
+                    </div>
+                    
+                    <!-- Email field -->
+                    <div class="form-group">
+                        <label>Địa chỉ Email <span style="color: #ef4444;">*</span></label>
+                        <input type="email" class="input-control" id="empEmail" placeholder="example@gmail.com" required />
+                    </div>
+
+                    <!-- Phone field -->
+                    <div class="form-group">
+                        <label>Số điện thoại <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="input-control" id="empPhone" placeholder="Nhập số điện thoại..." required />
+                    </div>
+
+                    <!-- Password field -->
+                    <div class="form-group">
+                        <label>Mật khẩu truy cập <span style="color: #ef4444;">*</span></label>
+                        <input type="password" class="input-control" id="empPassword" placeholder="Nhập mật khẩu..." required />
+                    </div>
+
+                    <!-- Gender field (Radio Group) -->
+                    <div class="form-group">
+                        <label>Giới tính</label>
+                        <div class="gender-row" style="margin-top: 8px;">
+                            <label class="gender-checkbox">
+                                <input type="radio" name="empGender" id="genderMale" checked value="true"> Nam
+                            </label>
+                            <label class="gender-checkbox">
+                                <input type="radio" name="empGender" id="genderFemale" value="false"> Nữ
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Birth Date field -->
+                    <div class="form-group">
+                        <label>Ngày sinh</label>
+                        <input type="date" class="input-control" id="empDob" />
+                    </div>
+
+                    <!-- Role selector -->
+                    <div class="form-group">
+                        <label>Chức vụ</label>
+                        <select class="input-control" id="empRole">
+                            <option value="Quản trị viên">Quản trị viên</option>
+                            <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
+                        </select>
+                    </div>
+
+                    <!-- Status selector -->
+                    <div class="form-group" id="empStatusGroup">
+                        <label>Trạng thái hoạt động</label>
+                        <select class="input-control" id="empStatus">
+                            <option value="1">Đang làm việc</option>
+                            <option value="0">Đã nghỉ việc</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Custom Drag and Drop Avatar area -->
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Ảnh đại diện</label>
+                    <div class="avatar-upload-container" id="avatarDropZone" style="border: 1px dashed #cbd5e1; border-radius: 6px; padding: 20px; text-align: center; cursor: pointer; background: #f8fafc;">
+                        <div class="avatar-preview-box" style="margin-bottom: 10px; display: flex; justify-content: center;">
+                            <img id="empAvatarImg" src="" alt="Avatar preview" style="display: none; width: 80px; height: 80px; object-fit: cover; border-radius: 50%;"/>
+                            <div id="defaultAvatarIcon" style="width: 80px; height: 80px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 32px; font-weight: 300;">+</div>
+                        </div>
+                        <div class="upload-actions" style="color: #64748b; font-size: 13px;">
+                            <span class="btn-upload-trigger" style="color: #2563eb; font-weight: 500;"><i data-lucide="upload-cloud" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i> Tải ảnh lên</span>
+                            <br/>
+                            <span class="upload-tip">Nhấp hoặc kéo thả tệp tin ảnh vào vùng này (Tối đa 3MB)</span>
+                            <input type="file" id="empAvatar" accept="image/*" style="display: none;"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Residence Address field -->
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Địa chỉ thường trú</label>
+                    <textarea class="input-control" id="empAddress" rows="2" placeholder="Nhập địa chỉ thường trú..."></textarea>
+                </div>
+
+                <!-- Submit / Cancel Controls -->
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="btnCancel">Hủy</button>
+                    <button type="submit" class="btn-primary-action">Lưu thông tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Javascript Imports -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/js/employee.js" defer></script>
+</body>
 </html>

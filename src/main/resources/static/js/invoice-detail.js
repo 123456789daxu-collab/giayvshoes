@@ -3,27 +3,6 @@
 let currentInvoice = null;
 let currentItems = [];
 
-// Wrapper cho showToast sử dụng SweetAlert2
-function showToast(title, message, type = "success") {
-    if (typeof Swal !== "undefined") {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: type === "error" ? "error" : "success",
-            title: message,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
-    } else if (typeof window.showToast === "function") {
-        window.showToast(title, message, type);
-    } else {
-        alert(message);
-    }
-}
-// Thay thế window.showToast thành showToast trong file này
-window.showToast = showToast;
-
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
     
@@ -96,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     currentStatusName = "Đã giao";
                     break;
                 default:
-                    window.showToast("Lỗi", "Đơn hàng đã ở trạng thái cuối cùng hoặc bị hủy!", "error");
+                    showToast("Lỗi", "Đơn hàng đã ở trạng thái cuối cùng hoặc bị hủy!", "error");
                     return;
             }
 
@@ -133,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const payload = {
                     tenNguoiNhan: currentInvoice.tenKhachHang || currentInvoice.tenNguoiNhan,
                     sdtNguoiNhan: currentInvoice.sdtKhachHang || currentInvoice.sdtNguoiNhan,
-                    loaiHoaDon: currentInvoice.loaiHoaDon === 'Online',
+                    loaiHoaDon: currentInvoice.loaiHoaDon === 'Trực tuyến',
                     trangThai: targetNextStatus,
                     tongTienThanhToan: currentInvoice.tongTien,
                     ghiChu: noteVal
@@ -160,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then(updatedInv => {
                     hideConfirmModal();
-                    window.showToast("Thành công", "Cập nhật trạng thái thành công");
+                    showToast("Thành công", "Cập nhật trạng thái thành công");
                     loadInvoiceDetails(invoiceId);
                 })
                 .catch(err => {
@@ -170,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (msg.includes("Exception") || msg.includes("exception")) {
                         msg = msg.split("\n")[0]; // Just show the first line of exception
                     }
-                    window.showToast("Thất bại", msg, "error");
+                    showToast("Thất bại", msg, "error");
                 });
             });
         }
@@ -281,7 +260,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Toast show function
+    window.showToast = (title, message, type = "success") => {
+        const toastContainer = document.getElementById("toastContainer");
+        if (!toastContainer) return;
 
+        const toast = document.createElement("div");
+        toast.className = `premium-toast toast-${type}`;
+        if (type === "error") {
+            toast.style.borderLeftColor = "#ef4444";
+        }
+        
+        toast.innerHTML = `
+            <div class="toast-content-wrapper">
+                <span class="toast-title" style="color: ${type === 'success' ? '#10b981' : '#ef4444'}">${title}</span>
+                <span class="toast-msg">${message}</span>
+            </div>
+            <button class="toast-close-btn">&times;</button>
+        `;
+        toastContainer.appendChild(toast);
+
+        toast.querySelector(".toast-close-btn").onclick = () => {
+            toast.remove();
+        };
+
+        setTimeout(() => {
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 400);
+        }, 4000);
+    };
 
     // Load details
     loadInvoiceDetails(invoiceId);
@@ -443,16 +450,61 @@ function renderInvoiceData(inv) {
     document.getElementById("infoShippingPhone").textContent = inv.sdtKhachHang || '-';
     document.getElementById("infoShippingAddress").textContent = inv.diaChiGiao || '-';
     document.getElementById("infoShippingFee").textContent = new Intl.NumberFormat('vi-VN').format(inv.phiShip || 0) + ' đ';
-    document.getElementById("infoShippingNote").textContent = inv.ghiChu || 'Khách đặt hàng online';
+    document.getElementById("infoShippingNote").textContent = inv.ghiChu || 'Khách đặt hàng trực tuyến';
 
     // Financial calculations
     const discountVal = inv.tienGiam || 0;
     const shippingFee = inv.phiShip || 0;
     
-    // Status Summary row elements
-    const summaryCurrentStatus = document.getElementById("summaryCurrentStatus");
-    if (summaryCurrentStatus) {
-        summaryCurrentStatus.textContent = statusText;
+    // Hiển thị phiếu giảm giá và mã voucher
+    const voucherCodeDisplay = document.getElementById("voucherCodeDisplay");
+    if (voucherCodeDisplay) {
+        if (inv.maVoucher) {
+            voucherCodeDisplay.textContent = inv.maVoucher;
+            voucherCodeDisplay.style.display = "inline-block";
+        } else {
+            voucherCodeDisplay.textContent = "";
+            voucherCodeDisplay.style.display = "none";
+        }
+    }
+
+    const shippingCarrierLogo = document.getElementById("shippingCarrierLogo");
+    if (shippingCarrierLogo) {
+        if (shippingFee > 0) {
+            shippingCarrierLogo.style.display = "inline-flex";
+        } else {
+            shippingCarrierLogo.style.display = "none";
+        }
+    }
+
+    // Cập nhật phương thức thanh toán
+    const paymentMethodTitle = document.getElementById("paymentMethodTitle");
+    const paymentMethodSub = document.getElementById("paymentMethodSub");
+    const paymentStatusText = document.getElementById("paymentStatusText");
+    if (paymentMethodTitle && paymentMethodSub) {
+        if (inv.loaiHoaDon === 'Trực tuyến' || inv.loaiHoaDon === 'Online') {
+            paymentMethodTitle.textContent = "Chuyển khoản";
+            paymentMethodSub.textContent = "Khách thanh toán qua ngân hàng";
+            if (paymentStatusText) {
+                paymentStatusText.textContent = "Đã thanh toán";
+                paymentStatusText.style.color = "#10b981";
+            }
+        } else {
+            paymentMethodTitle.textContent = "Tiền mặt";
+            paymentMethodSub.textContent = "Thanh toán đơn cửa hàng";
+            if (paymentStatusText) {
+                if (inv.trangThai === 0) {
+                    paymentStatusText.textContent = "Chờ thanh toán";
+                    paymentStatusText.style.color = "#ea580c";
+                } else if (inv.trangThai === 7) {
+                    paymentStatusText.textContent = "Đã hủy";
+                    paymentStatusText.style.color = "#64748b";
+                } else {
+                    paymentStatusText.textContent = "Đã thanh toán";
+                    paymentStatusText.style.color = "#10b981";
+                }
+            }
+        }
     }
     
     // Update Timeline Steps
@@ -488,6 +540,10 @@ function updateTimeline(status, ngayTaoStr, actor) {
 
         if (idx <= currentIdx) {
             itemEl.classList.add("completed");
+            // Mark only the current (last completed) step as active-step for pulse effect
+            if (idx === currentIdx) {
+                itemEl.classList.add("active-step");
+            }
             const stepDate = new Date(ngayTao.getTime() + idx * 60 * 1000); // mock progressive time
             timeEl.textContent = stepDate.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) + " " + stepDate.toLocaleDateString('vi-VN');
         } else {
@@ -538,8 +594,8 @@ function renderInvoiceItems(items) {
     const grandTotal = totalGoods + shippingFee - discountVal;
 
     document.getElementById("valTotalGoods").textContent = new Intl.NumberFormat('vi-VN').format(totalGoods) + ' đ';
-    document.getElementById("valDiscount").textContent = new Intl.NumberFormat('vi-VN').format(discountVal) + ' đ';
-    document.getElementById("valShipping").textContent = new Intl.NumberFormat('vi-VN').format(shippingFee) + ' đ';
+    document.getElementById("valDiscount").textContent = discountVal > 0 ? new Intl.NumberFormat('vi-VN').format(discountVal) + ' đ' : '0 đ';
+    document.getElementById("valShipping").textContent = shippingFee > 0 ? new Intl.NumberFormat('vi-VN').format(shippingFee) + ' đ' : '0 đ';
     
     const grandTotalStr = new Intl.NumberFormat('vi-VN').format(grandTotal) + ' đ';
     
@@ -548,11 +604,6 @@ function renderInvoiceItems(items) {
     grandTotalEls.forEach(el => {
         el.textContent = grandTotalStr;
     });
-
-    // Update status summary card values
-    document.getElementById("summaryProductCount").textContent = items.length;
-    document.getElementById("summaryTotalGoods").textContent = new Intl.NumberFormat('vi-VN').format(totalGoods) + ' đ';
-    document.getElementById("summaryBalance").textContent = "0 đ";
 }
 
 function renderPaymentHistory() {
@@ -568,8 +619,8 @@ function renderPaymentHistory() {
     const dateStr = currentInvoice.ngayTao ? new Date(currentInvoice.ngayTao).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: '2-digit'}) : '';
     
     const txnCode = "155" + String(currentInvoice.id).padStart(5, '0');
-    const method = currentInvoice.loaiHoaDon === 'Online' ? 'Chuyển khoản QR' : 'Tiền mặt';
-    const desc = currentInvoice.loaiHoaDon === 'Online' ? 'Khách thanh toán VNPAY' : 'Thanh toán trực tiếp tại quầy';
+    const method = currentInvoice.loaiHoaDon === 'Trực tuyến' ? 'Chuyển khoản QR' : 'Tiền mặt';
+    const desc = currentInvoice.loaiHoaDon === 'Trực tuyến' ? 'Khách thanh toán VNPAY' : 'Thanh toán trực tiếp tại quầy';
     
     tr.innerHTML = `
         <td style="font-weight: 600;">${grandTotalStr}</td>
@@ -583,79 +634,286 @@ function renderPaymentHistory() {
 
 // Window Print Function
 window.printInvoice = function(id) {
-    fetch(`/api/hoa-don/${id}`)
-        .then(res => res.json())
-        .then(inv => {
-            const dateStr = inv.ngayTao ? new Date(inv.ngayTao).toLocaleString('vi-VN') : '';
-            const priceStr = new Intl.NumberFormat('vi-VN').format(inv.tongTien || 0);
-            
-            let statusText = '';
-            switch (inv.trangThai) {
-                case 0: statusText = "Chờ xác nhận"; break;
-                case 1: statusText = "Đã xác nhận"; break;
-                case 2: statusText = "Đang xử lý"; break;
-                case 3: statusText = "Đang giao"; break;
-                case 4: statusText = "Đã giao"; break;
-                case 5: statusText = "Giao hàng thất bại"; break;
-                case 6: statusText = "Hoàn thành"; break;
-                case 7: statusText = "Hủy"; break;
-                case 8: statusText = "Yêu cầu hủy"; break;
-                case 9: statusText = "Cần hoàn tiền"; break;
-                default: statusText = "N/A";
-            }
+    const modal = document.getElementById("printPreviewModal");
+    const container = document.getElementById("thermalReceiptContent");
+    if (!modal || !container) return;
 
-            const printWindow = window.open('', '_blank', 'width=800,height=600');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>In hóa đơn ${inv.maHoaDon || ''}</title>
-                    <style>
-                        body { font-family: 'Arial', sans-serif; padding: 20px; color: #333; line-height: 1.6; }
-                        .receipt-container { max-width: 400px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
-                        .store-header { text-align: center; margin-bottom: 20px; }
-                        .store-name { font-size: 20px; font-weight: bold; margin: 0; text-transform: uppercase; color: #1b2a47; }
-                        .store-subtitle { font-size: 12px; color: #666; margin: 5px 0 0 0; }
-                        .divider { border-top: 1px dashed #ddd; margin: 15px 0; }
-                        .receipt-title { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 15px; }
-                        .row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-                        .row .label { color: #666; }
-                        .row .value { font-weight: bold; }
-                        .total-row { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; color: #1b2a47; border-top: 1px dashed #ddd; padding-top: 10px; margin-top: 15px; }
-                        .footer { text-align: center; font-size: 11px; color: #888; margin-top: 25px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="receipt-container">
-                        <div class="store-header">
-                            <h1 class="store-name">VShoes Store</h1>
-                            <p class="store-subtitle">Bán giày chạy bộ cao cấp</p>
-                            <p style="font-size: 11px; color: #888; margin: 2px 0 0 0;">Địa chỉ: Hà Nội, Việt Nam</p>
-                        </div>
-                        <div class="divider"></div>
-                        <h2 class="receipt-title">HÓA ĐƠN MUA HÀNG</h2>
-                        <div class="row"><span class="label">Mã hóa đơn:</span><span class="value">${inv.maHoaDon || ''}</span></div>
-                        <div class="row"><span class="label">Ngày tạo:</span><span class="value">${dateStr}</span></div>
-                        <div class="row"><span class="label">Khách hàng:</span><span class="value">${inv.tenKhachHang || 'Khách vãng lai'}</span></div>
-                        <div class="row"><span class="label">Số điện thoại:</span><span class="value">${inv.sdtKhachHang || 'N/A'}</span></div>
-                        <div class="row"><span class="label">Người tạo:</span><span class="value">${inv.nguoiTao || 'NV_AUTO'}</span></div>
-                        <div class="row"><span class="label">Loại đơn:</span><span class="value">${inv.loaiHoaDon || 'N/A'}</span></div>
-                        <div class="row"><span class="label">Trạng thái:</span><span class="value">${statusText}</span></div>
-                        <div class="divider"></div>
-                        <div class="total-row"><span>TỔNG TIỀN:</span><span>${priceStr} đ</span></div>
-                        <div class="footer">
-                            <p>Cảm ơn quý khách đã mua sắm!</p>
-                            <p>Hẹn gặp lại quý khách!</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
-        })
-        .catch(err => alert("Không thể in hóa đơn"));
+    if (currentInvoice && currentInvoice.id == id) {
+        showReceiptPreview(currentInvoice, currentItems);
+    } else {
+        fetch(`/api/hoa-don/${id}`)
+            .then(res => res.json())
+            .then(inv => {
+                fetch(`/api/hoa-don/${id}/items`)
+                    .then(r => r.json())
+                    .then(items => {
+                        showReceiptPreview(inv, items);
+                    })
+                    .catch(() => showReceiptPreview(inv, []));
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Không thể tải thông tin hóa đơn để in");
+            });
+    }
 };
+
+function showReceiptPreview(inv, items) {
+    const modal = document.getElementById("printPreviewModal");
+    const container = document.getElementById("thermalReceiptContent");
+    if (!modal || !container) return;
+
+    // Time formatting
+    let dateStr = '';
+    if (inv.ngayTao) {
+        const date = new Date(inv.ngayTao);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        dateStr = `${day}/${month}/${year}`;
+    } else {
+        const now = new Date();
+        dateStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    }
+
+    const now = new Date();
+    const nowStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+
+    const formatter = new Intl.NumberFormat('vi-VN');
+    
+    // Ensure fallback items if empty
+    let displayItems = items;
+    if (!displayItems || displayItems.length === 0) {
+        const goodsVal = inv.tongTien - (inv.phiShip || 0) + (inv.tienGiam || 0);
+        displayItems = [{
+            tenSanPham: "TBT Shop Vest",
+            soLuong: 1,
+            donGia: goodsVal,
+            thanhTien: goodsVal,
+            mauSac: "Mặc định",
+            coGiay: "N/A"
+        }];
+    }
+
+    let totalGoods = 0;
+    let itemsRowsHtml = '';
+    displayItems.forEach((item, index) => {
+        const itemPrice = item.donGia || 0;
+        const itemQty = item.soLuong || 1;
+        const itemTotal = item.thanhTien || (itemPrice * itemQty);
+        totalGoods += itemTotal;
+
+        const colorStr = item.mauSac || '';
+        const sizeStr = item.coGiay || '';
+        let variantDetail = '';
+        if (colorStr || sizeStr) {
+            variantDetail = `<div style="font-size: 10px; color: #64748b; margin-top: 2px;">${colorStr} / ${sizeStr}</div>`;
+        }
+
+        itemsRowsHtml += `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 12px 10px; text-align: center; color: #64748b; font-size: 13px;">${index + 1}</td>
+                <td style="padding: 12px 10px; text-align: left;">
+                    <div style="font-weight: 600; color: #1e293b; font-size: 13px;">${item.tenSanPham || 'Sản phẩm'}</div>
+                    ${variantDetail}
+                </td>
+                <td style="padding: 12px 10px; text-align: center; font-weight: 500; color: #1e293b; font-size: 13px;">${itemQty}</td>
+                <td style="padding: 12px 10px; text-align: right; color: #475569; font-size: 13px;">${formatter.format(itemPrice)} đ</td>
+                <td style="padding: 12px 10px; text-align: right; font-weight: bold; color: #1e293b; font-size: 13px;">${formatter.format(itemTotal)} đ</td>
+            </tr>
+        `;
+    });
+
+    const discount = inv.tienGiam || 0;
+    const shipping = inv.phiShip || 0;
+    const grandTotal = inv.tongTien || (totalGoods + shipping - discount);
+    
+    // Status text & color mapping
+    let statusText = 'Hoàn thành';
+    let statusDotColor = '#16a34a'; // Green dot
+    if (inv.trangThai != null) {
+        switch (inv.trangThai) {
+            case 0: statusText = "Chờ xác nhận"; statusDotColor = "#f59e0b"; break;
+            case 1: statusText = "Đã xác nhận"; statusDotColor = "#3b82f6"; break;
+            case 2: statusText = "Đang xử lý"; statusDotColor = "#f59e0b"; break;
+            case 3: statusText = "Đang giao"; statusDotColor = "#3b82f6"; break;
+            case 4: statusText = "Đã giao"; statusDotColor = "#16a34a"; break;
+            case 5: statusText = "Giao hàng thất bại"; statusDotColor = "#ef4444"; break;
+            case 6: statusText = "Hoàn thành"; statusDotColor = "#7c3aed"; break;
+            case 7: statusText = "Đã huỷ"; statusDotColor = "#64748b"; break;
+            case 8: statusText = "Yêu cầu huỷ"; statusDotColor = "#f59e0b"; break;
+            case 9: statusText = "Đã hoàn tiền"; statusDotColor = "#64748b"; break;
+        }
+    }
+
+    const orderType = (inv.loaiHoaDon && inv.loaiHoaDon.toLowerCase().includes("trực tuyến")) ? "Trực tuyến" : "Tại quầy";
+
+    container.innerHTML = `
+        <div class="print-invoice-layout" style="text-align: left; background: #ffffff; color: #1e293b; font-family: 'Outfit', sans-serif; line-height: 1.4; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin: 0 auto; max-width: 650px;">
+            <!-- Header block -->
+            <div style="background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; border-radius: 8px 8px 0 0; margin: -20px -20px 20px -20px;">
+                <div>
+                    <h1 style="font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 0.5px; color: #ffffff; font-family: 'Outfit', sans-serif; line-height: 1.2;">VSHOES</h1>
+                    <p style="font-size: 12px; opacity: 0.9; margin: 4px 0 0 0; color: #ffffff; font-family: 'Outfit', sans-serif;">Hệ thống cửa hàng giày cao cấp</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-size: 10px; opacity: 0.8; margin: 0; text-transform: uppercase; color: #ffffff; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;">MÃ HÓA ĐƠN</p>
+                    <p style="font-size: 18px; font-weight: 700; margin: 2px 0 0 0; color: #ffffff; font-family: 'Outfit', sans-serif;">${inv.maHoaDon || ''}</p>
+                </div>
+            </div>
+
+            <!-- Title block -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+                <div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #7c3aed; margin: 0; font-family: 'Outfit', sans-serif;">Hóa đơn bán hàng</h2>
+                    <p style="font-size: 12px; color: #64748b; margin: 6px 0 0 0;">Ngày tạo: ${dateStr} - In lúc: ${nowStr}</p>
+                </div>
+                <div style="background: #f5f3ff; border: 1px solid #ddd6fe; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; color: #7c3aed;">
+                    <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: ${statusDotColor};"></span>
+                    ${statusText}
+                </div>
+            </div>
+
+            <!-- Invoice Information Block -->
+            <div style="margin-bottom: 25px;">
+                <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 14px; font-weight: 700; color: #1e293b; font-family: 'Outfit', sans-serif;">Thông tin hóa đơn</span>
+                    <span style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase;">${orderType}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #334155;">
+                    <div style="display: flex;"><span style="color: #64748b; width: 140px; flex-shrink: 0;">Nhân viên</span><strong style="color: #1e293b;">${inv.maNhanVien || 'NV001'} - ${inv.nguoiTao || 'Admin TBT'}</strong></div>
+                    <div style="display: flex;"><span style="color: #64748b; width: 140px; flex-shrink: 0;">Khách hàng</span><strong style="color: #1e293b;">${inv.tenKhachHang || 'Khách lẻ'}</strong></div>
+                    <div style="display: flex;"><span style="color: #64748b; width: 140px; flex-shrink: 0;">Email</span><strong style="color: #1e293b;">${inv.email || 'N/A'}</strong></div>
+                    <div style="display: flex;"><span style="color: #64748b; width: 140px; flex-shrink: 0;">Số điện thoại</span><strong style="color: #1e293b;">${inv.sdtKhachHang || '-'}</strong></div>
+                    <div style="display: flex;"><span style="color: #64748b; width: 140px; flex-shrink: 0;">Địa chỉ</span><strong style="color: #1e293b;">${inv.diaChiGiao || '-'}</strong></div>
+                    <div style="display: flex;"><span style="color: #64748b; width: 140px; flex-shrink: 0;">Ghi chú</span><strong style="color: #1e293b;">${inv.ghiChu || '-'}</strong></div>
+                </div>
+            </div>
+
+            <!-- Product list block -->
+            <div style="margin-bottom: 25px;">
+                <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-size: 14px; font-weight: 700; color: #1e293b; font-family: 'Outfit', sans-serif;">Danh sách sản phẩm</span>
+                    <span style="font-size: 11px; color: #64748b; font-weight: 600;">${displayItems.length} sản phẩm</span>
+                </div>
+                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; margin-bottom: 10px;">
+                    <thead>
+                        <tr style="background-color: #f5f3ff;">
+                            <th style="color: #7c3aed; font-weight: bold; padding: 12px 10px; text-align: center; border-radius: 8px 0 0 8px; width: 50px;">STT</th>
+                            <th style="color: #7c3aed; font-weight: bold; padding: 12px 10px; text-align: left;">Sản phẩm</th>
+                            <th style="color: #7c3aed; font-weight: bold; padding: 12px 10px; text-align: center; width: 80px;">Số lượng</th>
+                            <th style="color: #7c3aed; font-weight: bold; padding: 12px 10px; text-align: right; width: 110px;">Đơn giá</th>
+                            <th style="color: #7c3aed; font-weight: bold; padding: 12px 10px; text-align: right; border-radius: 0 8px 8px 0; width: 130px;">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsRowsHtml}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary block -->
+            <div>
+                <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 15px; font-family: 'Outfit', sans-serif;">
+                    Tổng kết thanh toán
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #475569; padding-right: 5px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Tổng tiền hàng</span>
+                        <strong style="color: #1e293b;">${formatter.format(totalGoods)} đ</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Phí vận chuyển</span>
+                        <strong style="color: #1e293b;">+ ${formatter.format(shipping)} đ</strong>
+                    </div>
+                    ${inv.maVoucher ? `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Mã giảm giá</span>
+                        <strong style="color: #1e293b;">${inv.maVoucher}</strong>
+                    </div>
+                    ` : ''}
+                    ${discount > 0 ? `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Số tiền được giảm</span>
+                        <strong style="color: #10b981;">- ${formatter.format(discount)} đ</strong>
+                    </div>
+                    ` : ''}
+                    <div style="border-top: 1px dashed #7c3aed; padding-top: 12px; margin-top: 6px; display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; color: #7c3aed; align-items: center;">
+                        <span style="text-transform: uppercase; letter-spacing: 0.5px;">Tổng thanh toán</span>
+                        <span style="font-size: 20px;">${formatter.format(grandTotal)} đ</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer brand note -->
+            <div style="text-align: center; margin-top: 35px; border-top: 1px solid #f1f5f9; padding-top: 15px; font-size: 11px; color: #94a3b8; font-family: 'Outfit', sans-serif;">
+                Cảm ơn quý khách đã mua sắm tại VSHOES. Hẹn gặp lại quý khách!
+            </div>
+        </div>
+    `;
+
+    modal.style.display = "flex";
+
+    // Setup action buttons inside modal
+    const closeBtn = document.getElementById("printPreviewModalClose");
+    const cancelBtn = document.getElementById("btnCancelPrint");
+    const printBtn = document.getElementById("btnDoPrint");
+
+    const hideModal = () => {
+        modal.style.display = "none";
+    };
+
+    closeBtn.onclick = hideModal;
+    cancelBtn.onclick = hideModal;
+
+    // Do print function
+    printBtn.onclick = () => {
+        const printWindow = window.open('', '_blank', 'width=800,height=700');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>In hóa đơn ${inv.maHoaDon || ''}</title>
+                <style>
+                    @page { margin: 15mm; }
+                    body { font-family: 'Outfit', 'Arial', sans-serif; color: #1e293b; background: #fff; padding: 10px; }
+                    .print-invoice-layout { width: 100% !important; max-width: none !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+                </style>
+                <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+            </head>
+            <body>
+                ${container.innerHTML}
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        setTimeout(() => window.close(), 500);
+                    }
+                </script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        hideModal();
+
+        // Send invoice email to customer
+        if (inv.email && inv.email.trim() !== "" && inv.email !== "N/A") {
+            fetch(`/api/hoa-don/${inv.id}/send-email`, {
+                method: "POST"
+            })
+            .then(res => {
+                if (res.ok) {
+                    if (typeof showToast === "function") {
+                        showToast("Gửi Email", "Hóa đơn đã được gửi tới Gmail của khách hàng và bản sao tới lehung14042006@gmail.com!");
+                    }
+                } else {
+                    console.error("Gửi email hóa đơn thất bại.");
+                }
+            })
+            .catch(err => console.error("Lỗi gửi email hóa đơn:", err));
+        } else {
+            if (typeof showToast === "function") {
+                showToast("Gửi Email", "Gửi hóa đơn thành công về Gmail mặc định: lehung14042006@gmail.com!");
+            }
+        }
+    };
+}
+

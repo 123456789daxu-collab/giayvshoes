@@ -160,4 +160,15 @@ public class PhieuGiamGiaController {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi xuất file Excel: " + e.getMessage()));
         }
     }
+
+    // 9. Lấy mã phiếu giảm giá tiếp theo
+    @GetMapping("/next-code")
+    public ResponseEntity<?> getNextCode() {
+        try {
+            String nextCode = phieuGiamGiaService.getNextMaVoucher();
+            return ResponseEntity.ok(Map.of("code", nextCode));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }

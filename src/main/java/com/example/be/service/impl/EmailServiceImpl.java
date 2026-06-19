@@ -25,6 +25,11 @@ public class EmailServiceImpl implements EmailService {
     private TemplateEngine templateEngine;
 
     @Override
+    public void sendInvoiceEmail(com.example.be.dto.HoaDonDTO invoice, java.util.List<java.util.Map<String, Object>> items) {
+        System.out.println("Sending invoice email for invoice " + (invoice != null ? invoice.getMaHoaDon() : "null"));
+    }
+
+    @Override
     public void sendVoucherNotification(KhachHang customer, PhieuGiamGia voucher) {
         sendHtmlEmail(
             customer.getEmail(), 

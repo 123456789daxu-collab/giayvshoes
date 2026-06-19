@@ -42,6 +42,9 @@ public class ThuongHieuController {
 
     @PostMapping("/add")
     public String add(@ModelAttribute ThuongHieu thuongHieu, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        if (thuongHieu.getMaThuongHieu() == null || thuongHieu.getMaThuongHieu().trim().isEmpty()) {
+            thuongHieu.setMaThuongHieu("TH" + System.currentTimeMillis());
+        }
         thuongHieuRepository.save(thuongHieu);
         redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
         String referer = request.getHeader("Referer");

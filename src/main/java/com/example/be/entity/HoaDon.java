@@ -42,39 +42,85 @@ public class HoaDon {
     @Column(name = "sdt_nguoi_nhan")
     private String sdtNguoiNhan;
 
-    @Column(name = "dia_chi_giao")
-    private String diaChiGiao;
+    @Column(name = "dia_chi_nhan")
+    private String diaChiNhan; // dia_chi_nhan in DB
 
     @Column(name = "ghi_chu")
     private String ghiChu;
 
-    @Column(name = "tong_tien_hang")
-    private BigDecimal tongTienHang;
+    @Transient
+    private BigDecimal tongTienHang; // not in DB
 
-    @Column(name = "tien_giam_gia")
-    private BigDecimal tienGiamGia;
+    @Column(name = "tien_giam")
+    private BigDecimal tienGiam; // tien_giam in DB
 
-    @Column(name = "tien_van_chuyen")
-    private BigDecimal tienVanChuyen;
+    @Column(name = "phi_ship")
+    @Builder.Default
+    private BigDecimal phiShip = BigDecimal.valueOf(30000); // phi_ship in DB
 
-    @Column(name = "tong_tien_thanh_toan")
-    private BigDecimal tongTienThanhToan;
+    @Column(name = "tong_tien")
+    private BigDecimal tongTien; // tong_tien in DB
 
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
 
-    @Column(name = "nguoi_tao")
-    private String nguoiTao;
+    @Transient
+    private String nguoiTao; // not in DB
 
-    @Column(name = "ngay_cap_nhat")
-    private LocalDateTime ngayCapNhat;
+    @Column(name = "ngay_thanh_toan")
+    private LocalDateTime ngayThanhToan; // ngay_thanh_toan in DB
 
-    @Column(name = "nguoi_cap_nhat")
-    private String nguoiCapNhat;
+    @Transient
+    private String nguoiCapNhat; // not in DB
 
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @Column(name = "ly_do_huy")
-    private String lyDoHuy;
+    @Transient
+    private String lyDoHuy; // not in DB
+
+    // Compatibility getters & setters for Jackson serialization / REST API
+
+    public void setTongTienThanhToan(BigDecimal val) {
+        this.tongTien = val;
+    }
+
+    public BigDecimal getTongTienThanhToan() {
+        return this.tongTien;
+    }
+
+    public void setTienGiamGia(BigDecimal val) {
+        this.tienGiam = val;
+    }
+
+    public BigDecimal getTienGiamGia() {
+        return this.tienGiam;
+    }
+
+    public void setTienVanChuyen(BigDecimal val) {
+        this.phiShip = val;
+    }
+
+    public BigDecimal getTienVanChuyen() {
+        return this.phiShip;
+    }
+
+    public void setDiaChiGiao(String val) {
+        this.diaChiNhan = val;
+    }
+
+    public String getDiaChiGiao() {
+        return this.diaChiNhan;
+    }
+
+    public void setNgayCapNhat(LocalDateTime val) {
+        this.ngayThanhToan = val;
+    }
+
+    public LocalDateTime getNgayCapNhat() {
+        return this.ngayThanhToan;
+    }
+
+
 }
+

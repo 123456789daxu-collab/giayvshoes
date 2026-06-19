@@ -105,25 +105,38 @@ document.addEventListener("DOMContentLoaded", () => {
             requestMethod = "PUT";
         }
 
-        fetch(requestUrl, {
-            method: requestMethod,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-        .then(async (res) => {
-            if (!res.ok) {
-                const errMsg = await res.text();
-                throw new Error(errMsg || "Lưu thông tin thất bại!");
+        Swal.fire({
+            title: 'Xác nhận',
+            text: id ? "Bạn có chắc chắn muốn cập nhật đợt giảm giá này?" : "Bạn có chắc chắn muốn thêm đợt giảm giá mới?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(requestUrl, {
+                    method: requestMethod,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const errMsg = await res.text();
+                        throw new Error(errMsg || "Lưu thông tin thất bại!");
+                    }
+                    return res.json();
+                })
+                .then(() => {
+                    showToast(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
+                    hideModal();
+                    loadDiscounts();
+                })
+                .catch((error) => {
+                    showToast(error.message, "error");
+                });
             }
-            return res.json();
-        })
-        .then(() => {
-            showToast(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
-            hideModal();
-            loadDiscounts();
-        })
-        .catch((error) => {
-            showToast(error.message, "error");
         });
     };
 
@@ -300,23 +313,49 @@ function editDiscount(id) {
 }
 
 function toggleStatus(id) {
-    fetch(`/api/dot-giam-gia/${id}/toggle-trang-thai`, { method: "PUT" })
-        .then(res => {
-            if (!res.ok) throw new Error("Thay đổi thất bại");
-            showToast("Đã đổi trạng thái!");
+    Swal.fire({
+        title: 'Xác nhận',
+        text: "Bạn có chắc chắn muốn thay đổi trạng thái của đợt giảm giá này?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/dot-giam-gia/${id}/toggle-trang-thai`, { method: "PUT" })
+                .then(res => {
+                    if (!res.ok) throw new Error("Thay đổi thất bại");
+                    showToast("Đã đổi trạng thái!");
+                    loadDiscounts();
+                })
+                .catch(err => showToast(err.message, "error"));
+        } else {
             loadDiscounts();
-        })
-        .catch(err => showToast(err.message, "error"));
+        }
+    });
 }
 
 function deleteDiscount(id) {
-    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn đợt giảm giá này?")) {
-        fetch(`/api/dot-giam-gia/${id}`, { method: "DELETE" })
-            .then(res => {
-                if (!res.ok) throw new Error("Xóa thất bại");
-                showToast("Xóa thành công!");
-                loadDiscounts();
-            })
-            .catch(err => showToast(err.message, "error"));
-    }
+    Swal.fire({
+        title: 'Xác nhận xóa',
+        text: "Bạn có chắc chắn muốn xóa vĩnh viễn đợt giảm giá này?",
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/dot-giam-gia/${id}`, { method: "DELETE" })
+                .then(res => {
+                    if (!res.ok) throw new Error("Xóa thất bại");
+                    showToast("Xóa thành công!");
+                    loadDiscounts();
+                })
+                .catch(err => showToast(err.message, "error"));
+        }
+    });
 }

@@ -24,6 +24,8 @@ public interface PhieuGiamGiaService {
     
     // Get single voucher details
     PhieuGiamGia findById(Long id);
+
+    String getNextMaVoucher();
     
     // Create new voucher
     PhieuGiamGia createVoucher(PhieuGiamGiaDto dto);

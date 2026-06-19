@@ -7,4 +7,5 @@ public interface EmailService {
     void sendVoucherNotification(KhachHang customer, PhieuGiamGia voucher);
     void sendVoucherUpdateNotification(KhachHang customer, PhieuGiamGia voucher);
     void sendVoucherCancelNotification(KhachHang customer, PhieuGiamGia voucher);
+    void sendInvoiceEmail(com.example.be.dto.HoaDonDTO invoice, java.util.List<java.util.Map<String, Object>> items);
 }

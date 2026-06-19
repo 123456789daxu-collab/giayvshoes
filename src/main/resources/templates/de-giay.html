@@ -110,7 +110,7 @@
                                                 <div class="modal-body">
                                                     <div class="mb-3">
                                                         <label class="form-label fw-medium">Mã Loại Giày</label>
-                                                        <input type="text" class="form-control" name="maLoaiGiay" th:value="${item.maLoaiGiay}" required>
+                                                        <input type="text" class="form-control" name="maLoaiGiay" th:value="${item.maLoaiGiay}" readonly>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label fw-medium">Tên Loại Giày</label>
@@ -195,19 +195,13 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-medium">Mã Loại Giày</label>
-                            <input type="text" class="form-control" name="maLoaiGiay" placeholder="Nhập mã (VD: TL01)" required>
+                            <input type="text" class="form-control" name="maLoaiGiay" id="addMaLoaiGiay" readonly style="background-color: #f3f4f6; cursor: not-allowed; font-weight: 500; color: #475569;">
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Tên Loại Giày</label>
                             <input type="text" class="form-control" name="tenLoaiGiay" placeholder="Nhập tên loại giày" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Trạng Thái</label>
-                            <select class="form-select" name="trangThai">
-                                <option value="true">Đang sử dụng</option>
-                                <option value="false">Ngừng sử dụng</option>
-                            </select>
-                        </div>
+                        <input type="hidden" name="trangThai" value="true">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -230,6 +224,16 @@
         /*]]>*/
         
         document.addEventListener("DOMContentLoaded", function() {
+            var addModal = document.getElementById('addModal');
+            if (addModal) {
+                addModal.addEventListener('show.bs.modal', function () {
+                    var codeInput = document.getElementById('addMaLoaiGiay');
+                    if (codeInput) {
+                        codeInput.value = 'LG' + Date.now();
+                    }
+                });
+            }
+
             if (successMsg) {
                 Swal.fire({
                     toast: true,

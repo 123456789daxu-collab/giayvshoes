@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +10,6 @@
     <!-- Nhúng CSS riêng của trang đợt giảm giá -->
     <link rel="stylesheet" href="/css/dot-giam-gia.css">
 </head>
-
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
@@ -22,13 +20,13 @@
             <!-- TIÊU ĐỀ MÀN HÌNH -->
             <div class="screen-header" style="margin-bottom: 24px;">
                 <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý đợt giảm giá</h1>
+                <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">Quản lý các chiến dịch và đợt giảm giá</p>
             </div>
-
             <div class="campaign-container">
 
                 <!-- PANEL 1: DANH SÁCH ĐỢT GIẢM GIÁ (LISTING PANEL) -->
                 <div id="list-panel" class="tab-panel active">
-
+                    
                     <!-- BỘ LỌC TÌM KIẾM -->
                     <div class="filter-card">
                         <div class="filter-header">
@@ -37,24 +35,21 @@
                                 <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
                             </button>
                         </div>
-
+                        
                         <div class="filter-grid" style="grid-template-columns: 2fr 2fr 2fr 1fr;">
                             <!-- Tìm kiếm theo mã hoặc tên -->
                             <div class="form-group">
                                 <label for="filter-search">Tìm kiếm</label>
-                                <input type="text" id="filter-search" class="input-control"
-                                    placeholder="Nhập tên hoặc mã đợt giảm giá..." oninput="applyCampaignFilters()">
+                                <input type="text" id="filter-search" class="input-control" placeholder="Nhập tên hoặc mã đợt giảm giá..." oninput="applyCampaignFilters()">
                             </div>
 
                             <!-- Khoảng ngày áp dụng -->
                             <div class="form-group">
                                 <label>Khoảng ngày áp dụng</label>
                                 <div class="date-range-container">
-                                    <input type="date" id="filter-start-date" class="input-control"
-                                        onchange="applyCampaignFilters()">
+                                    <input type="date" id="filter-start-date" class="input-control" onchange="applyCampaignFilters()">
                                     <span class="date-separator">&rarr;</span>
-                                    <input type="date" id="filter-end-date" class="input-control"
-                                        onchange="applyCampaignFilters()">
+                                    <input type="date" id="filter-end-date" class="input-control" onchange="applyCampaignFilters()">
                                 </div>
                             </div>
 
@@ -74,8 +69,7 @@
 
                     <!-- CARD DANH SÁCH -->
                     <div class="customer-card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <span class="card-title-table" style="margin-bottom: 0;">Danh sách đợt giảm giá</span>
                             <div class="action-row" style="margin-bottom: 0;">
                                 <button class="btn-primary-action" onclick="openAddCampaignForm()">
@@ -118,8 +112,7 @@
                                 <!-- Nút trang -->
                             </div>
                             <div class="page-size-selector">
-                                <select class="page-size-select" id="campaign-page-size"
-                                    onchange="changeCampaignPageSize(this.value)">
+                                <select class="page-size-select" id="campaign-page-size" onchange="changeCampaignPageSize(this.value)">
                                     <option value="10">10 / page</option>
                                     <option value="20">20 / page</option>
                                     <option value="50">50 / page</option>
@@ -131,7 +124,7 @@
 
                 <!-- PANEL 2: THÊM MỚI / CẬP NHẬT ĐỢT GIẢM GIÁ (FORM PANEL) -->
                 <div id="form-panel" class="tab-panel">
-
+                    
                     <button class="back-link" onclick="backToListPanel()">
                         <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
                         Quay lại danh sách
@@ -148,24 +141,15 @@
                             <!-- Hàng 1: Tên đợt & Phần trăm giảm -->
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="campaign-name">Tên đợt giảm giá <span
-                                            class="required-star">*</span></label>
-                                    <input type="text" id="campaign-name" class="input-control" required
-                                        placeholder="Nhập tên đợt giảm giá...">
+                                    <label for="campaign-name">Tên đợt giảm giá <span class="required-star">*</span></label>
+                                    <input type="text" id="campaign-name" class="input-control" required placeholder="Nhập tên đợt giảm giá...">
                                 </div>
                                 <div class="form-group">
-                                    <label for="campaign-discount-percent">Mức giảm (%) <span
-                                            class="required-star">*</span></label>
+                                    <label for="campaign-discount-percent">Mức giảm (%) <span class="required-star">*</span></label>
                                     <div class="number-input-wrapper">
-                                        <button type="button" class="number-input-btn minus"
-                                            onclick="adjustNumberInput('campaign-discount-percent', -5)"><i
-                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
-                                        <input type="number" id="campaign-discount-percent"
-                                            class="input-control number-input-control" required min="1" max="100"
-                                            placeholder="Nhập phần trăm...">
-                                        <button type="button" class="number-input-btn plus"
-                                            onclick="adjustNumberInput('campaign-discount-percent', 5)"><i
-                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                        <button type="button" class="number-input-btn minus" onclick="adjustNumberInput('campaign-discount-percent', -5)"><i data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                        <input type="number" id="campaign-discount-percent" class="input-control number-input-control" required min="1" max="100" placeholder="Nhập phần trăm...">
+                                        <button type="button" class="number-input-btn plus" onclick="adjustNumberInput('campaign-discount-percent', 5)"><i data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -173,15 +157,12 @@
                             <!-- Hàng 2: Ngày bắt đầu & Ngày kết thúc -->
                             <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label for="campaign-start-date">Ngày bắt đầu <span
-                                            class="required-star">*</span></label>
-                                    <input type="datetime-local" id="campaign-start-date" class="input-control"
-                                        required>
+                                    <label for="campaign-start-date">Ngày bắt đầu <span class="required-star">*</span></label>
+                                    <input type="datetime-local" id="campaign-start-date" class="input-control" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="campaign-end-date">Ngày kết thúc <span
-                                            class="required-star">*</span></label>
+                                    <label for="campaign-end-date">Ngày kết thúc <span class="required-star">*</span></label>
                                     <input type="datetime-local" id="campaign-end-date" class="input-control" required>
                                 </div>
                             </div>
@@ -190,9 +171,7 @@
                             <div class="form-group" style="margin-bottom: 24px;">
                                 <label for="campaign-desc">Mô tả chi tiết</label>
                                 <div class="textarea-wrapper">
-                                    <textarea id="campaign-desc" class="input-control" rows="3" maxlength="500"
-                                        placeholder="Nhập thông tin mô tả đợt giảm giá..."
-                                        oninput="updateCharCount(this)"></textarea>
+                                    <textarea id="campaign-desc" class="input-control" rows="3" maxlength="500" placeholder="Nhập thông tin mô tả đợt giảm giá..." oninput="updateCharCount(this)"></textarea>
                                     <span class="char-counter" id="desc-char-count">0/500</span>
                                 </div>
                             </div>
@@ -200,16 +179,14 @@
                             <!-- PHẦN CHỌN SẢN PHẨM ÁP DỤNG -->
                             <div class="product-section">
                                 <div class="product-section-title">Danh sách sản phẩm áp dụng giảm giá</div>
-
+                                
                                 <div class="product-filter-bar">
                                     <div class="product-filter-left">
-                                        <input type="text" id="prod-filter-search" class="input-control"
-                                            placeholder="Tìm kiếm theo mã chi tiết, mã SP, tên sản phẩm..."
-                                            oninput="applyProdFilters()">
+                                        <input type="text" id="prod-filter-search" class="input-control" placeholder="Tìm kiếm theo mã chi tiết, mã SP, tên sản phẩm..." oninput="applyProdFilters()">
                                     </div>
                                     <div class="product-filter-right">
-                                        <button type="button" class="btn-secondary" style="height: 40px;"
-                                            onclick="selectAllCurrentPageProducts()">Chọn tất cả</button>
+                                        <button type="button" class="btn-secondary" style="height: 40px; margin-right: 8px;" onclick="resetProdFilters()">Làm mới</button>
+                                        <button type="button" class="btn-secondary" style="height: 40px;" onclick="selectAllCurrentPageProducts()">Chọn tất cả</button>
                                     </div>
                                 </div>
 
@@ -223,8 +200,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="checkbox-cell">
-                                                    <input type="checkbox" id="check-all-products"
-                                                        onchange="toggleSelectAllPage(this.checked)">
+                                                    <input type="checkbox" id="check-all-products" onchange="toggleSelectAllPage(this.checked)">
                                                 </th>
                                                 <th style="width: 140px;">Mã chi tiết</th>
                                                 <th>Tên sản phẩm</th>
@@ -247,8 +223,7 @@
                                         <!-- Nút phân trang -->
                                     </div>
                                     <div class="page-size-selector">
-                                        <select class="page-size-select" id="prod-page-size"
-                                            onchange="changeProdPageSize(this.value)">
+                                        <select class="page-size-select" id="prod-page-size" onchange="changeProdPageSize(this.value)">
                                             <option value="5">5 / page</option>
                                             <option value="10">10 / page</option>
                                             <option value="20">20 / page</option>
@@ -258,8 +233,7 @@
                             </div>
 
                             <!-- Footer nút bấm -->
-                            <div class="modal-footer"
-                                style="padding-top: 20px; border-top: 1px solid #f1f5f9; margin-top: 28px;">
+                            <div class="modal-footer" style="padding-top: 20px; border-top: 1px solid #f1f5f9; margin-top: 28px;">
                                 <button type="button" class="btn-secondary" onclick="backToListPanel()">Hủy</button>
                                 <button type="submit" class="btn-primary-action">Lưu thông tin</button>
                             </div>
@@ -273,6 +247,7 @@
 
     <!-- Script Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // CÁC BIẾN TOÀN CỤC CHO CAMPAIGNS LIST
         let cCurrentPage = 0;
@@ -362,7 +337,7 @@
 
                 // STT
                 const sttTd = `<td style="text-align: center; font-weight: 500; color: #64748b;">${cCurrentPage * cPageSize + index + 1}</td>`;
-
+                
                 // Mã & Tên
                 const maTd = `<td style="font-weight: 600; color: #0f172a;">${campaign.maDotGiamGia}</td>`;
                 const tenTd = `<td><div style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${campaign.tenDotGiamGia}">${campaign.tenDotGiamGia}</div></td>`;
@@ -411,7 +386,7 @@
             if (campaign.trangThai === 0) {
                 return { text: "Ngừng hoạt động", class: "badge-inactive" };
             }
-
+            
             const now = new Date();
             const start = new Date(campaign.ngayBatDau);
             const end = new Date(campaign.ngayKetThuc);
@@ -504,21 +479,48 @@
         }
 
         // Bật/tắt trạng thái
-        async function toggleCampaignActive(id, isChecked) {
+        function toggleCampaignActive(id, isChecked) {
             const status = isChecked ? 1 : 0;
-            try {
-                const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
-                    method: "PATCH"
-                });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+            const actionText = status === 1 ? 'kích hoạt' : 'ngừng hoạt động';
+            
+            // Revert checkbox back since we wait for confirm
+            event.target.checked = !isChecked;
+            const checkbox = event.target;
+
+            Swal.fire({
+                title: 'Xác nhận',
+                text: `Bạn có chắc chắn muốn ${actionText} đợt giảm giá này?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: status === 1 ? '#10b981' : '#f59e0b',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                            method: "PATCH"
+                        });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không thể cập nhật trạng thái");
+                        }
+                        
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'success',
+                            title: `Đã ${actionText} đợt giảm giá!`,
+                            showConfirmButton: false, timer: 3000
+                        });
+                        loadCampaignsTable();
+                    } catch (err) {
+                        Swal.fire('Lỗi', err.message, 'error');
+                        loadCampaignsTable();
+                    }
+                } else {
+                    checkbox.checked = !isChecked;
                 }
-                loadCampaignsTable();
-            } catch (err) {
-                alert("Lỗi: " + err.message);
-                loadCampaignsTable();
-            }
+            });
         }
 
         // Xuất Excel
@@ -545,17 +547,17 @@
         function adjustNumberInput(id, delta) {
             const input = document.getElementById(id);
             if (input.disabled) return;
-
+            
             let val = parseInt(input.value) || 0;
             val += delta;
-
+            
             if (input.min !== "" && val < parseInt(input.min)) {
                 val = parseInt(input.min);
             }
             if (input.max !== "" && val > parseInt(input.max)) {
                 val = parseInt(input.max);
             }
-
+            
             input.value = val;
             const event = new Event('input', { bubbles: true });
             input.dispatchEvent(event);
@@ -571,7 +573,7 @@
             document.getElementById("campaign-id").value = "";
             document.getElementById("form-panel-title").innerText = "Tạo đợt giảm giá";
             document.getElementById("desc-char-count").innerText = "0/500";
-
+            
             selectedProductDetailIds.clear();
             document.getElementById("prod-selected-label").innerText = "0";
 
@@ -579,7 +581,7 @@
             const now = new Date();
             const future = new Date();
             future.setDate(now.getDate() + 3);
-
+            
             document.getElementById("campaign-start-date").value = formatDateTimeLocal(now);
             document.getElementById("campaign-end-date").value = formatDateTimeLocal(future);
 
@@ -590,7 +592,7 @@
             // Chuyển panel
             document.getElementById("list-panel").classList.remove("active");
             document.getElementById("form-panel").classList.add("active");
-
+            
             window.scrollTo(0, 0);
             lucide.createIcons();
         }
@@ -665,7 +667,7 @@
         }
 
         // Lưu thông tin (Thêm mới / Cập nhật)
-        async function saveCampaign(event) {
+        function saveCampaign(event) {
             event.preventDefault();
 
             const id = document.getElementById("campaign-id").value;
@@ -676,18 +678,18 @@
             const moTa = document.getElementById("campaign-desc").value.trim();
 
             if (new Date(ngayBatDau) > new Date(ngayKetThuc)) {
-                alert("Lỗi: Ngày bắt đầu phải diễn ra trước ngày kết thúc!");
+                Swal.fire('Lỗi', 'Ngày bắt đầu phải diễn ra trước ngày kết thúc!', 'error');
                 return;
             }
 
             if (selectedProductDetailIds.size === 0) {
-                alert("Lỗi: Bạn phải chọn ít nhất 1 sản phẩm chi tiết để áp dụng đợt giảm giá!");
+                Swal.fire('Lỗi', 'Bạn phải chọn ít nhất 1 sản phẩm chi tiết để áp dụng đợt giảm giá!', 'error');
                 return;
             }
 
             const payload = {
                 tenDotGiamGia,
-                phanTramGiam,
+                giaTriGiam: phanTramGiam, // the API expects giaTriGiam
                 ngayBatDau,
                 ngayKetThuc,
                 moTa,
@@ -698,23 +700,40 @@
             const url = id ? `/api/dot-giam-gia/${id}` : "/api/dot-giam-gia";
             const method = id ? "PUT" : "POST";
 
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
+            Swal.fire({
+                title: 'Xác nhận',
+                text: id ? 'Bạn có chắc chắn muốn cập nhật đợt giảm giá này?' : 'Bạn có chắc chắn muốn tạo đợt giảm giá mới?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563EB',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
 
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.message || "Lỗi lưu thông tin đợt giảm giá");
+                        if (!response.ok) {
+                            const errData = await response.json();
+                            throw new Error(errData.message || "Lỗi lưu thông tin đợt giảm giá");
+                        }
+
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'success',
+                            title: id ? "Cập nhật thành công!" : "Tạo mới thành công!",
+                            showConfirmButton: false, timer: 3000
+                        });
+                        backToListPanel();
+                    } catch (err) {
+                        Swal.fire('Thất bại', err.message, 'error');
+                    }
                 }
-
-                alert(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
-                backToListPanel();
-            } catch (err) {
-                alert("Thao tác thất bại: " + err.message);
-            }
+            });
         }
 
 
@@ -774,10 +793,10 @@
                 `;
 
                 // Columns
-                const maTd = `<td style="font-weight: 500;">${spct.ma}</td>`;
+                const maTd = `<td style="font-weight: 500;">${spct.maSanPham}</td>`;
                 const tenTd = `<td style="font-weight: 600; color: #1e293b;">${spct.tenSanPham}</td>`;
                 const mauTd = `<td>${spct.tenMauSac}</td>`;
-                const sizeTd = `<td style="text-align: center;">${spct.sizeGiay}</td>`;
+                const sizeTd = `<td style="text-align: center;">${spct.tenKichCo}</td>`;
                 const giaTd = `<td style="text-align: right; font-weight: 600; color: #1e3a8a;">${formatCurrency(spct.giaBan)} đ</td>`;
                 const tonTd = `<td style="text-align: center;">${spct.soLuongTon}</td>`;
 
@@ -795,7 +814,7 @@
             } else {
                 selectedProductDetailIds.delete(id);
             }
-
+            
             document.getElementById("prod-selected-label").innerText = selectedProductDetailIds.size;
             updateHeaderCheckboxState();
         }
@@ -853,7 +872,7 @@
             next.innerHTML = `<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>`;
             next.onclick = () => { if (prodCurrentPage < prodTotalPages - 1) { prodCurrentPage++; loadProductDetailsTable(); } };
             nav.appendChild(next);
-
+            
             lucide.createIcons();
         }
 
@@ -867,7 +886,12 @@
             prodCurrentPage = 0;
             loadProductDetailsTable();
         }
+
+        function resetProdFilters() {
+            document.getElementById("prod-filter-search").value = "";
+            prodCurrentPage = 0;
+            loadProductDetailsTable();
+        }
     </script>
 </body>
-
 </html>

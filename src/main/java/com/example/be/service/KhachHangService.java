@@ -22,6 +22,10 @@ public interface KhachHangService {
     
     List<KhachHang> getFilteredList(String search, Boolean gioiTinh, LocalDate dob, Integer trangThai);
     
+    void deleteKhachHang(Long id);
+    
+    void updateAvatar(Long id, String avatarPath);
+    
     String getNextMaKhachHang();
     
     byte[] exportExcel(String search, Boolean gioiTinh, LocalDate dob, Integer trangThai) throws IOException;

@@ -89,6 +89,7 @@
                                     <th class="text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Mã SP</th>
                                     <th class="text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Tên SP</th>
                                     <th class="text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Thương hiệu</th>
+                                    <th class="text-center text-muted fw-semibold py-3 text-nowrap" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Khoảng giá</th>
                                     <th class="text-center text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Số lượng</th>
                                     <th class="text-center text-muted fw-semibold py-3" style="font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Trạng thái</th>
                                     <th class="text-center text-muted fw-semibold py-3 text-nowrap" style="width: 120px; font-size: 0.85rem; border-bottom: 2px solid #e5e7eb; border-top: 1px solid #e5e7eb;">Hành động</th>
@@ -100,6 +101,7 @@
                                     <td class="align-middle py-3" th:text="${sp.maSanPham}"></td>
                                     <td class="fw-medium text-dark align-middle py-3" th:text="${sp.tenSanPham}"></td>
                                     <td class="align-middle py-3" th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : ''}"></td>
+                                    <td class="text-center align-middle py-3 fw-medium" style="color: #2563eb;" th:text="${priceRangeMap.get(sp.id) != null ? priceRangeMap.get(sp.id) : 'Liên hệ'}"></td>
                                     <td class="text-center align-middle py-3" th:text="${sp.soLuong}"></td>
                                     <td class="text-center align-middle py-3">
                                         <span th:if="${sp.trangThai == 1}" class="badge bg-success-subtle text-success px-3 py-2" style="border-radius: 6px; font-weight: 500;">Kinh doanh</span>
@@ -107,11 +109,11 @@
                                     </td>
                                     <td class="text-center text-nowrap align-middle py-3">
                                         <a th:href="@{'/san-pham/edit/' + ${sp.id}}" class="btn btn-light text-primary me-2 px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" title="Xem chi tiết"><i class="bi bi-eye"></i></a>
-                                        <a th:href="@{'/san-pham/delete/' + ${sp.id}}" class="btn btn-light text-danger px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" onclick="return confirm('Bạn có chắc muốn xóa?');" title="Xóa"><i class="bi bi-trash"></i></a>
+                                        <a th:href="@{'/san-pham/delete/' + ${sp.id}}" class="btn btn-light text-danger px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" onclick="confirmDelete(event, this.href);" title="Xóa"><i class="bi bi-trash"></i></a>
                                     </td>
                                 </tr>
-                                <tr th:if="${#lists.isEmpty(pageData.content)}">
-                                    <td colspan="7" class="text-center text-muted py-5">
+                                    <tr th:if="${#lists.isEmpty(pageData.content)}">
+                                        <td colspan="8" class="text-center text-muted py-5">
                                         <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
                                         Không tìm thấy dữ liệu
                                     </td>
@@ -165,7 +167,7 @@
     <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <form action="/san-pham/add" method="POST" enctype="multipart/form-data">
+                <form id="add-product-form" action="/san-pham/add" method="POST" enctype="multipart/form-data" onsubmit="confirmAdd(event)">
                     <div class="modal-header border-0 pb-0 text-center d-block position-relative mt-3">
                         <h4 class="modal-title fw-bold text-uppercase w-100" style="letter-spacing: 1px;">THÊM SẢN PHẨM</h4>
                         <button type="button" class="btn-close position-absolute" style="top: 0; right: 20px;" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -323,6 +325,43 @@
                 });
             }
         });
+
+        function confirmDelete(e, url) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Xác nhận xóa',
+                text: 'Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
+
+        function confirmAdd(e) {
+            e.preventDefault();
+            const form = e.target;
+            Swal.fire({
+                title: 'Xác nhận',
+                text: 'Bạn có chắc chắn muốn thêm sản phẩm này?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563EB',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Thêm mới',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
     </script>
 </body>
 </html>

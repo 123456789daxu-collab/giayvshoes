@@ -16,4 +16,5 @@ public class SanPhamChiTietGiamGiaDto {
     private String tenMauSac;
     private String tenKichCo;
     private BigDecimal giaBan;
+    private Integer soLuongTon;
 }

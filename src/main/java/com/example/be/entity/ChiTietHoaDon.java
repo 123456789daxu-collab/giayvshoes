@@ -26,7 +26,7 @@ public class ChiTietHoaDon {
     @JoinColumn(name = "id_san_pham_chi_tiet")
     private SanPhamChiTiet sanPhamChiTiet;
 
-    @Column(name = "ma_hoa_don_chi_tiet")
+    @Transient
     private String maHoaDonChiTiet;
 
     @Column(name = "so_luong")
@@ -38,18 +38,18 @@ public class ChiTietHoaDon {
     @Column(name = "thanh_tien")
     private BigDecimal thanhTien;
 
-    @Column(name = "ngay_tao")
+    @Transient
     private LocalDateTime ngayTao;
 
-    @Column(name = "nguoi_tao")
+    @Transient
     private String nguoiTao;
 
-    @Column(name = "ngay_cap_nhat")
+    @Transient
     private LocalDateTime ngayCapNhat;
 
-    @Column(name = "nguoi_cap_nhat")
+    @Transient
     private String nguoiCapNhat;
 
-    @Column(name = "trang_thai")
+    @Transient
     private Integer trangThai;
 }

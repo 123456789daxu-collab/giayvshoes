@@ -14,16 +14,18 @@ import java.util.Optional;
 @Repository
 public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
-    @Query("SELECT h FROM HoaDon h WHERE " +
+    @Query("SELECT h FROM HoaDon h LEFT JOIN h.khachHang kh WHERE " +
            "(:keyword IS NULL OR LOWER(h.maHoaDon) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "OR LOWER(h.khachHang.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "OR LOWER(h.khachHang.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "OR LOWER(kh.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(kh.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(h.tenNguoiNhan) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(h.sdtNguoiNhan) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "AND (:trangThai IS NULL OR h.trangThai = :trangThai) " +
            "AND (:loaiHoaDon IS NULL OR h.loaiHoaDon = :loaiHoaDon) " +
-           "AND (:minPrice IS NULL OR h.tongTienThanhToan >= :minPrice) " +
-           "AND (:maxPrice IS NULL OR h.tongTienThanhToan <= :maxPrice) " +
-           "AND (cast(:startDate as timestamp) IS NULL OR h.ngayTao >= :startDate) " +
-           "AND (cast(:endDate as timestamp) IS NULL OR h.ngayTao <= :endDate) " +
+           "AND (:minPrice IS NULL OR h.tongTien >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR h.tongTien <= :maxPrice) " +
+           "AND (:startDate IS NULL OR h.ngayTao >= :startDate) " +
+           "AND (:endDate IS NULL OR h.ngayTao < :endDate) " +
            "ORDER BY h.ngayTao DESC")
     List<HoaDon> searchHoaDon(
             @Param("keyword") String keyword,

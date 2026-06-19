@@ -63,7 +63,8 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá với ID: " + id));
     }
 
-    private String generateMaVoucher() {
+    @Override
+    public String getNextMaVoucher() {
         Optional<PhieuGiamGia> lastVoucher = phieuGiamGiaRepository.findFirstByMaVoucherStartingWithOrderByMaVoucherDesc("PGG");
         if (lastVoucher.isEmpty()) {
             return "PGG001";
@@ -82,7 +83,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     public PhieuGiamGia createVoucher(PhieuGiamGiaDto dto) {
         String code = dto.getMaVoucher();
         if (code == null || code.trim().isEmpty()) {
-            code = generateMaVoucher();
+            code = getNextMaVoucher();
         } else {
             code = code.trim();
         }

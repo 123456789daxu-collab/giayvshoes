@@ -15,6 +15,8 @@ public class DotGiamGiaDto {
     private String maDotGiamGia;
     private String tenDotGiamGia;
     private Integer phanTramGiam;
+    private java.math.BigDecimal giaTriGiam;
+    private String hinhThucGiam;
     private LocalDateTime ngayBatDau;
     private LocalDateTime ngayKetThuc;
     private String moTa;

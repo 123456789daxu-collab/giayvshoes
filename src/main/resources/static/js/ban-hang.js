@@ -104,18 +104,29 @@ async function taoHoaDon() {
 }
 
 async function huyHoaDon(id) {
-    if (!confirm('Bạn có chắc chắn muốn hủy hóa đơn này? Các sản phẩm sẽ được trả lại kho.')) return;
-    
-    try {
-        const res = await fetch(`/api/ban-hang/hoa-don/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            showToast('Đã hủy hóa đơn');
-            loadHoaDonCho();
-            loadProducts(); // refresh kho
+    Swal.fire({
+        title: 'Xác nhận hủy',
+        text: "Bạn có chắc chắn muốn hủy hóa đơn này? Các sản phẩm sẽ được trả lại kho.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/api/ban-hang/hoa-don/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Đã hủy hóa đơn');
+                    loadHoaDonCho();
+                    loadProducts();
+                }
+            } catch (err) {
+                showToast('Lỗi hủy hóa đơn', 'error');
+            }
         }
-    } catch (err) {
-        showToast('Lỗi hủy hóa đơn', 'error');
-    }
+    });
 }
 
 async function selectHoaDon(id) {
@@ -245,17 +256,28 @@ async function capNhatSoLuong(idChiTiet, currentQty, change) {
 }
 
 async function xoaChiTiet(idChiTiet) {
-    if (!confirm('Xóa sản phẩm này khỏi giỏ hàng?')) return;
-    
-    try {
-        const res = await fetch(`/api/ban-hang/chi-tiet/${idChiTiet}`, { method: 'DELETE' });
-        if (res.ok) {
-            selectHoaDon(currentHoaDonId);
-            loadProducts();
+    Swal.fire({
+        title: 'Xác nhận xóa',
+        text: "Xóa sản phẩm này khỏi giỏ hàng?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/api/ban-hang/chi-tiet/${idChiTiet}`, { method: 'DELETE' });
+                if (res.ok) {
+                    selectHoaDon(currentHoaDonId);
+                    loadProducts();
+                }
+            } catch (err) {
+                showToast('Lỗi xóa sản phẩm', 'error');
+            }
         }
-    } catch (err) {
-        showToast('Lỗi xóa sản phẩm', 'error');
-    }
+    });
 }
 
 function renderCart(chiTiets) {
@@ -444,38 +466,46 @@ async function thanhToan() {
     
     const ghiChu = document.getElementById("txtGhiChu").value;
     
-    if (!confirm(`Xác nhận thanh toán hóa đơn ${currentHoaDon.maHoaDon} với số tiền ${formatCurrency(currentHoaDon.tongTienThanhToan)}?`)) return;
-    
-    const payload = {
-        tongTienHang: currentHoaDon.tongTienHang,
-        tienGiamGia: currentHoaDon.tienGiamGia,
-        tongTienThanhToan: currentHoaDon.tongTienThanhToan,
-        ghiChu: ghiChu
-    };
-    
-    try {
-        const res = await fetch(`/api/ban-hang/hoa-don/${currentHoaDonId}/thanh-toan`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (res.ok) {
-            showToast('Thanh toán thành công hóa đơn ' + currentHoaDon.maHoaDon);
-            document.getElementById("txtGhiChu").value = ''; // clear note
+    Swal.fire({
+        title: 'Xác nhận thanh toán',
+        text: `Xác nhận thanh toán hóa đơn ${currentHoaDon.maHoaDon} với số tiền ${formatCurrency(currentHoaDon.tongTienThanhToan)}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Thanh toán',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#d33'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const payload = {
+                tongTienHang: currentHoaDon.tongTienHang,
+                tienGiamGia: currentHoaDon.tienGiamGia,
+                tongTienThanhToan: currentHoaDon.tongTienThanhToan,
+                ghiChu: ghiChu
+            };
             
-            // Xóa current and reload
-            currentHoaDonId = null;
-            currentHoaDon = null;
-            loadHoaDonCho();
-            loadProducts();
-            
-            // Optionally redirect to print invoice, or show success modal
-        } else {
-            const err = await res.text();
-            showToast(err, 'error');
+            try {
+                const res = await fetch(`/api/ban-hang/hoa-don/${currentHoaDonId}/thanh-toan`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    showToast('Thanh toán thành công hóa đơn ' + currentHoaDon.maHoaDon);
+                    document.getElementById("txtGhiChu").value = '';
+                    
+                    currentHoaDonId = null;
+                    currentHoaDon = null;
+                    loadHoaDonCho();
+                    loadProducts();
+                } else {
+                    const err = await res.text();
+                    showToast(err, 'error');
+                }
+            } catch (err) {
+                showToast('Lỗi thanh toán', 'error');
+            }
         }
-    } catch (err) {
-        showToast('Lỗi thanh toán', 'error');
-    }
+    });
 }

@@ -42,6 +42,9 @@ public class DanhMucController {
 
     @PostMapping("/add")
     public String add(@ModelAttribute DanhMuc danhMuc, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        if (danhMuc.getMaDanhMuc() == null || danhMuc.getMaDanhMuc().trim().isEmpty()) {
+            danhMuc.setMaDanhMuc("DM" + System.currentTimeMillis());
+        }
         danhMucRepository.save(danhMuc);
         redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
         String referer = request.getHeader("Referer");

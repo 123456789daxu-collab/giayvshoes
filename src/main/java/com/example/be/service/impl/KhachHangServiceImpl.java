@@ -6,6 +6,10 @@ import com.example.be.dto.KhachHangDto;
 import com.example.be.dto.DiaChiDto;
 import com.example.be.repository.KhachHangRepository;
 import com.example.be.repository.DiaChiRepository;
+import com.example.be.repository.HoaDonRepository;
+import com.example.be.repository.PhieuGiamGiaKhachHangRepository;
+import com.example.be.entity.HoaDon;
+import com.example.be.entity.PhieuGiamGiaKhachHang;
 import com.example.be.service.KhachHangService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,7 +28,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Optional;
 
 @Service
 public class KhachHangServiceImpl implements KhachHangService {
@@ -34,6 +38,12 @@ public class KhachHangServiceImpl implements KhachHangService {
 
     @Autowired
     private DiaChiRepository diaChiRepository;
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
+
+    @Autowired
+    private PhieuGiamGiaKhachHangRepository phieuGiamGiaKhachHangRepository;
 
     @Override
     public Page<KhachHang> searchKhachHang(String search, Boolean gioiTinh, LocalDate dob, Integer trangThai, int page, int size) {
@@ -52,24 +62,40 @@ public class KhachHangServiceImpl implements KhachHangService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với ID: " + id));
     }
 
-    @Override
-    public String getNextMaKhachHang() {
-        Page<String> page = khachHangRepository.findMaxMaKhachHang(PageRequest.of(0, 1));
-        if (page.isEmpty() || page.getContent().isEmpty()) {
-            return "KH001";
+    private String generateMaKhachHang() {
+        Optional<KhachHang> lastCustomer = khachHangRepository.findFirstByMaKhachHangStartingWithOrderByMaKhachHangDesc("KH");
+        if (lastCustomer.isEmpty()) {
+            return "KH00001";
         }
-        String lastCode = page.getContent().get(0);
+        String lastCode = lastCustomer.get().getMaKhachHang();
         try {
             int num = Integer.parseInt(lastCode.substring(2));
-            return String.format("KH%03d", num + 1);
+            return String.format("KH%05d", num + 1);
         } catch (NumberFormatException e) {
             return "KH" + System.currentTimeMillis();
         }
     }
 
     @Override
+    public String getNextMaKhachHang() {
+        return generateMaKhachHang();
+    }
+
+    private void validateNgaySinh(LocalDate ngaySinh, int minAge) {
+        if (ngaySinh == null) return;
+        if (ngaySinh.isAfter(LocalDate.now())) {
+            throw new RuntimeException("Ngày sinh không được ở tương lai!");
+        }
+        LocalDate minDate = LocalDate.now().minusYears(minAge);
+        if (ngaySinh.isAfter(minDate)) {
+            throw new RuntimeException("Khách hàng phải đủ " + minAge + " tuổi!");
+        }
+    }
+
+    @Override
     @Transactional
     public KhachHang createKhachHang(KhachHangDto dto) {
+        validateNgaySinh(dto.getNgaySinh(), 16);
         if (dto.getSoDienThoai() != null && !dto.getSoDienThoai().trim().isEmpty() && khachHangRepository.existsBySoDienThoai(dto.getSoDienThoai())) {
             throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
         }
@@ -77,20 +103,15 @@ public class KhachHangServiceImpl implements KhachHangService {
             throw new RuntimeException("Email đã tồn tại trong hệ thống!");
         }
 
-        String maKhachHang = getNextMaKhachHang();
-
-        if (khachHangRepository.findByMaKhachHang(maKhachHang).isPresent()) {
-            throw new RuntimeException("Mã khách hàng đã tồn tại trong hệ thống!");
-        }
-
         KhachHang khachHang = KhachHang.builder()
-                .maKhachHang(maKhachHang)
+                .maKhachHang(generateMaKhachHang())
                 .hoTen(dto.getHoTen())
                 .email(dto.getEmail())
                 .soDienThoai(dto.getSoDienThoai())
                 .matKhau("123456") // Mật khẩu mặc định
                 .ngaySinh(dto.getNgaySinh())
                 .gioiTinh(dto.getGioiTinh())
+                .anhDaiDien(dto.getAnhDaiDien())
                 .ngayTao(LocalDateTime.now())
                 .trangThai(dto.getTrangThai() != null ? dto.getTrangThai() : 1)
                 .build();
@@ -123,6 +144,7 @@ public class KhachHangServiceImpl implements KhachHangService {
     @Override
     @Transactional
     public KhachHang updateKhachHang(Long id, KhachHangDto dto) {
+        validateNgaySinh(dto.getNgaySinh(), 16);
         KhachHang khachHang = findById(id);
 
         if (dto.getSoDienThoai() != null && !dto.getSoDienThoai().trim().isEmpty() 
@@ -141,6 +163,7 @@ public class KhachHangServiceImpl implements KhachHangService {
         khachHang.setSoDienThoai(dto.getSoDienThoai());
         khachHang.setNgaySinh(dto.getNgaySinh());
         khachHang.setGioiTinh(dto.getGioiTinh());
+        khachHang.setAnhDaiDien(dto.getAnhDaiDien());
         if (dto.getTrangThai() != null) {
             khachHang.setTrangThai(dto.getTrangThai());
         }
@@ -154,6 +177,21 @@ public class KhachHangServiceImpl implements KhachHangService {
         KhachHang khachHang = findById(id);
         khachHang.setTrangThai(status);
         return khachHangRepository.save(khachHang);
+    }
+
+    @Override
+    @Transactional
+    public void deleteKhachHang(Long id) {
+        KhachHang khachHang = findById(id);
+        khachHang.setTrangThai(0);
+        khachHangRepository.save(khachHang);
+    }
+
+    @Override
+    public void updateAvatar(Long id, String avatarPath) {
+        KhachHang khachHang = findById(id);
+        khachHang.setAnhDaiDien(avatarPath);
+        khachHangRepository.save(khachHang);
     }
 
     @Override
@@ -257,7 +295,7 @@ public class KhachHangServiceImpl implements KhachHangService {
                 }
 
                 KhachHang khachHang = KhachHang.builder()
-                        .maKhachHang(getNextMaKhachHang())
+                        .maKhachHang(generateMaKhachHang())
                         .hoTen(hoTen)
                         .soDienThoai(sdt)
                         .email(email)
@@ -268,7 +306,7 @@ public class KhachHangServiceImpl implements KhachHangService {
                         .trangThai(trangThai)
                         .build();
 
-                khachHangRepository.saveAndFlush(khachHang);
+                khachHangRepository.save(khachHang);
             }
         }
     }

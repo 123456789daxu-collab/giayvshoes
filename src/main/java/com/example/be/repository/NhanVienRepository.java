@@ -19,4 +19,12 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
     List<NhanVien> searchByKeyword(@Param("keyword") String keyword);
 
     List<NhanVien> findByTrangThai(Integer trangThai);
+
+    boolean existsByEmail(String email);
+    boolean existsBySoDienThoai(String soDienThoai);
+    boolean existsByEmailAndIdNot(String email, Long id);
+    boolean existsBySoDienThoaiAndIdNot(String soDienThoai, Long id);
+
+    @Query("SELECT MAX(n.maNhanVien) FROM NhanVien n WHERE n.maNhanVien LIKE 'NV%'")
+    String findMaxMaNhanVien();
 }

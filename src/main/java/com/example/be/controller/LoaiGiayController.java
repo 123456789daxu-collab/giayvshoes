@@ -42,6 +42,9 @@ public class LoaiGiayController {
 
     @PostMapping("/add")
     public String add(@ModelAttribute LoaiGiay loaiGiay, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        if (loaiGiay.getMaLoaiGiay() == null || loaiGiay.getMaLoaiGiay().trim().isEmpty()) {
+            loaiGiay.setMaLoaiGiay("LG" + System.currentTimeMillis());
+        }
         loaiGiayRepository.save(loaiGiay);
         redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
         String referer = request.getHeader("Referer");

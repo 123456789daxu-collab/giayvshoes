@@ -4,7 +4,7 @@
 let allEmployees = [];
 let filteredEmployees = [];
 let currentPage = 0;
-const pageSize = 8;
+let pageSize = 10;
 let currentSearch = "";
 let currentStatus = ""; // "" means all, "1" or "0" for active/inactive
 let currentGender = "";
@@ -13,94 +13,185 @@ let isEditing = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Initialize DOM Elements
-    const modal = document.getElementById("employeeModal");
+    const listPanel = document.getElementById("list-panel");
+    const formPanel = document.getElementById("form-panel");
     const btnAdd = document.getElementById("btnAddEmployee");
-    const spanClose = document.getElementById("modalClose");
     const btnCancel = document.getElementById("btnCancel");
+    const btnBackToList = document.getElementById("btnBackToList");
     const form = document.getElementById("employeeForm");
     const searchInput = document.getElementById("searchInput");
-    const filterStatusRadios = document.querySelectorAll("input[name='filterStatus']");
-    const filterGenderRadios = document.querySelectorAll("input[name='filterGender']");
+    const filterStatusSelect = document.getElementById("filterStatus");
+    const filterGenderSelect = document.getElementById("filterGender");
+    const btnExportExcel = document.getElementById("btnExportExcel");
+
+    const employeeModal = document.getElementById("employeeModal");
+    const modalClose = document.getElementById("modalClose");
+
+    const showFormPanel = () => {
+        if (employeeModal) employeeModal.style.display = "flex";
+    };
+
+    const hideFormPanel = () => {
+        if (employeeModal) employeeModal.style.display = "none";
+    };
+
+    if (modalClose) {
+        modalClose.addEventListener("click", hideFormPanel);
+    }
+
+    if (btnExportExcel) {
+        btnExportExcel.onclick = () => {
+            if (filteredEmployees.length === 0) {
+                window.showToast("Không có dữ liệu để xuất!", "error");
+                return;
+            }
+            window.showToast("Đang tải xuống file Excel...", "success");
+            
+            let csvContent = "\uFEFF"; // BOM for UTF-8
+            csvContent += "STT,Mã nhân viên,Họ và tên,Vai trò,Giới tính,Ngày sinh,Số điện thoại,Email,Địa chỉ,Trạng thái\n";
+            
+            filteredEmployees.forEach((nv, index) => {
+                const stt = index + 1;
+                const gender = nv.gioiTinh ? "Nam" : "Nữ";
+                const status = nv.trangThai === 1 ? "Hoạt động" : "Ngưng hoạt động";
+                const row = [
+                    stt,
+                    nv.maNhanVien || '',
+                    `"${(nv.hoTen || '').replace(/"/g, '""')}"`,
+                    `"${(nv.chucVu || '').replace(/"/g, '""')}"`,
+                    gender,
+                    nv.ngaySinh || '',
+                    `="${nv.soDienThoai || ''}"`, // Force as string in excel
+                    `"${(nv.email || '').replace(/"/g, '""')}"`,
+                    `"${(nv.diaChi || '').replace(/"/g, '""')}"`,
+                    status
+                ].join(",");
+                csvContent += row + "\n";
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Danh_sach_nhan_vien_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    }
     const filterDob = document.getElementById("filterDob");
 
     // QR Code Scanner elements
     const btnScanCCCD = document.getElementById("btnScanCCCD");
     const qrReaderModal = document.getElementById("qrReaderModal");
-    const btnCancelScan = document.getElementById("btnCancelScan");
-    let html5Qrcode = null;
+    const btnCancelScanModal = document.getElementById("btnCancelScanModal");
+    let html5QrCode = null;
 
     const stopScanner = () => {
-        if (html5Qrcode) {
-            html5Qrcode.stop().then(() => {
-                html5Qrcode.clear();
-                html5Qrcode = null;
-                qrReaderModal.style.display = "none";
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+                html5QrCode = null;
             }).catch(error => {
-                console.error("Failed to clear html5Qrcode. ", error);
-                html5Qrcode = null;
-                qrReaderModal.style.display = "none";
+                console.error("Failed to stop scanner. ", error);
+                html5QrCode = null;
             });
-        } else {
-            qrReaderModal.style.display = "none";
         }
+        qrReaderModal.style.display = "none";
+        const laser = document.getElementById("qr-laser");
+        if(laser) laser.style.animationPlayState = "paused";
     };
 
-    btnScanCCCD.addEventListener("click", () => {
-        qrReaderModal.style.display = "flex";
-
-        if (!html5Qrcode) {
-            html5Qrcode = new Html5Qrcode("qr-reader");
-        }
-
-        html5Qrcode.start(
-            { facingMode: "environment" },
-            {
-                fps: 10,
-                qrbox: { width: 250, height: 250 }
-            },
-            (decodedText, decodedResult) => {
-                // CCCD format: Số CCCD|Số CMND|Họ tên|Ngày sinh|Giới tính|Địa chỉ thường trú|Ngày cấp
-                console.log(`Scan result: ${decodedText}`);
-                const parts = decodedText.split('|');
-                if (parts.length >= 6) {
-                    const fullName = parts[2];
-                    const dobRaw = parts[3]; // format ddmmyyyy
-                    const gender = parts[4]; // Nam / Nữ
-                    const address = parts[5];
-
-                    // Fill form
-                    document.getElementById("empName").value = fullName;
-
-                    // Format DOB from ddmmyyyy to yyyy-mm-dd
-                    if (dobRaw.length === 8) {
-                        const dobFormatted = `${dobRaw.substring(4, 8)}-${dobRaw.substring(2, 4)}-${dobRaw.substring(0, 2)}`;
-                        document.getElementById("empDob").value = dobFormatted;
-                    }
-
-                    if (gender === "Nam") {
-                        document.getElementById("genderMale").checked = true;
-                    } else if (gender === "Nữ") {
-                        document.getElementById("genderFemale").checked = true;
-                    }
-
-                    document.getElementById("empAddress").value = address;
-
-                    window.showToast("Đã quét và điền thông tin CCCD thành công!");
-                    stopScanner();
-                } else {
-                    window.showToast("Mã QR không đúng định dạng CCCD Việt Nam!", "error");
-                }
-            },
-            (errorMessage) => {
-                // parse error, ignore it.
+    function processCCCDQR(decodedText) {
+        const parts = decodedText.split('|');
+        if (parts.length >= 6) {
+            const cccdNumber = parts[0];
+            const fullNameRaw = parts[2];
+            const fullName = fullNameRaw.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            const dobRaw = parts[3];
+            const gender = parts[4];
+            const address = parts[5];
+            
+          if (cccdNumber && document.getElementById("empCccd")) {
+            document.getElementById("empCccd").value = cccdNumber;
+            document.getElementById("empName").value = fullName;
+            let year = "";
+            if (dobRaw.length === 8) {
+                year = dobRaw.substring(4, 8);
+                const dobFormatted = `${year}-${dobRaw.substring(2, 4)}-${dobRaw.substring(0, 2)}`;
+                document.getElementById("empDob").value = dobFormatted;
             }
-        ).catch((err) => {
-            console.error(err);
-            window.showToast("Không thể mở camera. Vui lòng cấp quyền truy cập!", "error");
-        });
-    });
+            if (gender === "Nam") {
+                document.getElementById("genderMale").checked = true;
+                if(document.getElementById("empGenderSelect")) document.getElementById("empGenderSelect").value = "true";
+            } else {
+                document.getElementById("genderFemale").checked = true;
+                if(document.getElementById("empGenderSelect")) document.getElementById("empGenderSelect").value = "false";
+            }
+            document.getElementById("empAddress").value = address;
+            // Also fill the street input for the new cascade address UI
+            const addrStreet = document.getElementById("addrStreet");
+            if (addrStreet) {
+                addrStreet.value = address;
+                if (window.addressHelper) window.addressHelper.updateHiddenAddress();
+            }
 
-    btnCancelScan.addEventListener("click", stopScanner);
+            const removeTones = (str) => {
+                str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ|À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "a");
+                str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ|È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "e");
+                str = str.replace(/ì|í|ị|ỉ|ĩ|Ì|Í|Ị|Ỉ|Ĩ/g, "i");
+                str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ|Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "o");
+                str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ|Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "u");
+                str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ|Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "y");
+                str = str.replace(/đ|Đ/g, "d");
+                return str.toLowerCase().replace(/\s/g, "");
+            };
+            const emailAlias = removeTones(fullNameRaw);
+            document.getElementById("empEmail").value = `${emailAlias}${year}@gmail.com`;
+            document.getElementById("empPassword").value = cccdNumber;
+            if (!document.getElementById("empPhone").value) {
+                document.getElementById("empPhone").value = "0987654321";
+            }
+            
+            if(document.getElementById("avatarEmployeeName")) document.getElementById("avatarEmployeeName").textContent = fullName;
+            if(document.getElementById("avatarEmployeeEmail")) document.getElementById("avatarEmployeeEmail").textContent = `${emailAlias}${year}@gmail.com`;
+
+            window.showToast("Đã tự động điền thông tin CCCD thành công!");
+            stopScanner();
+          }
+        } else {
+            window.showToast("Mã QR không đúng định dạng CCCD Việt Nam!", "error");
+        }
+    }
+
+    if (btnScanCCCD) {
+        btnScanCCCD.addEventListener("click", () => {
+            qrReaderModal.style.display = "flex";
+            const laser = document.getElementById("qr-laser");
+            if(laser) laser.style.animationPlayState = "running";
+            
+            // Initialize Scanner directly without UI
+            html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 300, height: 300 } },
+                (decodedText) => {
+                    processCCCDQR(decodedText);
+                },
+                (errorMessage) => {
+                    // parse error, ignore it.
+                }
+            ).catch((err) => {
+                console.error("Camera access error:", err);
+                window.showToast("Không thể truy cập máy ảnh. Vui lòng cấp quyền!", "error");
+                stopScanner();
+            });
+        });
+    }
+
+    if (btnCancelScanModal) {
+        btnCancelScanModal.addEventListener("click", stopScanner);
+    }
 
     // 2. Initialize Toast Container
     const toastContainer = document.createElement("div");
@@ -123,42 +214,56 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3500);
     };
 
-    // 3. Open Modal for Adding Employee
+    // 3. Open Form for Adding Employee
     btnAdd.onclick = () => {
         isEditing = false;
-        document.getElementById("modalTitle").textContent = "Thêm Nhân viên";
+        const formTitleEl = document.getElementById("modalTitle");
+        if (formTitleEl) formTitleEl.textContent = "Thêm nhân viên mới";
         form.reset();
         document.getElementById("empId").value = "";
-
+        
+        // Hide status field when adding new employee
+        document.getElementById("empStatusGroup").style.display = "none";
+        
+        // Fetch next code
+        fetch("/api/nhan-vien/next-code")
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.code) document.getElementById("empCode").value = data.code;
+            })
+            .catch(err => console.error(err));
+        
+        // Reset address dropdowns
+        if (window.addressHelper) window.addressHelper.resetAddressFields();
+        
         // Password is required for new employees
         const passInput = document.getElementById("empPassword");
         passInput.required = true;
-        passInput.placeholder = "Nhập mật khẩu...";
-
-        // Reset Avatar Preview
-        document.getElementById("empAvatarImg").src = "";
-        document.getElementById("empAvatarImg").style.display = "none";
-        document.getElementById("defaultAvatarIcon").style.display = "flex";
+        
+        document.getElementById("empId").value = "";
+        document.getElementById("empAvatarImg").src = "https://ui-avatars.com/api/?name=NV&background=f1f5f9&color=64748b&size=128";
         document.getElementById("empAvatar").value = "";
-
+        document.getElementById("empRole").value = "Nhân viên";
+        if(document.getElementById("empCccd")) document.getElementById("empCccd").value = "";
+        if(document.getElementById("avatarEmployeeName")) document.getElementById("avatarEmployeeName").textContent = "Nhân viên mới";
+        if(document.getElementById("avatarEmployeeEmail")) document.getElementById("avatarEmployeeEmail").textContent = "Chưa cập nhật email";
+        
         // Set default gender (Male)
         document.getElementById("genderMale").checked = true;
-
+        if(document.getElementById("empGenderSelect")) document.getElementById("empGenderSelect").value = "true";
+        
         // Set default status (Active / 1)
         document.getElementById("empStatus").value = "1";
 
-        modal.style.display = "flex";
+        // Chỉ hiển thị nút quét CCCD khi thêm mới
+        if (btnScanCCCD) btnScanCCCD.style.display = "inline-flex";
+
+        showFormPanel();
     };
 
-    // 4. Close Modal
-    const hideModal = () => {
-        modal.style.display = "none";
-    };
-    spanClose.onclick = hideModal;
-    btnCancel.onclick = hideModal;
-    window.onclick = (e) => {
-        if (e.target === modal) hideModal();
-    };
+    // 4. Close Form
+    if (btnCancel) btnCancel.onclick = hideFormPanel;
+    if (btnBackToList) btnBackToList.onclick = hideFormPanel;
 
     // 5. Search & Filter Event Handlers (Instant local responses)
     if (searchInput) {
@@ -169,21 +274,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    filterStatusRadios.forEach(radio => {
-        radio.addEventListener("change", (e) => {
+    if (filterStatusSelect) {
+        filterStatusSelect.addEventListener("change", (e) => {
             currentStatus = e.target.value;
             currentPage = 0;
             applyLocalFilter();
         });
-    });
+    }
 
-    filterGenderRadios.forEach(radio => {
-        radio.addEventListener("change", (e) => {
+    const filterRole = document.getElementById("filterRole");
+    if (filterRole) {
+        filterRole.addEventListener("change", (e) => {
+            // we can filter by role too
+            applyLocalFilter();
+        });
+    }
+
+    if (filterGenderSelect) {
+        filterGenderSelect.addEventListener("change", (e) => {
             currentGender = e.target.value;
             currentPage = 0;
             applyLocalFilter();
         });
-    });
+    }
 
     if (filterDob) {
         filterDob.addEventListener("change", (e) => {
@@ -198,7 +311,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const fileInput = document.getElementById("empAvatar");
 
     if (dropZone && fileInput) {
-        dropZone.addEventListener("click", () => fileInput.click());
+        dropZone.addEventListener("click", (e) => {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
 
         // Highlight drag area on dragover
         ["dragenter", "dragover"].forEach(eventName => {
@@ -238,54 +355,107 @@ document.addEventListener("DOMContentLoaded", () => {
     function handleAvatarPreview(file) {
         // Validate file type
         if (!file.type.startsWith("image/")) {
-            showToast("Vui lòng chọn tệp tin hình ảnh hợp lệ!", "error");
+            window.showToast("Vui lòng chọn tệp tin hình ảnh hợp lệ!", "error");
             fileInput.value = "";
             return;
         }
         // Validate file size (max 3MB)
         if (file.size > 3 * 1024 * 1024) {
-            showToast("Kích thước ảnh không được vượt quá 3MB!", "error");
+            window.showToast("Kích thước ảnh không được vượt quá 3MB!", "error");
             fileInput.value = "";
             return;
         }
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            const img = document.getElementById("empAvatarImg");
-            img.src = e.target.result;
-            img.style.display = "inline-block";
-            document.getElementById("defaultAvatarIcon").style.display = "none";
+            document.getElementById("empAvatarImg").src = e.target.result;
         };
         reader.readAsDataURL(file);
+    }
+
+    // Sync avatar texts
+    const empNameInput = document.getElementById("empName");
+    if (empNameInput) {
+        empNameInput.addEventListener("input", (e) => {
+            if(document.getElementById("avatarEmployeeName")) document.getElementById("avatarEmployeeName").textContent = e.target.value || "Nhân viên mới";
+        });
+    }
+
+    const empEmailInput = document.getElementById("empEmail");
+    if (empEmailInput) {
+        empEmailInput.addEventListener("input", (e) => {
+            if(document.getElementById("avatarEmployeeEmail")) document.getElementById("avatarEmployeeEmail").textContent = e.target.value || "Chưa cập nhật email";
+        });
     }
 
     // 7. Form Submission Handler
     form.onsubmit = (e) => {
         e.preventDefault();
-
+        
         const id = document.getElementById("empId").value;
         const password = document.getElementById("empPassword").value;
-
+        
         // Advanced validation
+        const hoTen = document.getElementById("empName").value.trim();
         const phone = document.getElementById("empPhone").value.trim();
         const email = document.getElementById("empEmail").value.trim();
 
-        const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
-        if (!phoneRegex.test(phone)) {
-            showToast("Số điện thoại không đúng định dạng Việt Nam!", "error");
+        if (!hoTen) {
+            window.showToast("Vui lòng không để trống Họ và tên!", "warning");
             return;
+        }
+        if (!phone) {
+            window.showToast("Vui lòng không để trống Số điện thoại!", "warning");
+            return;
+        }
+        
+        const phoneRegex = /^(0)[0-9]{9}$/;
+        if (!phoneRegex.test(phone)) {
+            window.showToast("Số điện thoại phải bắt đầu bằng số 0 và có đúng 10 chữ số!", "warning");
+            return;
+        }
+        if (email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                window.showToast("Email không đúng định dạng hợp lệ!", "warning");
+                return;
+            }
+        }
+
+        // Validate date of birth
+        const dobEl = document.getElementById("empDob");
+        const dobVal = dobEl.value;
+        if (dobVal) {
+            const dob = new Date(dobVal);
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+            if (dob > today) {
+                window.showToast("Ngày sinh không được ở tương lai!", "warning");
+                return;
+            }
+            const minAge = new Date();
+            minAge.setFullYear(minAge.getFullYear() - 18);
+            minAge.setHours(23, 59, 59, 999);
+            if (dob > minAge) {
+                window.showToast("Nhân viên phải đủ 18 tuổi!", "warning");
+                return;
+            }
         }
 
         // Get gender radio selection
         const gioiTinh = document.getElementById("genderMale").checked;
 
+        let roleValue = document.getElementById("empRole").value;
+        if(roleValue === "Nhân viên") roleValue = "Nhân viên bán hàng";
+        
         // Build request payload matching NhanVien entity
         const payload = {
             hoTen: document.getElementById("empName").value.trim(),
             email: email,
             soDienThoai: phone,
             matKhau: password || null,
-            chucVu: document.getElementById("empRole").value,
+            chucVu: roleValue,
+            cccd: document.getElementById("empCccd") ? document.getElementById("empCccd").value.trim() : "",
             trangThai: Number(document.getElementById("empStatus").value),
             gioiTinh: gioiTinh,
             ngaySinh: document.getElementById("empDob").value || null,
@@ -302,46 +472,134 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Post/Put to backend
-        fetch(requestUrl, {
-            method: requestMethod,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
+        Swal.fire({
+            title: 'Xác nhận',
+            text: id ? "Bạn có chắc chắn muốn cập nhật thông tin nhân viên này?" : "Bạn có chắc chắn muốn thêm nhân viên mới này?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(requestUrl, {
+                    method: requestMethod,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+        .then(async (res) => {
+            if (!res.ok) {
+                const errMsg = await res.text();
+                throw new Error(errMsg || "Lưu thông tin thất bại!");
+            }
+            return res.json();
         })
-            .then(async (res) => {
-                if (!res.ok) {
-                    const errMsg = await res.text();
-                    throw new Error(errMsg || "Lưu thông tin thất bại!");
-                }
-                return res.json();
-            })
-            .then((savedEmployee) => {
-                // Upload avatar if a new one is selected
-                if (fileInput && fileInput.files.length > 0) {
-                    const formData = new FormData();
-                    formData.append("file", fileInput.files[0]);
+        .then((savedEmployee) => {
+            // Upload avatar if a new one is selected
+            if (fileInput && fileInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append("file", fileInput.files[0]);
 
-                    return fetch(`/api/nhan-vien/${savedEmployee.id}/avatar`, {
-                        method: "POST",
-                        body: formData
-                    }).then(res => {
-                        if (!res.ok) throw new Error("Không thể tải lên ảnh đại diện!");
-                        return savedEmployee;
-                    });
-                }
-                return savedEmployee;
-            })
-            .then(() => {
-                showToast(id ? "Cập nhật tài khoản nhân viên thành công!" : "Tạo tài khoản nhân viên thành công!");
-                hideModal();
-                loadEmployees();
-            })
-            .catch((error) => {
-                showToast(error.message, "error");
-            });
+                return fetch(`/api/nhan-vien/${savedEmployee.id}/avatar`, {
+                    method: "POST",
+                    body: formData
+                }).then(res => {
+                    if (!res.ok) throw new Error("Không thể tải lên ảnh đại diện!");
+                    return savedEmployee;
+                });
+            }
+            return savedEmployee;
+        })
+        .then(() => {
+            window.showToast(id ? "Cập nhật nhân viên thành công!" : "Tạo nhân viên thành công!");
+            hideFormPanel();
+            loadEmployees();
+        })
+                .catch((error) => {
+                    window.showToast(error.message, "error");
+                });
+            }
+        });
     };
 
     // 8. Initial Load
     loadEmployees();
+
+    window.editEmployee = function(id) {
+        isEditing = true;
+        fetch(`/api/nhan-vien/${id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Không thể tải thông tin chi tiết nhân viên!");
+                return res.json();
+            })
+            .then(nv => {
+                if (nv) {
+                    const formTitleEl = document.getElementById("modalTitle");
+                    if (formTitleEl) formTitleEl.textContent = "Sửa thông tin nhân viên";
+                    document.getElementById("empId").value = nv.id;
+                    document.getElementById("empCode").value = nv.maNhanVien || "";
+                    document.getElementById("empName").value = nv.hoTen || "";
+                    document.getElementById("empEmail").value = nv.email || "";
+                    document.getElementById("empPhone").value = nv.soDienThoai || "";
+                    
+                    if(document.getElementById("avatarEmployeeName")) document.getElementById("avatarEmployeeName").textContent = nv.hoTen || "";
+                    if(document.getElementById("avatarEmployeeEmail")) document.getElementById("avatarEmployeeEmail").textContent = nv.email || "";
+                    
+                    // Password is optional during edit
+                    const passInput = document.getElementById("empPassword");
+                    passInput.value = "";
+                    passInput.required = false;
+    
+                    let roleDisplay = nv.chucVu || "Nhân viên bán hàng";
+                    if(roleDisplay === "Nhân viên bán hàng") roleDisplay = "Nhân viên";
+                    document.getElementById("empRole").value = roleDisplay;
+                    
+                    if(document.getElementById("empCccd")) document.getElementById("empCccd").value = nv.cccd || "";
+                    // Fill address: put full diaChi string into the street field for editing
+                    document.getElementById("empAddress").value = nv.diaChi || "";
+                    const addrStreet = document.getElementById("addrStreet");
+                    if (addrStreet) {
+                        addrStreet.value = nv.diaChi || "";
+                        if (window.addressHelper) window.addressHelper.updateHiddenAddress();
+                    }
+                    
+                    // Show and set status field when editing
+                    document.getElementById("empStatusGroup").style.display = "block";
+                    document.getElementById("empStatus").value = String(nv.trangThai);
+                    
+                    // Set Gender
+                    if (nv.gioiTinh === false) {
+                        document.getElementById("genderFemale").checked = true;
+                        if(document.getElementById("empGenderSelect")) document.getElementById("empGenderSelect").value = "false";
+                    } else {
+                        document.getElementById("genderMale").checked = true;
+                        if(document.getElementById("empGenderSelect")) document.getElementById("empGenderSelect").value = "true";
+                    }
+    
+                    // Set Birthdate
+                    document.getElementById("empDob").value = nv.ngaySinh || "";
+                    
+                    // Set avatar preview
+                    const avatarImg = document.getElementById("empAvatarImg");
+                    const fallbackUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(nv.hoTen || "NV") + "&background=f1f5f9&color=64748b&size=128";
+                    avatarImg.src = nv.anhDaiDien || fallbackUrl;
+                    avatarImg.onerror = function() { this.onerror=null; this.src = fallbackUrl; };
+                    
+                    // Reset file selector
+                    document.getElementById("empAvatar").value = "";
+    
+                    // Ẩn nút quét CCCD khi đang chỉnh sửa
+                    const btnScanCCCD = document.getElementById("btnScanCCCD");
+                    if (btnScanCCCD) btnScanCCCD.style.display = "none";
+    
+                    showFormPanel();
+                }
+            })
+            .catch(err => {
+                window.showToast(err.message, "error");
+            });
+    }
 });
 
 // Load employees from server
@@ -370,10 +628,10 @@ function applyLocalFilter() {
             const name = (nv.hoTen || "").toLowerCase();
             const email = (nv.email || "").toLowerCase();
             const phone = (nv.soDienThoai || "").toLowerCase();
-            matchesSearch = code.includes(currentSearch) ||
-                name.includes(currentSearch) ||
-                email.includes(currentSearch) ||
-                phone.includes(currentSearch);
+            matchesSearch = code.includes(currentSearch) || 
+                            name.includes(currentSearch) || 
+                            email.includes(currentSearch) || 
+                            phone.includes(currentSearch);
         }
 
         // 2. Status matching
@@ -393,8 +651,20 @@ function applyLocalFilter() {
         if (currentDob !== "") {
             matchesDob = nv.ngaySinh === currentDob;
         }
+        
+        // 5. Role matching
+        const filterRole = document.getElementById("filterRole");
+        let matchesRole = true;
+        if(filterRole && filterRole.value) {
+            let selectedRole = filterRole.value;
+            if(selectedRole === "Nhân viên bán hàng" && (nv.chucVu === "Nhân viên bán hàng" || nv.chucVu === "Nhân viên")) {
+                matchesRole = true;
+            } else if (nv.chucVu !== selectedRole) {
+                matchesRole = false;
+            }
+        }
 
-        return matchesSearch && matchesStatus && matchesGender && matchesDob;
+        return matchesSearch && matchesStatus && matchesGender && matchesDob && matchesRole;
     });
 
     renderTable();
@@ -411,7 +681,7 @@ function renderTable() {
     if (totalElements === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 40px; color: #64748b; font-weight: 500;">
+                <td colspan="11" style="text-align: center; padding: 40px; color: #64748b; font-weight: 500;">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                         <i data-lucide="inbox" style="width: 32px; height: 32px; stroke-width: 1.5;"></i>
                         Không tìm thấy nhân viên nào phù hợp
@@ -434,7 +704,7 @@ function renderTable() {
     pageEmployees.forEach((nv, index) => {
         const tr = document.createElement("tr");
         const stt = startIdx + index + 1;
-
+        
         // Gender Display
         const genderText = nv.gioiTinh ? "Nam" : "Nữ";
 
@@ -442,52 +712,39 @@ function renderTable() {
         const statusClass = (nv.trangThai === 1) ? "badge-success" : "badge-danger";
         const statusText = (nv.trangThai === 1) ? "Hoạt động" : "Ngưng hoạt động";
 
+        let dobStr = nv.ngaySinh || "";
+        // Optional: format dobStr if needed, but keeping it as is for simplicity
+        
         tr.innerHTML = `
-            <td style="color: #555;">${stt}</td>
-            <td style="text-align: center;">
-                <div class="avatar-cell">
-                    <div class="avatar-placeholder">
-                        <i data-lucide="user" style="width: 20px; height: 20px; color: #94a3b8;"></i>
-                    </div>
+            <td style="color: #555; text-align: center;">${stt}</td>
+            <td class="avatar-td" style="padding: 10px;">
+                <div class="avatar-wrapper" style="width: 36px; height: 36px; margin: 0 auto; border-radius: 50%; border: none; background: #f1f5f9; overflow: hidden;">
+                    <img src="${nv.anhDaiDien || ''}" class="avatar-img" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent('${nv.hoTen || "NV"}') + '&background=f1f5f9&color=64748b&size=128'" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"/>
                 </div>
             </td>
             <td>
-                <div style="font-weight: 500; color: #333;">${nv.hoTen}</div>
+                <div style="font-weight: 500; color: #333;">${nv.hoTen || ''}</div>
+                <div style="font-size: 12px; color: #64748b;">${nv.maNhanVien || ''}</div>
             </td>
-            <td style="color: #555;">${nv.chucVu}</td>
+            <td style="color: #555; font-weight: 500;">${nv.chucVu || ''}</td>
             <td style="color: #555;">${genderText}</td>
-            <td style="color: #555;">${nv.ngaySinh || ''}</td>
+            <td style="color: #555;">${dobStr}</td>
             <td>
-                <div class="contact-info">
-                    <div class="contact-item">
-                        <span>${nv.soDienThoai || '-'}</span>
-                    </div>
-                    <div class="contact-item">
-                        <span>${nv.email || '-'}</span>
-                    </div>
-                </div>
+                <div style="color: #333; font-size: 13px;">${nv.soDienThoai || ''}</div>
+                <div style="color: #64748b; font-size: 13px;">${nv.email || ''}</div>
             </td>
-            <td>
-                <div class="address-cell" title="${nv.diaChi || ''}">
-                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">
-                        ${nv.diaChi || 'Chưa có địa chỉ'}
-                    </span>
-                </div>
-            </td>
-            <td>
-                <span class="status-badge ${nv.trangThai === 1 ? 'active' : 'inactive'}">
-                    ${nv.trangThai === 1 ? 'Hoạt động' : 'Ngừng hoạt động'}
-                </span>
+            <td style="color: #555;">${nv.diaChi || ''}</td>
+            <td style="text-align: center;">
+                <span class="badge ${statusClass}">${statusText}</span>
             </td>
             <td style="text-align: center;">
-                <div class="btn-actions-cell">
-                    <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="editEmployee(${nv.id})">
-                        <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                <div class="btn-action-group" style="display: flex; justify-content: center; gap: 8px;">
+                    <button type="button" class="action-icon-btn edit" onclick="editEmployee(${nv.id})" title="Xem/Sửa">
+                        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
                     </button>
-                    <label class="switch-control" title="Bật/Tắt trạng thái">
-                        <input type="checkbox" ${nv.trangThai === 1 ? 'checked' : ''} onchange="toggleEmployeeStatus(${nv.id})">
-                        <span class="switch-slider"></span>
-                    </label>
+                    <button type="button" class="action-icon-btn edit" style="color: #ef4444;" onclick="toggleEmployeeStatus(${nv.id})" title="Chuyển trạng thái">
+                        <i data-lucide="power" style="width: 14px; height: 14px;"></i>
+                    </button>
                 </div>
             </td>
         `;
@@ -501,34 +758,32 @@ function renderTable() {
 
 // Generate premium pagination controls dynamically
 function renderPagination(totalElements, totalPages) {
-    const fromElement = totalElements === 0 ? 0 : currentPage * pageSize + 1;
+    const fromElement = currentPage * pageSize + 1;
     const toElement = Math.min((currentPage + 1) * pageSize, totalElements);
-
-    const infoEl = document.getElementById("paginationInfo");
-    if (infoEl) {
-        infoEl.textContent = `Tổng ${totalElements} nhân viên`;
-        infoEl.style.display = "block";
+    
+    let paginationInfoEl = document.getElementById("paginationInfo");
+    if (!paginationInfoEl) {
+        paginationInfoEl = document.createElement("div");
+        paginationInfoEl.id = "paginationInfo";
+        paginationInfoEl.style.fontSize = "13px";
+        paginationInfoEl.style.color = "#64748b";
+        document.getElementById("paginationWrapper").prepend(paginationInfoEl);
     }
+    paginationInfoEl.textContent = `Hiển thị ${fromElement}-${toElement} trong tổng số ${totalElements} nhân viên`;
 
     const controls = document.getElementById("paginationControls");
     controls.innerHTML = "";
 
     // Prev Page trigger
     const btnPrev = document.createElement("button");
-    btnPrev.className = `page-btn ${currentPage === 0 ? 'disabled' : ''}`;
+    btnPrev.disabled = currentPage === 0;
     btnPrev.innerHTML = '<i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>';
+    btnPrev.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #64748b; margin: 0 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
     btnPrev.onclick = () => {
-        if (currentPage > 0) {
-            currentPage--;
-            renderTable();
-        }
+        currentPage--;
+        renderTable();
     };
     controls.appendChild(btnPrev);
-
-    // Page numbers container
-    const pageContainer = document.createElement("div");
-    pageContainer.style.display = "flex";
-    pageContainer.style.gap = "6px";
 
     // Numbered pages (with dynamic ellipsis for large page count)
     const range = 2; // how many pages to show around current page
@@ -536,124 +791,90 @@ function renderPagination(totalElements, totalPages) {
         if (i === 0 || i === totalPages - 1 || (i >= currentPage - range && i <= currentPage + range)) {
             const btnPage = document.createElement("button");
             btnPage.textContent = i + 1;
-            btnPage.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btnPage.style.cssText = i === currentPage 
+                ? "background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); color: white; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; margin: 0 4px; box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);"
+                : "background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #64748b; margin: 0 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
             btnPage.onclick = () => {
                 currentPage = i;
                 renderTable();
             };
-            pageContainer.appendChild(btnPage);
+            controls.appendChild(btnPage);
         } else if (i === 1 || i === totalPages - 2) {
             const ellipsis = document.createElement("span");
             ellipsis.textContent = "...";
+            ellipsis.style.margin = "0 6px";
             ellipsis.style.color = "#94a3b8";
-            ellipsis.style.display = "flex";
-            ellipsis.style.alignItems = "flex-end";
-            pageContainer.appendChild(ellipsis);
-            // Skip the rest of the ellipsis range
-            if (i === 1) i = Math.max(1, currentPage - range - 1);
-            else if (i === totalPages - 2) i = totalPages - 2;
+            controls.appendChild(ellipsis);
         }
     }
-    controls.appendChild(pageContainer);
 
     // Next Page trigger
     const btnNext = document.createElement("button");
-    btnNext.className = `page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}`;
+    btnNext.disabled = currentPage + 1 >= totalPages;
     btnNext.innerHTML = '<i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>';
+    btnNext.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #64748b; margin: 0 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
     btnNext.onclick = () => {
-        if (currentPage < totalPages - 1) {
-            currentPage++;
-            renderTable();
-        }
+        currentPage++;
+        renderTable();
     };
     controls.appendChild(btnNext);
-
-
 }
 
-// Edit employee: Fetch individual data and populate modal fields
-function editEmployee(id) {
-    isEditing = true;
-    fetch(`/api/nhan-vien/${id}`)
-        .then(res => {
-            if (!res.ok) throw new Error("Không thể tải thông tin chi tiết nhân viên!");
-            return res.json();
-        })
-        .then(nv => {
-            if (nv) {
-                document.getElementById("modalTitle").textContent = "Sửa Nhân viên";
-                document.getElementById("empId").value = nv.id;
-                document.getElementById("empName").value = nv.hoTen || "";
-                document.getElementById("empEmail").value = nv.email || "";
-                document.getElementById("empPhone").value = nv.soDienThoai || "";
-
-                // Password is optional during edit
-                const passInput = document.getElementById("empPassword");
-                passInput.value = "";
-                passInput.required = false;
-                passInput.placeholder = "Bỏ trống nếu giữ nguyên mật khẩu cũ";
-
-                document.getElementById("empRole").value = nv.chucVu || "Nhân viên bán hàng";
-                document.getElementById("empAddress").value = nv.diaChi || "";
-                document.getElementById("empStatus").value = String(nv.trangThai);
-
-                // Set Gender
-                if (nv.gioiTinh === false) {
-                    document.getElementById("genderFemale").checked = true;
-                } else {
-                    document.getElementById("genderMale").checked = true;
-                }
-
-                // Set Birthdate
-                document.getElementById("empDob").value = nv.ngaySinh || "";
-
-                // Set avatar preview
-                const avatarImg = document.getElementById("empAvatarImg");
-                if (nv.anhDaiDien) {
-                    avatarImg.src = nv.anhDaiDien;
-                    avatarImg.style.display = "inline-block";
-                    document.getElementById("defaultAvatarIcon").style.display = "none";
-                } else {
-                    avatarImg.src = "";
-                    avatarImg.style.display = "none";
-                    document.getElementById("defaultAvatarIcon").style.display = "flex";
-                }
-
-                // Reset file selector
-                document.getElementById("empAvatar").value = "";
-
-                document.getElementById("employeeModal").style.display = "flex";
-            }
-        })
-        .catch(err => {
-            window.showToast(err.message, "error");
-        });
+// Thay đổi số lượng hiển thị trên trang
+window.changePageSize = function(size) {
+    pageSize = parseInt(size);
+    currentPage = 0;
+    renderTable();
 }
 
 // Toggle employee status with interactive instant click
-function toggleEmployeeStatus(id) {
-    fetch(`/api/nhan-vien/${id}/toggle-trang-thai`, { method: "PUT" })
-        .then(res => {
-            if (!res.ok) throw new Error("Thay đổi trạng thái thất bại!");
-            window.showToast("Thay đổi trạng thái làm việc thành công!");
-            loadEmployees();
-        })
-        .catch(err => {
-            window.showToast(err.message, "error");
-        });
+window.toggleEmployeeStatus = function(id) {
+    Swal.fire({
+        title: 'Xác nhận thay đổi',
+        text: "Bạn có chắc chắn muốn chuyển đổi trạng thái của nhân viên này?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/nhan-vien/${id}/toggle-trang-thai`, { method: "PUT" })
+                .then(res => {
+                    if (!res.ok) throw new Error("Thay đổi trạng thái thất bại!");
+                    window.showToast("Thay đổi trạng thái làm việc thành công!");
+                    loadEmployees();
+                })
+                .catch(err => {
+                    window.showToast(err.message, "error");
+                });
+        }
+    });
 }
 
-// Delete employee operation with safe prompt
-function deleteEmployee(id) {
-    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản nhân viên này khỏi hệ thống?")) {
-        fetch(`/api/nhan-vien/${id}`, { method: "DELETE" })
-            .then(res => {
-                if (!res.ok) throw new Error("Xóa tài khoản nhân viên thất bại!");
-                window.showToast("Xóa tài khoản nhân viên thành công!");
-                loadEmployees();
-            })
-            .catch(err => {
-                window.showToast(err.message, "error");
-            });
-    }
+// Delete employee operation with safe prompt (not exposed in the new UI as power button is used for toggle, but kept for fallback)
+window.deleteEmployee = function(id) {
+    Swal.fire({
+        title: 'Xác nhận xóa',
+        text: "Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác.",
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/nhan-vien/${id}`, { method: "DELETE" })
+                .then(res => {
+                    if (!res.ok) throw new Error("Xóa nhân viên thất bại!");
+                    window.showToast("Xóa nhân viên thành công!", "success");
+                    loadEmployees();
+                })
+                .catch(err => {
+                    window.showToast("Lỗi hệ thống khi tải dữ liệu nhân viên!", "error");
+                });
+        }
+    });
 }

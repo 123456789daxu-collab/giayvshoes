@@ -1,7 +1,7 @@
 package com.example.be.service.impl;
 
 import com.example.be.dto.DotGiamGiaDto;
-import com.example.be.dto.SanPhamChiTietDto;
+import com.example.be.dto.SanPhamChiTietGiamGiaDto;
 import com.example.be.entity.DotGiamGia;
 import com.example.be.entity.ChiTietDotGiamGia;
 import com.example.be.entity.SanPhamChiTiet;
@@ -9,6 +9,7 @@ import com.example.be.entity.SanPham;
 import com.example.be.repository.DotGiamGiaRepository;
 import com.example.be.repository.ChiTietDotGiamGiaRepository;
 import com.example.be.repository.SanPhamChiTietRepository;
+import com.example.be.repository.SanPhamRepository;
 import com.example.be.service.DotGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,17 +43,22 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
+
     @Override
     public Page<DotGiamGia> searchCampaigns(
             String search,
             LocalDateTime start,
             LocalDateTime end,
             Integer trangThai,
+            String hinhThucGiam,
+            java.math.BigDecimal giaTriGiam,
             int page,
             int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
-        return dotGiamGiaRepository.findAll(getSpecification(search, start, end, trangThai), pageable);
+        return dotGiamGiaRepository.findAll(getSpecification(search, start, end, trangThai, hinhThucGiam, giaTriGiam), pageable);
     }
 
     @Override
@@ -61,7 +67,8 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá với ID: " + id));
     }
 
-    private String generateMaCampaign() {
+    @Override
+    public String getNextMaCampaign() {
         Optional<DotGiamGia> lastCampaign = dotGiamGiaRepository.findFirstByMaDotGiamGiaStartingWithOrderByMaDotGiamGiaDesc("DGG");
         if (lastCampaign.isEmpty()) {
             return "DGG001";
@@ -80,7 +87,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     public DotGiamGia createCampaign(DotGiamGiaDto dto) {
         String code = dto.getMaDotGiamGia();
         if (code == null || code.trim().isEmpty()) {
-            code = generateMaCampaign();
+            code = getNextMaCampaign();
         } else {
             code = code.trim();
         }
@@ -92,15 +99,25 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
             }
         }
 
-        // Validate phan tram giam
-        if (dto.getPhanTramGiam() == null || dto.getPhanTramGiam() < 1 || dto.getPhanTramGiam() > 100) {
-            throw new RuntimeException("Phần trăm giảm phải từ 1% đến 100%!");
+        // Validate gia tri giam
+        if (dto.getGiaTriGiam() == null || dto.getGiaTriGiam().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Giá trị giảm phải lớn hơn 0!");
+        }
+        
+        String hinhThuc = dto.getHinhThucGiam() != null ? dto.getHinhThucGiam() : "%";
+
+        if ("%".equals(hinhThuc)) {
+            if (dto.getGiaTriGiam().intValue() < 1 || dto.getGiaTriGiam().intValue() > 100) {
+                throw new RuntimeException("Phần trăm giảm phải từ 1% đến 100%!");
+            }
         }
 
         DotGiamGia campaign = DotGiamGia.builder()
                 .maDotGiamGia(code)
                 .tenDotGiamGia(dto.getTenDotGiamGia() != null ? dto.getTenDotGiamGia().trim() : "")
-                .phanTramGiam(dto.getPhanTramGiam())
+                .hinhThucGiam("%")
+                .giaTriGiam(dto.getGiaTriGiam())
+                .phanTramGiam(dto.getGiaTriGiam().intValue())
                 .ngayBatDau(dto.getNgayBatDau())
                 .ngayKetThuc(dto.getNgayKetThuc())
                 .moTa(dto.getMoTa() != null ? dto.getMoTa().trim() : "")
@@ -140,13 +157,23 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
             }
         }
 
-        // Validate phan tram giam
-        if (dto.getPhanTramGiam() == null || dto.getPhanTramGiam() < 1 || dto.getPhanTramGiam() > 100) {
-            throw new RuntimeException("Phần trăm giảm phải từ 1% đến 100%!");
+        // Validate gia tri giam
+        if (dto.getGiaTriGiam() == null || dto.getGiaTriGiam().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Giá trị giảm phải lớn hơn 0!");
+        }
+
+        String hinhThuc = dto.getHinhThucGiam() != null ? dto.getHinhThucGiam() : "%";
+
+        if ("%".equals(hinhThuc)) {
+            if (dto.getGiaTriGiam().intValue() < 1 || dto.getGiaTriGiam().intValue() > 100) {
+                throw new RuntimeException("Phần trăm giảm phải từ 1% đến 100%!");
+            }
         }
 
         campaign.setTenDotGiamGia(dto.getTenDotGiamGia() != null ? dto.getTenDotGiamGia().trim() : "");
-        campaign.setPhanTramGiam(dto.getPhanTramGiam());
+        campaign.setHinhThucGiam("%");
+        campaign.setGiaTriGiam(dto.getGiaTriGiam());
+        campaign.setPhanTramGiam(dto.getGiaTriGiam().intValue());
         campaign.setNgayBatDau(dto.getNgayBatDau());
         campaign.setNgayKetThuc(dto.getNgayKetThuc());
         campaign.setMoTa(dto.getMoTa() != null ? dto.getMoTa().trim() : "");
@@ -195,6 +222,14 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     }
 
     @Override
+    @Transactional
+    public void deleteCampaign(Long id) {
+        DotGiamGia campaign = findById(id);
+        campaign.setTrangThai(0);
+        dotGiamGiaRepository.save(campaign);
+    }
+
+    @Override
     public List<Long> getProductDetailIdsByCampaignId(Long campaignId) {
         return chiTietDotGiamGiaRepository.findByDotGiamGiaId(campaignId)
                 .stream()
@@ -203,40 +238,40 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     }
 
     @Override
-    public Page<SanPhamChiTietDto> getProductDetails(String search, int page, int size) {
+    public Page<SanPhamChiTietGiamGiaDto> getProductDetails(String search, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Specification<SanPhamChiTiet> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            // Only active product details
+            // Only active products
             predicates.add(cb.equal(root.get("trangThai"), 1));
 
             if (search != null && !search.trim().isEmpty()) {
                 String searchTrim = "%" + search.trim().toLowerCase() + "%";
-                Join<SanPhamChiTiet, SanPham> spJoin = root.join("sanPham", JoinType.LEFT);
+                Join<SanPhamChiTiet, SanPham> sanPhamJoin = root.join("sanPham", JoinType.LEFT);
+                Join<SanPhamChiTiet, com.example.be.entity.MauSac> mauSacJoin = root.join("mauSac", JoinType.LEFT);
+                Join<SanPhamChiTiet, com.example.be.entity.CoGiay> coGiayJoin = root.join("coGiay", JoinType.LEFT);
+                
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("ma")), searchTrim),
-                        cb.like(cb.lower(spJoin.get("tenSanPham")), searchTrim),
-                        cb.like(cb.lower(spJoin.get("maSanPham")), searchTrim)
+                        cb.like(cb.lower(sanPhamJoin.get("tenSanPham")), searchTrim),
+                        cb.like(cb.lower(mauSacJoin.get("tenMauSac")), searchTrim),
+                        cb.like(coGiayJoin.get("sizeGiay").as(String.class), searchTrim)
                 ));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return sanPhamChiTietRepository.findAll(spec, pageable).map(spct -> {
-            String tenMau = spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "Mặc định";
-            Integer sizeGiay = spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : 0;
-            String tenSp = spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "Không tên";
-            return SanPhamChiTietDto.builder()
+        return sanPhamChiTietRepository.findAll(spec, pageable).map(spct -> 
+            SanPhamChiTietGiamGiaDto.builder()
                     .id(spct.getId())
-                    .ma(spct.getMa())
-                    .tenSanPham(tenSp)
-                    .tenMauSac(tenMau)
-                    .sizeGiay(sizeGiay)
+                    .maSanPham(spct.getMa())
+                    .tenSanPham(spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "")
+                    .tenMauSac(spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "")
+                    .tenKichCo(spct.getCoGiay() != null ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "")
                     .giaBan(spct.getGiaBan())
-                    .soLuongTon(spct.getSoLuongTon())
-                    .trangThai(spct.getTrangThai())
-                    .build();
-        });
+                    .soLuongTon(spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0)
+                    .build()
+        );
     }
 
     @Override
@@ -244,9 +279,11 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
             String search,
             LocalDateTime start,
             LocalDateTime end,
-            Integer trangThai
+            Integer trangThai,
+            String hinhThucGiam,
+            java.math.BigDecimal giaTriGiam
     ) throws Exception {
-        List<DotGiamGia> list = dotGiamGiaRepository.findAll(getSpecification(search, start, end, trangThai), Sort.by(Sort.Direction.DESC, "id"));
+        List<DotGiamGia> list = dotGiamGiaRepository.findAll(getSpecification(search, start, end, trangThai, hinhThucGiam, giaTriGiam), Sort.by(Sort.Direction.DESC, "id"));
 
         try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Danh sách Đợt giảm giá");
@@ -262,7 +299,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
             // Columns headers
             org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
             String[] headers = {
-                    "STT", "Mã Đợt giảm giá", "Tên Đợt giảm giá", "Phần trăm giảm",
+                    "STT", "Mã Đợt giảm giá", "Tên Đợt giảm giá", "Giá trị giảm", "Hình thức giảm",
                     "Ngày bắt đầu", "Ngày kết thúc", "Trạng thái", "Mô tả"
             };
             for (int i = 0; i < headers.length; i++) {
@@ -280,9 +317,10 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 row.createCell(0).setCellValue(rowIdx);
                 row.createCell(1).setCellValue(dgg.getMaDotGiamGia() != null ? dgg.getMaDotGiamGia() : "");
                 row.createCell(2).setCellValue(dgg.getTenDotGiamGia() != null ? dgg.getTenDotGiamGia() : "");
-                row.createCell(3).setCellValue((dgg.getPhanTramGiam() != null ? dgg.getPhanTramGiam() : 0) + "%");
-                row.createCell(4).setCellValue(dgg.getNgayBatDau() != null ? dgg.getNgayBatDau().format(formatter) : "");
-                row.createCell(5).setCellValue(dgg.getNgayKetThuc() != null ? dgg.getNgayKetThuc().format(formatter) : "");
+                row.createCell(3).setCellValue(dgg.getGiaTriGiam() != null ? dgg.getGiaTriGiam().toString() : "");
+                row.createCell(4).setCellValue(dgg.getHinhThucGiam() != null ? dgg.getHinhThucGiam() : "");
+                row.createCell(5).setCellValue(dgg.getNgayBatDau() != null ? dgg.getNgayBatDau().format(formatter) : "");
+                row.createCell(6).setCellValue(dgg.getNgayKetThuc() != null ? dgg.getNgayKetThuc().format(formatter) : "");
 
                 String statusLabel = "Ngừng hoạt động";
                 if (dgg.getTrangThai() == 1) {
@@ -295,8 +333,8 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                         statusLabel = "Kích hoạt";
                     }
                 }
-                row.createCell(6).setCellValue(statusLabel);
-                row.createCell(7).setCellValue(dgg.getMoTa() != null ? dgg.getMoTa() : "");
+                row.createCell(7).setCellValue(statusLabel);
+                row.createCell(8).setCellValue(dgg.getMoTa() != null ? dgg.getMoTa() : "");
                 rowIdx++;
             }
 
@@ -314,7 +352,9 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
             String search,
             LocalDateTime start,
             LocalDateTime end,
-            Integer trangThai
+            Integer trangThai,
+            String hinhThucGiam,
+            java.math.BigDecimal giaTriGiam
     ) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -353,6 +393,14 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 } else if (trangThai == 0) { // Tắt/Ngừng hoạt động
                     predicates.add(cb.equal(root.get("trangThai"), 0));
                 }
+            }
+
+            if (hinhThucGiam != null && !hinhThucGiam.trim().isEmpty()) {
+                predicates.add(cb.equal(root.get("hinhThucGiam"), hinhThucGiam.trim()));
+            }
+
+            if (giaTriGiam != null) {
+                predicates.add(cb.equal(root.get("giaTriGiam"), giaTriGiam));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

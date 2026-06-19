@@ -19,4 +19,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     
     @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId")
     List<SanPhamChiTiet> findBySanPhamId(@Param("sanPhamId") Long sanPhamId);
+
+    @Query("SELECT s.sanPham.id, MIN(s.giaBan), MAX(s.giaBan) FROM SanPhamChiTiet s WHERE s.sanPham.id IN :sanPhamIds GROUP BY s.sanPham.id")
+    List<Object[]> findMinMaxGiaBanBySanPhamIds(@Param("sanPhamIds") List<Long> sanPhamIds);
 }

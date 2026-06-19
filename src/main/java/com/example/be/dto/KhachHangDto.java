@@ -16,6 +16,7 @@ public class KhachHangDto {
     private String soDienThoai;
     private LocalDate ngaySinh;
     private Boolean gioiTinh; // true: Nam, false: Nữ
+    private String anhDaiDien;
     private Integer trangThai; // 1: Hoạt động, 0: Ngừng hoạt động
     
     // Địa chỉ mặc định đính kèm khi khởi tạo khách hàng mới

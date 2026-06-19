@@ -42,6 +42,9 @@ public class ChatLieuController {
 
     @PostMapping("/add")
     public String add(@ModelAttribute ChatLieu chatLieu, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        if (chatLieu.getMaChatLieu() == null || chatLieu.getMaChatLieu().trim().isEmpty()) {
+            chatLieu.setMaChatLieu("CL" + System.currentTimeMillis());
+        }
         chatLieuRepository.save(chatLieu);
         redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
         String referer = request.getHeader("Referer");

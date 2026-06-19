@@ -7,8 +7,8 @@
 .detail-header-row {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 12px;
+    margin-bottom: 16px;
 }
 
 .btn-back {
@@ -45,69 +45,97 @@
 }
 
 .page-title {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: #1e293b;
     margin: 0;
 }
 
 .detail-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #cbd5e1;
-    padding: 24px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 16px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #7c3aed, #2563eb, #06b6d4);
+    border-radius: 12px 12px 0 0;
 }
 
 .card-subheader {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    gap: 7px;
+    font-size: 12px;
     font-weight: 700;
     color: #1e293b;
-    border-bottom: 1px solid #cbd5e1;
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .card-subheader i {
     width: 16px;
     height: 16px;
-    color: #2563eb;
+    color: #7c3aed;
 }
 
-/* Timeline components matching screenshot */
+/* ============================================================
+   PREMIUM TIMELINE - Modern Step Indicator
+   ============================================================ */
 .timeline-card {
-    padding: 24px 20px;
+    padding: 32px 28px 28px;
     overflow-x: auto;
+    background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+    border: 1px solid #dde9ff;
+    position: relative;
+}
+
+.timeline-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #2563eb, #7c3aed, #06b6d4);
+    border-radius: 12px 12px 0 0;
 }
 
 .timeline-container {
-    min-width: 700px;
-    padding: 10px 0;
+    min-width: 640px;
+    padding: 16px 0 8px;
 }
 
 .timeline {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     position: relative;
-    padding-top: 40px; /* Space for label & time at the top */
 }
 
+/* Base connector track */
 .timeline::before {
     content: '';
     position: absolute;
-    bottom: 14px;
-    left: 45px;
-    right: 45px;
+    top: 50%;
+    left: 30px;
+    right: 30px;
     height: 4px;
     background: #e2e8f0;
-    z-index: 1;
+    transform: translateY(-50%);
+    border-radius: 4px;
+    z-index: 0;
 }
 
+/* ---- Each Step ---- */
 .timeline-item {
     display: flex;
     flex-direction: column;
@@ -115,75 +143,125 @@
     flex: 1;
     z-index: 2;
     position: relative;
+    gap: 10px;
 }
 
+/* Label BELOW the circle */
 .timeline-item .step-label {
-    position: absolute;
-    top: -38px;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     color: #94a3b8;
     white-space: nowrap;
     text-align: center;
+    margin-top: 6px;
+    letter-spacing: 0.01em;
+    transition: color 0.3s ease;
+    order: 3;
 }
 
+/* Time BELOW label */
 .timeline-item .step-time {
-    position: absolute;
-    top: -20px;
     font-size: 10px;
-    color: #94a3b8;
+    color: #b0bac9;
     white-space: nowrap;
     text-align: center;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    order: 4;
+    margin-top: -4px;
 }
 
+/* Circle */
 .step-circle {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background: #ffffff;
+    background: #f1f5f9;
     border: 3px solid #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     color: transparent;
+    order: 2;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    position: relative;
+    z-index: 3;
 }
 
 .step-circle i {
-    width: 14px;
-    height: 14px;
-    stroke-width: 3px;
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5px;
 }
 
-/* Timeline status states */
+/* ---- ACTIVE (progress) connector ---- */
 .timeline-item.completed::before {
     content: '';
     position: absolute;
-    bottom: 14px;
-    left: -50%;
+    top: 50%;
+    left: calc(-50% + 0px);
     right: 50%;
     height: 4px;
-    background: #06b6d4; /* cyan green connecting line */
-    z-index: -1;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    transform: translateY(-50%);
+    border-radius: 4px;
+    z-index: 1;
+    animation: connectorGrow 0.5s ease forwards;
 }
 
-/* Hide first connector */
+@keyframes connectorGrow {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
 .timeline-item:first-child.completed::before {
     display: none;
 }
 
+/* ---- COMPLETED state ---- */
 .timeline-item.completed .step-circle {
-    background: #2563eb;
-    border-color: #2563eb;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    border-color: transparent;
     color: #ffffff;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+    transform: scale(1.08);
 }
 
 .timeline-item.completed .step-label {
     color: #1e293b;
+    font-weight: 800;
 }
 
 .timeline-item.completed .step-time {
     color: #64748b;
+    font-weight: 600;
+}
+
+/* ---- ACTIVE (last completed = current) ---- */
+.timeline-item.active-step .step-circle {
+    background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.18), 0 4px 14px rgba(37, 99, 235, 0.4);
+    animation: pulseRing 2s infinite;
+    transform: scale(1.12);
+}
+
+.timeline-item.active-step .step-label {
+    color: #2563eb;
+    font-weight: 800;
+}
+
+.timeline-item.active-step .step-time {
+    color: #2563eb;
+    font-weight: 700;
+}
+
+@keyframes pulseRing {
+    0%   { box-shadow: 0 0 0 0 rgba(37,99,235,0.35),  0 4px 14px rgba(37,99,235,0.35); }
+    60%  { box-shadow: 0 0 0 10px rgba(37,99,235,0.0), 0 4px 14px rgba(37,99,235,0.35); }
+    100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.0),   0 4px 14px rgba(37,99,235,0.35); }
 }
 
 /* Action Buttons Row */
@@ -191,26 +269,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
 }
 
 .btn-primary-action {
-    background-color: #2563eb;
+    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
     color: #ffffff;
     border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
+    border-radius: 7px;
+    padding: 6px 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.2s ease;
+    box-shadow: 0 3px 8px rgba(124, 58, 237, 0.22);
 }
 
 .btn-primary-action:hover {
-    background-color: #1d4ed8;
+    background: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(124, 58, 237, 0.32);
 }
 
 .btn-primary-action i {
@@ -225,32 +306,33 @@
 
 .btn-secondary-action {
     background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    color: #475569;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
     border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 6px 12px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.2s ease;
 }
 
 .btn-secondary-action:hover {
     background-color: #f8fafc;
     border-color: #94a3b8;
+    color: #334155;
 }
 
 .btn-secondary-action i {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
 }
 
 /* General Order Info Card */
 .order-info-card {
-    padding: 20px;
+    padding: 14px 16px;
 }
 
 .order-info-header {
@@ -268,7 +350,7 @@
 }
 
 .order-title {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 700;
     color: #1e293b;
 }
@@ -311,9 +393,9 @@
 }
 
 .price-summary-right .price-val {
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 700;
-    color: #ef4444; /* red price matching screenshot */
+    color: #ef4444;
 }
 
 .price-summary-right .price-sub {
@@ -323,8 +405,8 @@
 }
 
 .order-info-subtext {
-    font-size: 13px;
-    color: #64748b;
+    font-size: 11px;
+    color: #94a3b8;
     margin-top: 4px;
 }
 
@@ -343,7 +425,7 @@
 }
 
 .info-sub-card {
-    padding: 20px;
+    padding: 14px 16px;
     margin-bottom: 0;
 }
 
@@ -356,9 +438,9 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding: 10px 0;
-    border-bottom: 1px solid #f1f5f9;
-    font-size: 13px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 12px;
 }
 
 .info-rows .info-row:last-child {
@@ -366,9 +448,10 @@
 }
 
 .info-rows .info-row .label {
-    color: #94a3b8; /* light gray label */
+    color: #94a3b8;
     font-weight: 500;
     white-space: nowrap;
+    font-size: 11px;
 }
 
 .info-rows .info-row .value {
@@ -376,7 +459,8 @@
     font-weight: 600;
     text-align: right;
     word-break: break-word;
-    padding-left: 15px;
+    padding-left: 10px;
+    font-size: 12px;
 }
 
 .info-rows .info-row .discount {
@@ -390,7 +474,7 @@
 }
 
 .info-rows .total-pay-row .total-price-red {
-    font-size: 15px;
+    font-size: 13px;
     color: #ef4444;
     font-weight: 700;
 }
@@ -405,15 +489,15 @@
 
 /* Horizontal Status Summary Card */
 .status-summary-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #cbd5e1;
-    padding: 15px 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 10px 16px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    gap: 10px;
+    margin-bottom: 14px;
+    box-shadow: none;
 }
 
 @media (max-width: 768px) {
@@ -435,14 +519,14 @@
 }
 
 .status-summary-card .summary-item .label {
-    font-size: 11px;
+    font-size: 10px;
     color: #94a3b8;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .status-summary-card .summary-item .value {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     color: #1e293b;
 }
@@ -467,19 +551,23 @@
 
 .invoice-table th {
     text-align: left;
-    padding: 12px 14px;
-    color: #ffffff !important;
-    font-weight: 600;
-    background-color: #1b2a47 !important; /* Dark Navy Blue */
-    border-bottom: 1px solid #cbd5e1;
+    padding: 10px 12px;
+    color: #475569;
+    font-weight: 700;
+    background-color: rgba(241, 245, 249, 0.9);
+    border-bottom: 1px solid #e2e8f0;
     white-space: nowrap;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .invoice-table td {
-    padding: 12px 14px;
+    padding: 8px 12px;
     color: #334155;
     border-bottom: 1px solid #e2e8f0;
     vertical-align: middle;
+    font-size: 12px;
 }
 
 .invoice-table tr:hover {
@@ -573,4 +661,114 @@
 
 .toast-close-btn:hover {
     color: #475569;
+}
+
+/* ===== PAYMENT METHOD SELECTOR ===== */
+.payment-method-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.payment-method-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.payment-method-option input[type="radio"] {
+    display: none;
+}
+
+.payment-method-option:hover {
+    border-color: #6366f1;
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.payment-method-option:has(input:checked) {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    color: #4338ca;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.18);
+}
+
+.method-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.method-text {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ===== VOUCHER BADGE ===== */
+.voucher-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1.5px solid #f59e0b;
+    color: #92400e;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.voucher-badge::before {
+    content: "🎫";
+    font-size: 13px;
+}
+
+/* ===== NEW STYLES MATCHING IMAGE 1 ===== */
+.voucher-code-highlight {
+    font-weight: 700;
+    color: #2563eb;
+    margin-left: 6px;
+    font-size: 12px;
+}
+
+.carrier-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.carrier-name-orange {
+    color: #ea580c;
+    font-weight: 900;
+    font-family: 'Arial Black', sans-serif;
+    font-style: italic;
+    font-size: 11px;
+    letter-spacing: -0.5px;
+}
+
+.info-rows .info-row .discount-teal {
+    color: #0ea5e9; /* Teal/cyan color from Image 1 */
+    font-weight: 700;
+}
+
+.text-dark-red {
+    color: #991b1b !important;
+}
+
+.total-price-dark-red {
+    color: #b91c1c !important;
+    font-size: 15px !important;
+    font-weight: 700;
 }

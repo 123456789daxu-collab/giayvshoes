@@ -1,7 +1,7 @@
 package com.example.be.service;
 
 import com.example.be.dto.DotGiamGiaDto;
-import com.example.be.dto.SanPhamChiTietDto;
+import com.example.be.dto.SanPhamChiTietGiamGiaDto;
 import com.example.be.entity.DotGiamGia;
 import org.springframework.data.domain.Page;
 
@@ -14,26 +14,34 @@ public interface DotGiamGiaService {
             LocalDateTime start,
             LocalDateTime end,
             Integer trangThai,
+            String hinhThucGiam,
+            java.math.BigDecimal giaTriGiam,
             int page,
             int size
     );
     
     DotGiamGia findById(Long id);
     
+    String getNextMaCampaign();
+
     DotGiamGia createCampaign(DotGiamGiaDto dto);
     
     DotGiamGia updateCampaign(Long id, DotGiamGiaDto dto);
     
     DotGiamGia toggleStatus(Long id, Integer status);
     
+    void deleteCampaign(Long id);
+    
     List<Long> getProductDetailIdsByCampaignId(Long campaignId);
     
-    Page<SanPhamChiTietDto> getProductDetails(String search, int page, int size);
+    Page<SanPhamChiTietGiamGiaDto> getProductDetails(String search, int page, int size);
     
     byte[] exportExcel(
             String search,
             LocalDateTime start,
             LocalDateTime end,
-            Integer trangThai
+            Integer trangThai,
+            String hinhThucGiam,
+            java.math.BigDecimal giaTriGiam
     ) throws Exception;
 }

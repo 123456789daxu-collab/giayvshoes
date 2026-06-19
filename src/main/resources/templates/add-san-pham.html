@@ -89,7 +89,7 @@
                             <div class="card-body p-4 pt-2">
                                 <div class="mb-4">
                                     <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Mã sản phẩm</label>
-                                    <input type="text" class="form-control" name="maSanPham" id="maSanPham" placeholder="Nhập mã sản phẩm (để trống sẽ tự động tạo)..." style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px;">
+                                    <input type="text" class="form-control" name="maSanPham" id="maSanPham" readonly style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px; background-color: #f3f4f6; cursor: not-allowed; font-weight: 500; color: #475569;">
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Tên sản phẩm <span class="text-danger">*</span></label>
@@ -156,13 +156,7 @@
                                 <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Phân loại</h6>
                             </div>
                             <div class="card-body p-4 pt-2">
-                                <div class="mb-4">
-                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Trạng thái</label>
-                                    <select class="form-select" name="trangThai" style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px;">
-                                        <option value="1">Đang Kinh Doanh</option>
-                                        <option value="0">Ngừng Kinh Doanh</option>
-                                    </select>
-                                </div>
+                                <input type="hidden" name="trangThai" value="1">
                                 <div class="mb-4">
                                     <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Thương hiệu <span class="text-danger">*</span></label>
                                     <div class="input-group">
@@ -255,6 +249,9 @@
     </script>
     <script>
         $(document).ready(function() {
+            // Tự động điền mã sản phẩm
+            document.getElementById('maSanPham').value = 'SP' + Date.now();
+
             if (errorMessage) {
                 Swal.fire({
                     toast: true,

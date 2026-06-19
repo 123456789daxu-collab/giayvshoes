@@ -1,7 +1,7 @@
 package com.example.be.controller;
 
 import com.example.be.entity.SanPham;
-
+import com.example.be.repository.SanPhamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,14 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import java.time.LocalDateTime;
 import java.util.List;
-
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
 
 @Controller
 @RequestMapping("/san-pham")
@@ -292,6 +286,27 @@ public class SanPhamController {
         Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
         Page<SanPham> pageData = sanPhamService.search(keyword, trangThai, soLuongTon, idThuongHieu, idLoaiGiay, pageable);
         model.addAttribute("pageData", pageData);
+
+        // Tính khoảng giá (min - max) cho từng sản phẩm
+        java.util.Map<Long, String> priceRangeMap = new java.util.HashMap<>();
+        if (pageData.hasContent()) {
+            java.util.List<Long> ids = pageData.getContent().stream().map(SanPham::getId).collect(java.util.stream.Collectors.toList());
+            java.util.List<Object[]> ranges = sanPhamChiTietRepository.findMinMaxGiaBanBySanPhamIds(ids);
+            java.text.DecimalFormat df = new java.text.DecimalFormat("#,###");
+            for (Object[] row : ranges) {
+                Long spId = (Long) row[0];
+                java.math.BigDecimal min = (java.math.BigDecimal) row[1];
+                java.math.BigDecimal max = (java.math.BigDecimal) row[2];
+                if (min != null && max != null) {
+                    if (min.compareTo(max) == 0) {
+                        priceRangeMap.put(spId, df.format(min) + " đ");
+                    } else {
+                        priceRangeMap.put(spId, df.format(min) + " đ - " + df.format(max) + " đ");
+                    }
+                }
+            }
+        }
+        model.addAttribute("priceRangeMap", priceRangeMap);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("soLuongTon", soLuongTon);
@@ -532,53 +547,5 @@ public class SanPhamController {
             }
             sanPhamService.save(sanPham);
         }
-    }
-    @GetMapping("/export/excel")
-    public void exportExcel(HttpServletResponse response,
-                            @RequestParam(defaultValue = "1") int page,
-                            @RequestParam(required = false) String keyword,
-                            @RequestParam(required = false) Long idThuongHieu,
-                            @RequestParam(required = false) Long idLoaiGiay,
-                            @RequestParam(required = false) Integer trangThai,
-                            @RequestParam(required = false) String sort) throws IOException {
-        response.setContentType("application/octet-stream");
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=san_pham_" + System.currentTimeMillis() + ".xlsx";
-        response.setHeader(headerKey, headerValue);
-
-        int pageSize = 5;
-        Page<SanPham> pageSanPham = sanPhamService.search(keyword, trangThai, null, idThuongHieu, idLoaiGiay, PageRequest.of(page, pageSize));
-        List<SanPham> listSanPham = pageSanPham.getContent();
-
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Sản Phẩm");
-
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("STT");
-        headerRow.createCell(1).setCellValue("Mã SP");
-        headerRow.createCell(2).setCellValue("Tên Sản Phẩm");
-        headerRow.createCell(3).setCellValue("Thương Hiệu");
-        headerRow.createCell(4).setCellValue("Loại Giày");
-        headerRow.createCell(5).setCellValue("Giá Nhập");
-        headerRow.createCell(6).setCellValue("Giá Bán");
-        headerRow.createCell(7).setCellValue("Số Lượng");
-        headerRow.createCell(8).setCellValue("Trạng Thái");
-
-        int rowCount = 1;
-        for (SanPham sp : listSanPham) {
-            Row row = sheet.createRow(rowCount++);
-            row.createCell(0).setCellValue(rowCount - 1);
-            row.createCell(1).setCellValue(sp.getMaSanPham() != null ? sp.getMaSanPham() : "");
-            row.createCell(2).setCellValue(sp.getTenSanPham() != null ? sp.getTenSanPham() : "");
-            row.createCell(3).setCellValue(sp.getThuongHieu() != null ? sp.getThuongHieu().getTenThuongHieu() : "");
-            row.createCell(4).setCellValue(sp.getLoaiGiay() != null ? sp.getLoaiGiay().getTenLoaiGiay() : "");
-            row.createCell(5).setCellValue(sp.getGiaNhap() != null ? sp.getGiaNhap().doubleValue() : 0);
-            row.createCell(6).setCellValue(sp.getGiaBan() != null ? sp.getGiaBan().doubleValue() : 0);
-            row.createCell(7).setCellValue(sp.getSoLuong() != null ? sp.getSoLuong() : 0);
-            row.createCell(8).setCellValue(sp.getTrangThai() != null && sp.getTrangThai() == 1 ? "Kinh doanh" : "Ngừng kinh doanh");
-        }
-
-        workbook.write(response.getOutputStream());
-        workbook.close();
     }
 }
