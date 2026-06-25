@@ -265,7 +265,8 @@
                                 <div class="d-flex align-items-center mb-4">
                                     <label class="form-label fw-bold mb-0 me-3 text-nowrap" style="width: 100px;"><span class="text-danger">*</span> Giá bán:</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" name="giaBan" placeholder="0" min="0" required style="border-radius: 6px 0 0 6px;">
+                                        <input type="text" class="form-control format-currency" placeholder="0" required style="border-radius: 6px 0 0 6px;" oninput="formatInputCurrency(this, 'hiddenGiaBanAdd')">
+                                        <input type="hidden" name="giaBan" id="hiddenGiaBanAdd" value="">
                                         <span class="input-group-text" style="border-radius: 0 6px 6px 0;">VNĐ</span>
                                     </div>
                                 </div>
@@ -323,6 +324,27 @@
                 });
             }
         });
+
+        function formatInputCurrency(input, hiddenId) {
+            let rawValue = input.value.replace(/[^0-9]/g, '');
+            if (!rawValue) {
+                input.value = '';
+                document.getElementById(hiddenId).value = '';
+                return;
+            }
+            let num = parseInt(rawValue);
+            
+            let cursorPos = input.selectionStart;
+            let oldLength = input.value.length;
+            
+            input.value = num.toLocaleString('vi-VN');
+            
+            let newLength = input.value.length;
+            cursorPos = cursorPos + (newLength - oldLength);
+            input.setSelectionRange(cursorPos, cursorPos);
+            
+            document.getElementById(hiddenId).value = num;
+        }
     </script>
 </body>
 </html>

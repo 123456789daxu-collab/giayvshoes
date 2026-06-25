@@ -60,12 +60,4 @@ public class SanPham {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @Column(name = "gia_nhap")
-    private java.math.BigDecimal giaNhap;
-
-    @Column(name = "gia_ban")
-    private java.math.BigDecimal giaBan;
-
-    @Column(name = "so_luong")
-    private Integer soLuong;
 }

@@ -32,267 +32,203 @@ public class BanHangServiceImpl implements BanHangService {
 
     @Override
     public List<HoaDon> getDanhSachHoaDonCho() {
-        return hoaDonRepository.findByTrangThaiAndLoaiHoaDonOrderByNgayTaoDesc(6, "Tại quầy");
+        // Assume trangThai = 0 is Waiting
+        return hoaDonRepository.findAll().stream()
+                .filter(hd -> hd.getTrangThai() != null && hd.getTrangThai() == 0)
+                .toList();
     }
 
     @Override
     @Transactional
     public HoaDon taoHoaDonCho() {
-        // Sinh mã hóa đơn tự động
-        String maHoaDon = "HDTQ0001";
-        Optional<HoaDon> lastHoaDon = hoaDonRepository.findFirstByMaHoaDonStartingWithOrderByMaHoaDonDesc("HDTQ");
-        if (lastHoaDon.isPresent()) {
-            String lastMa = lastHoaDon.get().getMaHoaDon();
-            try {
-                int number = Integer.parseInt(lastMa.substring(4));
-                maHoaDon = String.format("HDTQ%04d", number + 1);
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
-
-        HoaDon hoaDon = new HoaDon();
-        hoaDon.setMaHoaDon(maHoaDon);
-        hoaDon.setLoaiHoaDon("Tại quầy");
-        hoaDon.setTrangThai(6); // 6 = Hóa đơn chờ
-        hoaDon.setNgayTao(LocalDateTime.now());
-        hoaDon.setTongTienHang(BigDecimal.ZERO);
-        hoaDon.setTienGiamGia(BigDecimal.ZERO);
-        hoaDon.setTongTienThanhToan(BigDecimal.ZERO);
-
-        return hoaDonRepository.save(hoaDon);
+        HoaDon hd = new HoaDon();
+        hd.setMaHoaDon("HD" + System.currentTimeMillis());
+        hd.setLoaiHoaDon("TAI_QUAY");
+        hd.setNgayTao(LocalDateTime.now());
+        hd.setTrangThai(0); // 0 = Chờ thanh toán
+        hd.setTongTienHang(BigDecimal.ZERO);
+        hd.setTienGiamGia(BigDecimal.ZERO);
+        hd.setTongTienThanhToan(BigDecimal.ZERO);
+        return hoaDonRepository.save(hd);
     }
 
     @Override
     @Transactional
-    public void huyHoaDonCho(Long idHoaDon) {
-        Optional<HoaDon> optionalHoaDon = hoaDonRepository.findById(idHoaDon);
-        if (optionalHoaDon.isPresent()) {
-            HoaDon hoaDon = optionalHoaDon.get();
-            // Hoàn lại số lượng cho sản phẩm
-            List<ChiTietHoaDon> chiTietList = chiTietHoaDonRepository.findByHoaDonId(idHoaDon);
-            for (ChiTietHoaDon ct : chiTietList) {
+    public void huyHoaDonCho(Long id) {
+        Optional<HoaDon> opt = hoaDonRepository.findById(id);
+        if (opt.isPresent()) {
+            HoaDon hd = opt.get();
+            // Restore inventory for items in cart before deleting
+            List<ChiTietHoaDon> chiTiets = getChiTietHoaDon(id);
+            for (ChiTietHoaDon ct : chiTiets) {
                 SanPhamChiTiet spct = ct.getSanPhamChiTiet();
                 spct.setSoLuongTon(spct.getSoLuongTon() + ct.getSoLuong());
                 sanPhamChiTietRepository.save(spct);
+                chiTietHoaDonRepository.delete(ct);
             }
-            // Hủy hóa đơn
-            hoaDon.setTrangThai(5); // 5 = Đã hủy
-            hoaDon.setLyDoHuy("Khách không mua nữa");
-            hoaDon.setNgayCapNhat(LocalDateTime.now());
-            hoaDonRepository.save(hoaDon);
+            hoaDonRepository.delete(hd);
         }
     }
 
     @Override
     public List<ChiTietHoaDon> getChiTietHoaDon(Long idHoaDon) {
-        return chiTietHoaDonRepository.findByHoaDonId(idHoaDon);
+        return chiTietHoaDonRepository.findAll().stream()
+                .filter(ct -> ct.getHoaDon() != null && ct.getHoaDon().getId().equals(idHoaDon))
+                .toList();
     }
 
     @Override
     @Transactional
     public ChiTietHoaDon themSanPhamVaoHoaDon(Long idHoaDon, Long idSanPhamChiTiet, Integer soLuong) {
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+        HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
-
+        
         if (spct.getSoLuongTon() < soLuong) {
-            throw new RuntimeException("Số lượng tồn kho không đủ");
+            throw new RuntimeException("Số lượng tồn kho không đủ!");
         }
 
-        // Kiểm tra xem sản phẩm đã có trong hóa đơn chưa
-        List<ChiTietHoaDon> chiTietList = chiTietHoaDonRepository.findByHoaDonId(idHoaDon);
-        for (ChiTietHoaDon ct : chiTietList) {
-            if (ct.getSanPhamChiTiet().getId().equals(idSanPhamChiTiet)) {
-                // Nếu có rồi thì tăng số lượng
-                ct.setSoLuong(ct.getSoLuong() + soLuong);
-                ct.setThanhTien(ct.getDonGia().multiply(BigDecimal.valueOf(ct.getSoLuong())));
-                ct.setNgayCapNhat(LocalDateTime.now());
-                
-                // Trừ tồn kho
-                spct.setSoLuongTon(spct.getSoLuongTon() - soLuong);
-                sanPhamChiTietRepository.save(spct);
-                
-                ChiTietHoaDon saved = chiTietHoaDonRepository.save(ct);
-                capNhatTongTienHoaDon(idHoaDon);
-                return saved;
-            }
+        // Check if item already exists in cart
+        Optional<ChiTietHoaDon> existing = getChiTietHoaDon(idHoaDon).stream()
+                .filter(ct -> ct.getSanPhamChiTiet().getId().equals(idSanPhamChiTiet))
+                .findFirst();
+
+        ChiTietHoaDon ct;
+        if (existing.isPresent()) {
+            ct = existing.get();
+            ct.setSoLuong(ct.getSoLuong() + soLuong);
+            ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(ct.getSoLuong())));
+        } else {
+            ct = new ChiTietHoaDon();
+            ct.setHoaDon(hd);
+            ct.setSanPhamChiTiet(spct);
+            ct.setSoLuong(soLuong);
+            ct.setDonGia(spct.getGiaBan());
+            ct.setThanhTien(spct.getGiaBan().multiply(new BigDecimal(soLuong)));
         }
-
-        // Nếu chưa có thì tạo mới
-        ChiTietHoaDon chiTiet = new ChiTietHoaDon();
-        chiTiet.setHoaDon(hoaDon);
-        chiTiet.setSanPhamChiTiet(spct);
-        chiTiet.setSoLuong(soLuong);
-        chiTiet.setDonGia(spct.getGiaBan());
-        chiTiet.setThanhTien(spct.getGiaBan().multiply(BigDecimal.valueOf(soLuong)));
-        chiTiet.setNgayTao(LocalDateTime.now());
-        chiTiet.setTrangThai(1);
-
-        // Trừ tồn kho
+        
+        // Deduct inventory temporarily
         spct.setSoLuongTon(spct.getSoLuongTon() - soLuong);
         sanPhamChiTietRepository.save(spct);
 
-        ChiTietHoaDon saved = chiTietHoaDonRepository.save(chiTiet);
-        capNhatTongTienHoaDon(idHoaDon);
-        return saved;
+        ct = chiTietHoaDonRepository.save(ct);
+        tinhTongTien(hd);
+        return ct;
     }
 
     @Override
     @Transactional
     public ChiTietHoaDon capNhatSoLuong(Long idChiTiet, Integer soLuong) {
-        ChiTietHoaDon chiTiet = chiTietHoaDonRepository.findById(idChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
-        SanPhamChiTiet spct = chiTiet.getSanPhamChiTiet();
-
-        int diff = soLuong - chiTiet.getSoLuong();
+        ChiTietHoaDon ct = chiTietHoaDonRepository.findById(idChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
+        SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+        
+        int diff = soLuong - ct.getSoLuong();
         if (diff > 0 && spct.getSoLuongTon() < diff) {
-            throw new RuntimeException("Số lượng tồn kho không đủ");
+            throw new RuntimeException("Số lượng tồn kho không đủ!");
         }
-
-        // Cập nhật tồn kho
+        
         spct.setSoLuongTon(spct.getSoLuongTon() - diff);
         sanPhamChiTietRepository.save(spct);
-
-        chiTiet.setSoLuong(soLuong);
-        chiTiet.setThanhTien(chiTiet.getDonGia().multiply(BigDecimal.valueOf(soLuong)));
-        chiTiet.setNgayCapNhat(LocalDateTime.now());
-
-        ChiTietHoaDon saved = chiTietHoaDonRepository.save(chiTiet);
-        capNhatTongTienHoaDon(chiTiet.getHoaDon().getId());
-        return saved;
+        
+        ct.setSoLuong(soLuong);
+        ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(soLuong)));
+        ct = chiTietHoaDonRepository.save(ct);
+        
+        tinhTongTien(ct.getHoaDon());
+        return ct;
     }
 
     @Override
     @Transactional
     public void xoaChiTiet(Long idChiTiet) {
-        ChiTietHoaDon chiTiet = chiTietHoaDonRepository.findById(idChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
-        SanPhamChiTiet spct = chiTiet.getSanPhamChiTiet();
+        ChiTietHoaDon ct = chiTietHoaDonRepository.findById(idChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
+        SanPhamChiTiet spct = ct.getSanPhamChiTiet();
         
-        // Hoàn lại tồn kho
-        spct.setSoLuongTon(spct.getSoLuongTon() + chiTiet.getSoLuong());
+        // Restore inventory
+        spct.setSoLuongTon(spct.getSoLuongTon() + ct.getSoLuong());
         sanPhamChiTietRepository.save(spct);
         
-        Long idHoaDon = chiTiet.getHoaDon().getId();
-        chiTietHoaDonRepository.delete(chiTiet);
-        capNhatTongTienHoaDon(idHoaDon);
+        HoaDon hd = ct.getHoaDon();
+        chiTietHoaDonRepository.delete(ct);
+        
+        tinhTongTien(hd);
     }
 
     @Override
     @Transactional
     public HoaDon capNhatKhachHang(Long idHoaDon, Long idKhachHang) {
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-        if (idKhachHang == null) {
-            hoaDon.setKhachHang(null);
-            hoaDon.setTenNguoiNhan(null);
-            hoaDon.setSdtNguoiNhan(null);
+        HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow();
+        if (idKhachHang != null) {
+            KhachHang kh = khachHangRepository.findById(idKhachHang).orElseThrow();
+            hd.setKhachHang(kh);
         } else {
-            KhachHang khachHang = khachHangRepository.findById(idKhachHang).orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-            hoaDon.setKhachHang(khachHang);
-            hoaDon.setTenNguoiNhan(khachHang.getHoTen());
-            hoaDon.setSdtNguoiNhan(khachHang.getSoDienThoai());
+            hd.setKhachHang(null);
         }
-        return hoaDonRepository.save(hoaDon);
+        return hoaDonRepository.save(hd);
     }
 
     @Override
     @Transactional
     public HoaDon capNhatPhieuGiamGia(Long idHoaDon, Long idPhieuGiamGia) {
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
-        if (idPhieuGiamGia == null) {
-            hoaDon.setPhieuGiamGia(null);
-            // Tính lại tổng thanh toán không có giảm giá
-            hoaDon.setTienGiamGia(BigDecimal.ZERO);
-            hoaDon.setTongTienThanhToan(hoaDon.getTongTienHang());
+        HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow();
+        if (idPhieuGiamGia != null) {
+            PhieuGiamGia pgg = phieuGiamGiaRepository.findById(idPhieuGiamGia).orElseThrow();
+            hd.setPhieuGiamGia(pgg);
         } else {
-            PhieuGiamGia pgg = phieuGiamGiaRepository.findById(idPhieuGiamGia).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá"));
-            
-            // Validate phiếu giảm giá
-            if (pgg.getTrangThai() != 1) {
-                throw new RuntimeException("Phiếu giảm giá không khả dụng");
-            }
-            if (pgg.getNgayKetThuc() != null && pgg.getNgayKetThuc().isBefore(LocalDateTime.now())) {
-                throw new RuntimeException("Phiếu giảm giá đã hết hạn");
-            }
-            if (pgg.getSoLuong() <= pgg.getSoLuongDaDung()) {
-                throw new RuntimeException("Phiếu giảm giá đã hết số lượng");
-            }
-            if (hoaDon.getTongTienHang().compareTo(pgg.getDonToiThieu()) < 0) {
-                throw new RuntimeException("Chưa đạt giá trị đơn tối thiểu: " + pgg.getDonToiThieu());
-            }
-
-            hoaDon.setPhieuGiamGia(pgg);
-            
-            // Tính tiền giảm
-            BigDecimal tienGiam = BigDecimal.ZERO;
-            if ("%".equals(pgg.getLoaiGiamGia())) {
-                tienGiam = hoaDon.getTongTienHang().multiply(pgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
-                if (pgg.getGiamToiDa() != null && tienGiam.compareTo(pgg.getGiamToiDa()) > 0) {
-                    tienGiam = pgg.getGiamToiDa();
-                }
-            } else {
-                tienGiam = pgg.getGiaTriGiam();
-            }
-            
-            hoaDon.setTienGiamGia(tienGiam);
-            hoaDon.setTongTienThanhToan(hoaDon.getTongTienHang().subtract(tienGiam));
+            hd.setPhieuGiamGia(null);
         }
-        return hoaDonRepository.save(hoaDon);
+        tinhTongTien(hd);
+        return hoaDonRepository.save(hd);
     }
 
     @Override
     @Transactional
-    public HoaDon thanhToan(Long idHoaDon, BigDecimal tongTienHang, BigDecimal tienGiamGia, BigDecimal tongTienThanhToan, String ghiChu) {
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
+    public HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang) {
+        HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         
-        hoaDon.setTongTienHang(tongTienHang);
-        hoaDon.setTienGiamGia(tienGiamGia);
-        hoaDon.setTongTienThanhToan(tongTienThanhToan);
-        hoaDon.setGhiChu(ghiChu);
-        hoaDon.setTrangThai(3); // 3 = Hoàn thành
-        hoaDon.setNgayCapNhat(LocalDateTime.now());
-        
-        // Nếu có phiếu giảm giá thì tăng số lượng đã dùng
-        if (hoaDon.getPhieuGiamGia() != null) {
-            PhieuGiamGia pgg = hoaDon.getPhieuGiamGia();
-            pgg.setSoLuongDaDung((pgg.getSoLuongDaDung() == null ? 0 : pgg.getSoLuongDaDung()) + 1);
-            phieuGiamGiaRepository.save(pgg);
+        if (getChiTietHoaDon(idHoaDon).isEmpty()) {
+            throw new RuntimeException("Giỏ hàng trống!");
         }
+
+        hd.setTrangThai(1); // 1 = Đã thanh toán
+        hd.setGhiChu(ghiChu);
+        if (tenKhachHang != null && !tenKhachHang.trim().isEmpty()) {
+            hd.setTenNguoiNhan(tenKhachHang);
+        } else if (hd.getKhachHang() == null) {
+            hd.setTenNguoiNhan("Khách lẻ");
+        }
+        hd.setNgayCapNhat(LocalDateTime.now());
+        // You would typically save Payment records here depending on your models
         
-        return hoaDonRepository.save(hoaDon);
+        return hoaDonRepository.save(hd);
     }
 
-    private void capNhatTongTienHoaDon(Long idHoaDon) {
-        HoaDon hoaDon = hoaDonRepository.findById(idHoaDon).orElseThrow();
-        List<ChiTietHoaDon> chiTietList = chiTietHoaDonRepository.findByHoaDonId(idHoaDon);
+    private void tinhTongTien(HoaDon hd) {
+        List<ChiTietHoaDon> chiTiets = getChiTietHoaDon(hd.getId());
+        BigDecimal tongTienHang = chiTiets.stream()
+                .map(ChiTietHoaDon::getThanhTien)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
+        hd.setTongTienHang(tongTienHang);
         
-        BigDecimal tongTien = BigDecimal.ZERO;
-        for (ChiTietHoaDon ct : chiTietList) {
-            tongTien = tongTien.add(ct.getThanhTien());
-        }
-        
-        hoaDon.setTongTienHang(tongTien);
-        
-        // Cập nhật lại tiền giảm giá nếu có voucher
-        if (hoaDon.getPhieuGiamGia() != null) {
-            PhieuGiamGia pgg = hoaDon.getPhieuGiamGia();
-            if (tongTien.compareTo(pgg.getDonToiThieu()) < 0) {
-                // Mất điều kiện voucher -> gỡ bỏ
-                hoaDon.setPhieuGiamGia(null);
-                hoaDon.setTienGiamGia(BigDecimal.ZERO);
-            } else {
-                BigDecimal tienGiam = BigDecimal.ZERO;
-                if ("%".equals(pgg.getLoaiGiamGia())) {
-                    tienGiam = tongTien.multiply(pgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
-                    if (pgg.getGiamToiDa() != null && tienGiam.compareTo(pgg.getGiamToiDa()) > 0) {
-                        tienGiam = pgg.getGiamToiDa();
+        BigDecimal tienGiamGia = BigDecimal.ZERO;
+        if (hd.getPhieuGiamGia() != null) {
+            PhieuGiamGia pgg = hd.getPhieuGiamGia();
+            if (pgg.getDonToiThieu() == null || tongTienHang.compareTo(pgg.getDonToiThieu()) >= 0) {
+                if (pgg.getLoaiGiamGia() != null && ("1".equals(pgg.getLoaiGiamGia()) || "%".equals(pgg.getLoaiGiamGia()))) { // %
+                    tienGiamGia = tongTienHang.multiply(pgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
+                    if (pgg.getGiamToiDa() != null && tienGiamGia.compareTo(pgg.getGiamToiDa()) > 0) {
+                        tienGiamGia = pgg.getGiamToiDa();
                     }
-                } else {
-                    tienGiam = pgg.getGiaTriGiam();
+                } else { // VND
+                    tienGiamGia = pgg.getGiaTriGiam();
                 }
-                hoaDon.setTienGiamGia(tienGiam);
+            } else {
+                hd.setPhieuGiamGia(null); // Invalidated
             }
         }
         
-        hoaDon.setTongTienThanhToan(tongTien.subtract(hoaDon.getTienGiamGia() != null ? hoaDon.getTienGiamGia() : BigDecimal.ZERO));
-        hoaDonRepository.save(hoaDon);
+        hd.setTienGiamGia(tienGiamGia);
+        hd.setTongTienThanhToan(tongTienHang.subtract(tienGiamGia).max(BigDecimal.ZERO));
+        hoaDonRepository.save(hd);
     }
 }

@@ -3,158 +3,294 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bán hàng | VShoes</title>
+    <title>Bán hàng tại quầy | VShoes</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <link rel="stylesheet" href="/css/sidebar.css">
     <link rel="stylesheet" href="/css/ban-hang.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Nhúng Sidebar dùng chung -->
+    <div class="app-container d-flex">
+        <!-- Sidebar -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính -->
-        <main class="main-content" style="padding: 0; display: flex; flex-direction: column;">
+        <!-- Main Content -->
+        <main class="main-content flex-grow-1 d-flex flex-column" style="background-color: #f4f6f8; height: 100vh; overflow: hidden;">
             
-            <!-- Khu vực Bán hàng POS -->
-            <div class="pos-container">
-                <!-- Tabs Hóa đơn -->
-                <div class="pos-tabs" id="invoiceTabs">
-                    <!-- Tabs will be rendered here by JS -->
-                    <div class="pos-add-tab" id="btnAddInvoice">+</div>
-                </div>
+            <!-- Tiêu đề -->
+            <div class="d-flex justify-content-between align-items-center pt-4 px-4 pb-3 border-bottom">
+                <h2 class="h4 mb-0 fw-bold text-dark" style="letter-spacing: -0.5px;">Bán hàng tại quầy</h2>
+            </div>
 
-                <div class="pos-content">
-                    <!-- Trái: Danh sách Sản phẩm -->
-                    <div class="pos-left">
-                        <div class="search-bar">
-                            <input type="text" id="searchProduct" placeholder="Tìm kiếm mã hoặc tên sản phẩm...">
-                            <button onclick="loadProducts()">Tìm</button>
-                        </div>
-                        <div class="product-list">
-                            <table class="product-table">
-                                <thead>
-                                    <tr>
-                                        <th>Mã</th>
-                                        <th>Tên sản phẩm</th>
-                                        <th>Màu sắc</th>
-                                        <th>Size</th>
-                                        <th>Tồn kho</th>
-                                        <th>Giá bán</th>
-                                        <th>Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="productTableBody">
-                                    <!-- Rendered by JS -->
-                                </tbody>
-                            </table>
+            <!-- Main Layout: 2 Columns -->
+            <div class="pos-layout row g-3 flex-grow-1 p-3 overflow-hidden m-0">
+                
+                <!-- Left Column (Orders & Cart) -->
+                <div class="col-lg-8 d-flex flex-column h-100 gap-3">
+                    
+                    <!-- Order Tabs Section -->
+                    <div class="card border-0 rounded-4 shadow-sm">
+                        <div class="card-body py-3 px-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-outline-dark rounded-pill px-3 fw-bold btn-sm" id="btnCreateOrder">
+                                    <i class="fa-solid fa-plus me-1"></i> Thêm hóa đơn chờ
+                                </button>
+                                <span class="text-muted small fw-semibold" id="orderCount">0/5 hóa đơn</span>
+                            </div>
+                            
+                            <ul class="nav nav-pills custom-pills flex-nowrap overflow-auto hide-scrollbar" id="orderTabs" role="tablist">
+                                <!-- Order Tabs dynamically loaded here -->
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- Phải: Giỏ hàng & Thanh toán -->
-                    <div class="pos-right">
-                        <!-- Danh sách sản phẩm trong hóa đơn -->
-                        <div class="cart-section">
-                            <div class="cart-header">Giỏ hàng</div>
-                            <div class="cart-items" id="cartItems">
-                                <!-- Rendered by JS -->
-                                <div class="empty-state">Vui lòng chọn hóa đơn hoặc thêm sản phẩm</div>
+                    <!-- Cart Section -->
+                    <div class="card border-0 rounded-4 shadow-sm flex-grow-1 d-flex flex-column overflow-hidden">
+                        <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <h5 class="mb-0 fw-bold me-3">Giỏ hàng</h5>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1" id="cartItemCount">0 sản phẩm</span>
                             </div>
+                            <div>
+                                <button class="btn btn-light rounded-circle text-muted me-2 border-0 bg-transparent" onclick="posApp.startQrScanner()"><i class="bi bi-qr-code-scan fs-5"></i></button>
+                                <button class="btn btn-dark rounded-pill px-3 fw-bold" onclick="posApp.openProductModal()">
+                                    <i class="fa-solid fa-plus me-1"></i> Chọn sản phẩm
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-4 overflow-auto flex-grow-1 position-relative pt-0">
+                            <table class="table table-borderless table-hover custom-table align-middle text-center mb-0" id="cartTable" style="display: none;">
+                                <thead class="sticky-top bg-white">
+                                    <tr class="text-muted small rounded-table-header">
+                                        <th class="ps-4 rounded-start-3">STT</th>
+                                        <th>Mã sản phẩm</th>
+                                        <th class="text-start">Tên sản phẩm</th>
+                                        <th>Màu sắc</th>
+                                        <th>Kích cỡ</th>
+                                        <th>Số lượng</th>
+                                        <th>Đơn giá</th>
+                                        <th class="pe-4 rounded-end-3">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cartBody">
+                                    <!-- Cart Items -->
+                                </tbody>
+                            </table>
+
+                            <div id="emptyCart" class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                                <img src="/images/empty-cart.svg" alt="Empty Cart" style="width: 150px; opacity: 0.5;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/102/102661.png'">
+                                <p class="mt-3 fw-semibold">Chưa có sản phẩm nào trong giỏ hàng</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column (Customer & Payment) -->
+                <div class="col-lg-4 d-flex flex-column h-100 gap-3">
+                    
+                    <!-- Customer Block -->
+                    <div class="card border-0 rounded-4 shadow-sm" style="flex-shrink: 0;">
+                        <div class="card-body p-3">
+                            <h6 class="fw-bold mb-2">Khách hàng</h6>
+                            <div class="position-relative search-customer-box">
+                                <input type="text" class="form-control rounded-pill border-0 bg-light py-2 px-4 text-muted small" id="searchCustomerInput" placeholder="Nhập tên hoặc số điện thoại khách hàng">
+                            </div>
+                            <div id="selectedCustomerInfo" class="mt-2 p-2 bg-light rounded-4 d-flex justify-content-between align-items-center" style="display: none !important;">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold" id="customerName"></h6>
+                                        <small class="text-muted" id="customerPhone"></small>
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-light rounded-circle text-muted" onclick="posApp.removeCustomer()"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Info Block -->
+                    <div class="card border-0 rounded-4 shadow-sm flex-grow-1 d-flex flex-column overflow-hidden">
+                        <!-- Scrollable content -->
+                        <div class="card-body p-4 d-flex flex-column overflow-auto hide-scrollbar pb-0">
+                            
+                            <h6 class="fw-bold mb-3">Thông tin đơn hàng</h6>
+
+                            <!-- Voucher Applied Block (Dynamic) -->
+                            <div id="voucherBlock" style="cursor: pointer;" onclick="posApp.openVoucherModal()">
+                                <!-- Voucher Content (Filled by JS) -->
+                            </div>
+
+                            <!-- Order info details -->
+                            <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+                                <span class="fw-bold text-success small">Thông tin đơn hàng</span>
+                                <div class="form-check form-switch m-0 d-flex align-items-center">
+                                    <label class="form-check-label small text-muted me-2" for="giaoHangSwitch">Giao hàng</label>
+                                    <input class="form-check-input ms-0" type="checkbox" id="giaoHangSwitch">
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3 text-muted small fw-semibold">
+                                <span>Tổng tiền hàng:</span>
+                                <strong class="text-dark fs-6" id="summaryTotalAmount">0 đ</strong>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-4 text-muted small fw-semibold">
+                                <span>Tiền giảm:</span>
+                                <strong class="text-success fs-6" id="summaryDiscount">-0 đ</strong>
+                            </div>
+
+                            <!-- Gợi ý mua thêm Section -->
+                            <div class="suggest-block mb-4" id="suggestBlock">
+                                <!-- Filled by JS -->
+                            </div>
+
+                            <hr class="text-muted opacity-25 mt-0 mb-3">
+
+                            <div class="d-flex justify-content-between py-2 mb-3 align-items-center">
+                                <span class="text-muted fw-bold small">Khách cần trả</span>
+                                <strong class="fw-bold text-dark fs-5" id="summaryFinalAmount">0 đ</strong>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="mb-3">
+                                <span class="text-muted small fw-semibold d-block mb-2">Hình thức thanh toán</span>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check custom-radio">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" id="payCash" value="CASH" checked onchange="posApp.calculateChange()">
+                                        <label class="form-check-label text-dark small" for="payCash">Tiền mặt</label>
+                                    </div>
+                                    <div class="form-check custom-radio">
+                                        <input class="form-check-input" type="radio" name="paymentMethod" id="payTransfer" value="TRANSFER" onchange="posApp.calculateChange()">
+                                        <label class="form-check-label text-dark small" for="payTransfer">Chuyển khoản</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- QR Code Chuyển Khoản -->
+                            <div id="transferQrGroup" class="mb-3 text-center" style="display: none;">
+                                <div class="p-3 bg-white rounded-4 border shadow-sm">
+                                    <p class="small fw-semibold text-dark mb-2">Quét mã QR để thanh toán</p>
+                                    <img id="vietqrImage" src="" alt="QR Chuyển khoản" class="img-fluid rounded border p-1" style="max-width: 180px; object-fit: contain;">
+                                    <p class="small text-muted mt-2 mb-0" id="transferMessage"></p>
+                                    <div class="mt-2 small fw-bold text-primary" id="transferAmount">0 đ</div>
+                                </div>
+                            </div>
+
+                            <!-- Cash Input -->
+                            <div class="mb-3" id="customerCashGroup">
+                                <span class="text-muted small fw-semibold d-block mb-2">Khách thanh toán</span>
+                                <input type="text" class="form-control rounded-3 border-0 bg-light py-2 px-3 small" style="border: 1px solid #e5e7eb !important;" id="customerCash" placeholder="Nhập số tiền khách đưa" oninput="posApp.calculateChange()">
+                            </div>
+
+                            <hr class="text-muted opacity-25 mt-2 mb-3">
+
+                            <div class="d-flex justify-content-between mb-4">
+                                <span class="text-muted small fw-semibold">Tiền thừa trả khách</span>
+                                <strong class="fw-bold text-dark small fs-6" id="returnCash">0 đ</strong>
+                            </div>
+
+                            <div class="mb-4">
+                                <span class="text-muted small fw-semibold d-block mb-2">Ghi chú thanh toán</span>
+                                <input type="text" class="form-control rounded-3 border-0 bg-light py-2 px-3 small" style="border: 1px solid #e5e7eb !important;" id="orderNote" placeholder="Ghi chú thêm nếu cần">
+                            </div>
+
                         </div>
 
-                        <!-- Khách hàng -->
-                        <div class="customer-section">
-                            <div class="section-title">
-                                Khách hàng
-                                <button class="btn-action" style="padding: 4px 8px; font-size: 12px;" onclick="openCustomerModal()">Chọn KH</button>
-                            </div>
-                            <div id="customerInfo" style="font-size: 14px; color: #475569;">
-                                Khách lẻ (Không lưu thông tin)
-                            </div>
+                        <!-- Sticky Footer Actions -->
+                        <div class="p-4 pt-0 mt-auto bg-white border-top-0 d-flex gap-2">
+                            <button class="btn btn-light rounded-pill py-2 fw-bold text-muted flex-grow-1" id="btnCancelOrder" onclick="posApp.closeOrder(posApp.currentOrderId, event)" style="background-color: #f3f4f6;">
+                                Hủy hóa đơn
+                            </button>
+                            <button class="btn btn-dark rounded-pill py-2 fw-bold flex-grow-1 shadow-sm" id="btnCheckout" onclick="posApp.checkout()" style="border: none; color: white;">
+                                Thanh toán
+                            </button>
                         </div>
 
-                        <!-- Phiếu giảm giá -->
-                        <div class="voucher-section">
-                            <div class="section-title">
-                                Phiếu giảm giá
-                                <button class="btn-action" style="padding: 4px 8px; font-size: 12px;" onclick="openVoucherModal()">Chọn Voucher</button>
-                            </div>
-                            <div id="voucherInfo" style="font-size: 14px; color: #475569;">
-                                Chưa áp dụng
-                            </div>
-                        </div>
-
-                        <!-- Tính tiền -->
-                        <div class="summary-section">
-                            <div class="summary-row">
-                                <span>Tổng tiền hàng</span>
-                                <span id="lblTongTienHang">0 đ</span>
-                            </div>
-                            <div class="summary-row">
-                                <span>Giảm giá</span>
-                                <span id="lblTienGiamGia">0 đ</span>
-                            </div>
-                            <div class="summary-row total">
-                                <span>Khách cần trả</span>
-                                <span class="total-amount" id="lblTongThanhToan">0 đ</span>
-                            </div>
-                        </div>
-
-                        <!-- Thanh toán -->
-                        <div class="checkout-section">
-                            <textarea id="txtGhiChu" placeholder="Ghi chú hóa đơn..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 15px; resize: none; font-family: inherit; font-size: 13px;" rows="2"></textarea>
-                            <button class="btn-checkout" onclick="thanhToan()">Thanh Toán</button>
-                        </div>
                     </div>
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- Modal Khách Hàng -->
-    <div class="modal" id="customerModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>Chọn Khách Hàng</span>
-                <button class="close-modal" onclick="closeModal('customerModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="search-bar" style="margin-bottom: 15px;">
-                    <input type="text" id="searchCustomer" placeholder="Tìm theo tên, SĐT...">
-                    <button onclick="loadCustomers()">Tìm</button>
+    <!-- Product List Modal -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Chọn sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <button class="btn-action" style="margin-bottom: 10px; width: 100%" onclick="chonKhachHang(null)">Bỏ chọn (Khách lẻ)</button>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="product-table">
-                        <thead><tr><th>Tên</th><th>SĐT</th><th></th></tr></thead>
-                        <tbody id="customerTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Voucher -->
-    <div class="modal" id="voucherModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>Chọn Phiếu Giảm Giá</span>
-                <button class="close-modal" onclick="closeModal('voucherModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <button class="btn-action" style="margin-bottom: 10px; width: 100%" onclick="chonVoucher(null)">Bỏ áp dụng Voucher</button>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="product-table">
-                        <thead><tr><th>Mã</th><th>Tên</th><th>Giảm</th><th>Đơn tối thiểu</th><th></th></tr></thead>
-                        <tbody id="voucherTableBody"></tbody>
-                    </table>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control rounded-pill bg-light border-0 py-2 px-4" id="modalProductSearch" placeholder="Tìm kiếm theo mã, tên sản phẩm..." onkeyup="posApp.filterProducts()">
+                    </div>
+                    <div class="table-responsive bg-white rounded-3 border">
+                        <table class="table table-hover table-borderless align-middle text-center mb-0" id="modalProductTable">
+                            <thead class="table-light border-bottom">
+                                <tr class="text-muted small">
+                                    <th>Mã SP</th>
+                                    <th class="text-start">Tên SP</th>
+                                    <th>Màu sắc</th>
+                                    <th>Kích cỡ</th>
+                                    <th>Tồn kho</th>
+                                    <th>Giá bán</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalProductBody">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="toast">Message here</div>
+    <!-- Voucher List Modal -->
+    <div class="modal fade" id="voucherModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Chọn Phiếu Giảm Giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light p-4">
+                    <div id="voucherModalBody" class="d-flex flex-column gap-3">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- QR Code Scanner Modal -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Quét mã QR Sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="posApp.stopQrScanner()"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="/js/ban-hang.js"></script>
 </body>
 </html>

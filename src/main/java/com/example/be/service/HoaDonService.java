@@ -40,8 +40,8 @@ public class HoaDonService {
                                   LocalDateTime startDate, LocalDateTime endDate) {
         String loaiHoaDonDb = null;
         if (loaiHoaDon != null && !loaiHoaDon.isEmpty()) {
-            if ("Tại quầy".equalsIgnoreCase(loaiHoaDon) || "Tai quay".equalsIgnoreCase(loaiHoaDon)) {
-                loaiHoaDonDb = "Tại quầy";
+            if ("Tại quầy".equalsIgnoreCase(loaiHoaDon) || "Tai quay".equalsIgnoreCase(loaiHoaDon) || "TAI_QUAY".equalsIgnoreCase(loaiHoaDon)) {
+                loaiHoaDonDb = "TAI_QUAY";
             } else if ("Online".equalsIgnoreCase(loaiHoaDon)) {
                 loaiHoaDonDb = "Online";
             } else {

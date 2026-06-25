@@ -68,7 +68,6 @@
                             <button type="button" id="btnReset" class="btn-reset">Làm mới</button>
                         </div>
                         <div>
-                            <button type="button" class="btn-qr" data-bs-toggle="modal" data-bs-target="#qrModal"><i class="bi bi-qr-code-scan"></i> QR Code sản phẩm</button>
                             <button type="button" class="btn-excel ms-2" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
                         </div>
                     </div>
@@ -200,6 +199,10 @@
                                        th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    <button type="button" class="btn btn-light text-dark me-2 px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" title="Mã QR"
+                                            th:attr="onclick=|showVariantQR('${ct.ma}', '${ct.sanPham.tenSanPham} - ${ct.mauSac != null ? ct.mauSac.tenMauSac : ''} - ${ct.coGiay != null ? ct.coGiay.sizeGiay : ''}')|">
+                                        <i class="bi bi-qr-code"></i>
+                                    </button>
                                     <button class="btn btn-light text-primary me-2 px-3 py-2" style="border-radius: 6px; font-size: 1.1rem;" title="Chỉnh sửa"
                                             data-bs-toggle="modal" 
                                             th:data-bs-target="'#editVariantModal' + ${ct.id}">
@@ -282,11 +285,13 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label fw-medium">Giá Nhập (VNĐ)</label>
-                                                        <input type="number" class="form-control" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
+                                                        <input type="text" class="form-control format-currency visible-gia-nhap" th:value="${ct.giaNhap != null ? #numbers.formatInteger(ct.giaNhap, 0, 'POINT') : ''}" th:oninput="|formatInputCurrency(this, 'hiddenGiaNhap_${ct.id}')|">
+                                                        <input type="hidden" name="giaNhap" th:id="'hiddenGiaNhap_' + ${ct.id}" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label fw-medium">Giá Bán (VNĐ)</label>
-                                                        <input type="number" class="form-control" name="giaBan" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}" required>
+                                                        <input type="text" class="form-control format-currency" th:value="${ct.giaBan != null ? #numbers.formatInteger(ct.giaBan, 0, 'POINT') : ''}" th:oninput="|formatInputCurrency(this, 'hiddenGiaBan_${ct.id}')|" required>
+                                                        <input type="hidden" name="giaBan" th:id="'hiddenGiaBan_' + ${ct.id}" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}">
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label fw-medium">Số Lượng Tồn</label>
@@ -363,7 +368,10 @@
                     </div>
                     <div class="modal-body text-center pb-4 pt-2">
                         <div id="qrcode" class="d-flex justify-content-center mt-3 mb-3 p-3 bg-white rounded-3 shadow-sm border"></div>
-                        <p class="text-muted small mb-0">Sử dụng điện thoại để quét mã QR</p>
+                        <p class="text-muted small fw-bold mb-2" id="qrDesc">Sử dụng máy quét mã vạch</p>
+                        <button type="button" class="btn btn-primary btn-sm px-4" style="border-radius: 6px;" onclick="downloadQR()">
+                            <i class="bi bi-download me-1"></i> Tải ảnh QR
+                        </button>
                     </div>
                 </div>
             </div>
@@ -607,22 +615,45 @@
             }
 
             const qrModal = document.getElementById('qrModal');
-            if(qrModal) {
-                qrModal.addEventListener('shown.bs.modal', function () {
-                    const qrContainer = document.getElementById('qrcode');
-                    qrContainer.innerHTML = '';
-                    const url = window.location.origin + '/san-pham/edit/' + sanPhamId;
-                    new QRCode(qrContainer, {
-                        text: url,
-                        width: 180,
-                        height: 180,
-                        colorDark : "#0f172a",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-                });
-            }
+            // Remove old global event listener
         });
+        
+        function showVariantQR(maVariant, tenVariant) {
+            const qrModalLabel = document.getElementById('qrModalLabel');
+            if(qrModalLabel) qrModalLabel.innerText = tenVariant;
+            
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            const desc = document.getElementById('qrDesc');
+            if (desc) desc.innerText = 'Mã: ' + maVariant;
+            
+            new QRCode(qrContainer, {
+                text: maVariant,
+                width: 180,
+                height: 180,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+            
+            const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+            modal.show();
+        }
+
+        function downloadQR() {
+            const qrCanvas = document.querySelector('#qrcode canvas');
+            if (qrCanvas) {
+                const url = qrCanvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                const name = document.getElementById('qrModalLabel').innerText;
+                a.download = 'QR_' + name + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
         function previewVariantImage(input, variantId) {
             var container = document.getElementById('previewContainer_' + variantId);
             var base64Input = document.getElementById('imageBase64_' + variantId);
@@ -668,20 +699,74 @@
             }
         }
 
+        function formatInputCurrency(input, hiddenId) {
+            let rawValue = input.value.replace(/[^0-9]/g, '');
+            if (!rawValue) {
+                input.value = '';
+                document.getElementById(hiddenId).value = '';
+            } else {
+                let num = parseInt(rawValue);
+                let cursorPos = input.selectionStart;
+                let oldLength = input.value.length;
+                
+                input.value = num.toLocaleString('vi-VN');
+                
+                let newLength = input.value.length;
+                cursorPos = cursorPos + (newLength - oldLength);
+                input.setSelectionRange(cursorPos, cursorPos);
+                
+                document.getElementById(hiddenId).value = num;
+            }
+            
+            // Real-time validation
+            let form = input.closest('form');
+            if (form) {
+                checkPriceValidity(form);
+            }
+        }
+
+        function checkPriceValidity(form) {
+            let giaNhapInput = form.querySelector('input[name="giaNhap"]');
+            let giaBanInput = form.querySelector('input[name="giaBan"]');
+            if (!giaNhapInput || !giaBanInput) return;
+            
+            let giaNhap = parseFloat(giaNhapInput.value) || 0;
+            let giaBan = parseFloat(giaBanInput.value) || 0;
+            
+            let submitBtn = form.querySelector('button[type="submit"]');
+            
+            let errorMsg = form.querySelector('.price-error-msg');
+            if (!errorMsg) {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'text-danger small mt-1 price-error-msg fw-bold';
+                
+                let visibleGiaNhap = form.querySelector('.visible-gia-nhap');
+                if (visibleGiaNhap) {
+                    visibleGiaNhap.parentElement.appendChild(errorMsg);
+                }
+            }
+            
+            if (giaNhap > 0 && giaNhap > giaBan) {
+                errorMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Giá nhập không được lớn hơn giá bán!';
+                if (submitBtn) submitBtn.disabled = true;
+            } else {
+                errorMsg.innerHTML = '';
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
         function validateVariantModal(form) {
             let giaNhapStr = form.querySelector('input[name="giaNhap"]').value;
             let giaBanStr = form.querySelector('input[name="giaBan"]').value;
             let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
             let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
             
-            if (giaNhap >= giaBan) {
+            if (giaNhap > 0 && giaNhap > giaBan) {
                 Swal.fire({
-                    toast: true,
-                    position: 'top-end',
                     icon: 'error',
-                    title: 'Giá nhập phải nhỏ hơn giá bán!',
-                    showConfirmButton: false,
-                    timer: 3000
+                    title: 'Lỗi',
+                    text: 'Giá nhập không được lớn hơn giá bán!',
+                    confirmButtonText: 'Đã hiểu'
                 });
                 return false;
             }
