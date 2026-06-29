@@ -73,6 +73,15 @@ public class SanPhamController {
                                 @RequestParam(value = "imageBase64", required = false) String imageBase64,
                                 @org.springframework.web.bind.annotation.RequestHeader(value = "Referer", required = false) String referer,
                                 RedirectAttributes redirectAttributes) {
+        
+        if (giaNhap != null && giaBan != null && giaNhap.compareTo(giaBan) >= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Giá nhập phải nhỏ hơn giá bán!");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
+            return "redirect:/san-pham";
+        }
+
         com.example.be.entity.SanPhamChiTiet variant = sanPhamChiTietRepository.findById(id).orElse(null);
         if (variant != null) {
             variant.setGiaBan(giaBan);
@@ -199,7 +208,17 @@ public class SanPhamController {
                                     @RequestParam Integer soLuongTon,
                                     @RequestParam Integer trangThai,
                                     @RequestParam(value = "imageBase64", required = false) String imageBase64,
+                                    @org.springframework.web.bind.annotation.RequestHeader(value = "Referer", required = false) String referer,
                                     RedirectAttributes redirectAttributes) {
+
+        if (giaNhap != null && giaBan != null && giaNhap.compareTo(giaBan) >= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Giá nhập phải nhỏ hơn giá bán!");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
+            return "redirect:/san-pham";
+        }
+
         com.example.be.entity.SanPhamChiTiet variant = sanPhamChiTietRepository.findById(id).orElse(null);
         if (variant != null) {
             com.example.be.entity.SanPham sanPham = variant.getSanPham();
@@ -361,6 +380,17 @@ public class SanPhamController {
         if (variantSizes == null || variantSizes.isEmpty() || variantColors == null || variantColors.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Sản phẩm phải có ít nhất 1 biến thể (Màu sắc và Kích cỡ)!");
             return "redirect:/san-pham/create";
+        }
+
+        if (variantPrices != null && variantImportPrices != null) {
+            for (int i = 0; i < variantPrices.size(); i++) {
+                java.math.BigDecimal gb = variantPrices.get(i);
+                java.math.BigDecimal gn = variantImportPrices.size() > i ? variantImportPrices.get(i) : java.math.BigDecimal.ZERO;
+                if (gn != null && gb != null && gn.compareTo(gb) >= 0) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: Giá nhập phải nhỏ hơn giá bán ở một số biến thể!");
+                    return "redirect:/san-pham/create";
+                }
+            }
         }
 
         try {

@@ -200,15 +200,17 @@
                             </div>
                             <div class="col-md-4">
                                 <span class="info-label">Giá nhập (vnđ)</span>
-                                <input type="number" class="form-control-custom text-dark fw-bold text-primary" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
+                                <input type="text" class="form-control-custom text-dark visible-gia-nhap" th:value="${ct.giaNhap != null ? #numbers.formatInteger(ct.giaNhap, 0, 'POINT') : ''}" oninput="formatInputCurrency(this, 'hiddenGiaNhap')">
+                                <input type="hidden" name="giaNhap" id="hiddenGiaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
                             </div>
                             <div class="col-md-4">
                                 <span class="info-label">Giá bán (vnđ)</span>
-                                <input type="number" class="form-control-custom text-dark fw-bold text-success" name="giaBan" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}" required>
+                                <input type="text" class="form-control-custom text-dark visible-gia-ban" th:value="${ct.giaBan != null ? #numbers.formatInteger(ct.giaBan, 0, 'POINT') : ''}" oninput="formatInputCurrency(this, 'hiddenGiaBan')" required>
+                                <input type="hidden" name="giaBan" id="hiddenGiaBan" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}">
                             </div>
                             <div class="col-md-4">
                                 <span class="info-label">Số lượng tồn</span>
-                                <input type="number" class="form-control-custom text-dark fw-bold" name="soLuongTon" th:value="${ct.soLuongTon}" required>
+                                <input type="number" class="form-control-custom text-dark" name="soLuongTon" th:value="${ct.soLuongTon}" required>
                             </div>
                         </div>
                     </div>
@@ -228,8 +230,34 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script th:inline="javascript">
+        /*<![CDATA[*/
+        var successMsg = /*[[${successMessage}]]*/ null;
+        var errorMsgBackend = /*[[${errorMessage}]]*/ null;
+        /*]]>*/
+        
     document.addEventListener('DOMContentLoaded', function() {
+        if (successMsg) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: successMsg,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
+        
+        if (errorMsgBackend) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: errorMsgBackend,
+                confirmButtonText: 'Đã hiểu'
+            });
+        }
         // Khởi tạo Select2 cho các dropdown
         $('.form-select-custom').select2({
             theme: 'bootstrap-5',
@@ -288,16 +316,95 @@
             });
         });
 
+        // Currency formatting
+        window.formatInputCurrency = function(input, hiddenId) {
+            let cursorPosition = input.selectionStart;
+            let originalValue = input.value;
+            
+            let digitsBeforeCursor = 0;
+            for (let i = 0; i < cursorPosition; i++) {
+                if (/[0-9]/.test(originalValue[i])) {
+                    digitsBeforeCursor++;
+                }
+            }
+
+            let rawValue = originalValue.replace(/[^0-9]/g, '');
+            if (!rawValue) {
+                input.value = '';
+                document.getElementById(hiddenId).value = '';
+            } else {
+                let num = parseInt(rawValue);
+                let formattedValue = num.toLocaleString('vi-VN');
+                input.value = formattedValue;
+                
+                let newCursorPosition = 0;
+                let digitCount = 0;
+                for (let i = 0; i < formattedValue.length; i++) {
+                    if (digitCount === digitsBeforeCursor) {
+                        newCursorPosition = i;
+                        break;
+                    }
+                    if (/[0-9]/.test(formattedValue[i])) {
+                        digitCount++;
+                    }
+                }
+                if (digitCount === digitsBeforeCursor) {
+                    newCursorPosition = formattedValue.length;
+                }
+                
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
+                
+                document.getElementById(hiddenId).value = num;
+            }
+            checkPriceValidity();
+        };
+
+        function checkPriceValidity() {
+            let giaNhapStr = document.getElementById('hiddenGiaNhap').value;
+            let giaBanStr = document.getElementById('hiddenGiaBan').value;
+            let giaNhap = parseFloat(giaNhapStr) || 0;
+            let giaBan = parseFloat(giaBanStr) || 0;
+            
+            let submitBtn = document.querySelector('button[type="submit"]');
+            
+            let errorMsg = document.querySelector('.price-error-msg');
+            if (!errorMsg) {
+                errorMsg = document.createElement('div');
+                errorMsg.className = 'text-danger small mt-1 price-error-msg fw-bold';
+                
+                let visibleGiaNhap = document.querySelector('.visible-gia-nhap');
+                if (visibleGiaNhap) {
+                    visibleGiaNhap.parentElement.appendChild(errorMsg);
+                }
+            }
+            
+            if (giaNhap >= giaBan) {
+                errorMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Giá nhập phải nhỏ hơn giá bán!';
+                if (submitBtn) submitBtn.disabled = true;
+            } else {
+                errorMsg.innerHTML = '';
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
+        // Run validation on load
+        checkPriceValidity();
+
         // Validation: Giá nhập phải nhỏ hơn giá bán
         document.getElementById('updateVariantForm').addEventListener('submit', function(e) {
-            let giaNhapStr = document.querySelector('input[name="giaNhap"]').value;
-            let giaBanStr = document.querySelector('input[name="giaBan"]').value;
-            let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
-            let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
+            let giaNhapStr = document.getElementById('hiddenGiaNhap').value;
+            let giaBanStr = document.getElementById('hiddenGiaBan').value;
+            let giaNhap = parseFloat(giaNhapStr) || 0;
+            let giaBan = parseFloat(giaBanStr) || 0;
             
             if (giaNhap >= giaBan) {
                 e.preventDefault();
-                alert("Giá nhập phải nhỏ hơn giá bán!");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Giá nhập phải nhỏ hơn giá bán!',
+                    confirmButtonText: 'Đã hiểu'
+                });
                 return false;
             }
         });

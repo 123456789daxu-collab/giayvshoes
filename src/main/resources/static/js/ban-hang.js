@@ -648,7 +648,18 @@ const posApp = {
             qrGroup.style.display = 'none';
             document.getElementById('customerCashGroup').style.display = 'block';
             
-            let rawValue = cashInput.value.replace(/[^0-9]/g, '');
+            let cursorPosition = cashInput.selectionStart;
+            let originalValue = cashInput.value;
+            
+            // Đếm số chữ số trước con trỏ
+            let digitsBeforeCursor = 0;
+            for (let i = 0; i < cursorPosition; i++) {
+                if (/[0-9]/.test(originalValue[i])) {
+                    digitsBeforeCursor++;
+                }
+            }
+
+            let rawValue = originalValue.replace(/[^0-9]/g, '');
             if (!rawValue) {
                 cashInput.value = '';
                 document.getElementById('returnCash').innerText = "0 đ";
@@ -656,16 +667,26 @@ const posApp = {
             }
             
             let cash = parseFloat(rawValue);
+            let formattedValue = cash.toLocaleString('vi-VN');
+            cashInput.value = formattedValue;
             
-            // Giữ vị trí con trỏ
-            let cursorPos = cashInput.selectionStart;
-            let oldLength = cashInput.value.length;
+            // Tìm vị trí con trỏ mới
+            let newCursorPosition = 0;
+            let digitCount = 0;
+            for (let i = 0; i < formattedValue.length; i++) {
+                if (digitCount === digitsBeforeCursor) {
+                    newCursorPosition = i;
+                    break;
+                }
+                if (/[0-9]/.test(formattedValue[i])) {
+                    digitCount++;
+                }
+            }
+            if (digitCount === digitsBeforeCursor) {
+                newCursorPosition = formattedValue.length;
+            }
             
-            cashInput.value = cash.toLocaleString('vi-VN');
-            
-            let newLength = cashInput.value.length;
-            cursorPos = cursorPos + (newLength - oldLength);
-            cashInput.setSelectionRange(cursorPos, cursorPos);
+            cashInput.setSelectionRange(newCursorPosition, newCursorPosition);
 
             const diff = cash - order.tongTienThanhToan;
             document.getElementById('returnCash').innerText = this.formatCurrency(diff > 0 ? diff : 0);

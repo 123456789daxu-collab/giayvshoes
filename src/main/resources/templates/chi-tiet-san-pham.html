@@ -393,6 +393,7 @@
         var danhMuc = /*[[${sanPham.danhMuc != null ? sanPham.danhMuc.tenDanhMuc : ''}]]*/ '';
         var moTa = /*[[${sanPham.moTaChiTiet}]]*/ '';
         var successMsg = /*[[${successMessage}]]*/ null;
+        var errorMsgBackend = /*[[${errorMessage}]]*/ null;
         /*]]>*/
         
         function exportToExcel() {
@@ -485,6 +486,15 @@
                     showConfirmButton: false,
                     timer: 3000,
                     timerProgressBar: true
+                });
+            }
+            
+            if (errorMsgBackend) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: errorMsgBackend,
+                    confirmButtonText: 'Đã hiểu'
                 });
             }
 
@@ -615,7 +625,17 @@
             }
 
             const qrModal = document.getElementById('qrModal');
-            // Remove old global event listener
+            
+            // Trigger validation when modal is shown
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.addEventListener('show.bs.modal', function() {
+                    const form = modal.querySelector('form');
+                    if (form) {
+                        checkPriceValidity(form);
+                    }
+                });
+            });
         });
         
         function showVariantQR(maVariant, tenVariant) {
@@ -700,20 +720,41 @@
         }
 
         function formatInputCurrency(input, hiddenId) {
-            let rawValue = input.value.replace(/[^0-9]/g, '');
+            let cursorPosition = input.selectionStart;
+            let originalValue = input.value;
+            
+            let digitsBeforeCursor = 0;
+            for (let i = 0; i < cursorPosition; i++) {
+                if (/[0-9]/.test(originalValue[i])) {
+                    digitsBeforeCursor++;
+                }
+            }
+
+            let rawValue = originalValue.replace(/[^0-9]/g, '');
             if (!rawValue) {
                 input.value = '';
                 document.getElementById(hiddenId).value = '';
             } else {
                 let num = parseInt(rawValue);
-                let cursorPos = input.selectionStart;
-                let oldLength = input.value.length;
+                let formattedValue = num.toLocaleString('vi-VN');
+                input.value = formattedValue;
                 
-                input.value = num.toLocaleString('vi-VN');
+                let newCursorPosition = 0;
+                let digitCount = 0;
+                for (let i = 0; i < formattedValue.length; i++) {
+                    if (digitCount === digitsBeforeCursor) {
+                        newCursorPosition = i;
+                        break;
+                    }
+                    if (/[0-9]/.test(formattedValue[i])) {
+                        digitCount++;
+                    }
+                }
+                if (digitCount === digitsBeforeCursor) {
+                    newCursorPosition = formattedValue.length;
+                }
                 
-                let newLength = input.value.length;
-                cursorPos = cursorPos + (newLength - oldLength);
-                input.setSelectionRange(cursorPos, cursorPos);
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
                 
                 document.getElementById(hiddenId).value = num;
             }
@@ -746,8 +787,8 @@
                 }
             }
             
-            if (giaNhap > 0 && giaNhap > giaBan) {
-                errorMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Giá nhập không được lớn hơn giá bán!';
+            if (giaNhap >= giaBan) {
+                errorMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Giá nhập phải nhỏ hơn giá bán!';
                 if (submitBtn) submitBtn.disabled = true;
             } else {
                 errorMsg.innerHTML = '';
@@ -761,11 +802,11 @@
             let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
             let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
             
-            if (giaNhap > 0 && giaNhap > giaBan) {
+            if (giaNhap >= giaBan) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi',
-                    text: 'Giá nhập không được lớn hơn giá bán!',
+                    text: 'Giá nhập phải nhỏ hơn giá bán!',
                     confirmButtonText: 'Đã hiểu'
                 });
                 return false;
