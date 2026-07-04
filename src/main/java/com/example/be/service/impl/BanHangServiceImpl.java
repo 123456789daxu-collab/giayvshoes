@@ -58,12 +58,9 @@ public class BanHangServiceImpl implements BanHangService {
         Optional<HoaDon> opt = hoaDonRepository.findById(id);
         if (opt.isPresent()) {
             HoaDon hd = opt.get();
-            // Restore inventory for items in cart before deleting
             List<ChiTietHoaDon> chiTiets = getChiTietHoaDon(id);
+            // Inventory is now deducted upon checkout, no need to restore here
             for (ChiTietHoaDon ct : chiTiets) {
-                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-                spct.setSoLuongTon(spct.getSoLuongTon() + ct.getSoLuong());
-                sanPhamChiTietRepository.save(spct);
                 chiTietHoaDonRepository.delete(ct);
             }
             hoaDonRepository.delete(hd);
@@ -83,14 +80,17 @@ public class BanHangServiceImpl implements BanHangService {
         HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         SanPhamChiTiet spct = sanPhamChiTietRepository.findById(idSanPhamChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
         
-        if (spct.getSoLuongTon() < soLuong) {
-            throw new RuntimeException("Số lượng tồn kho không đủ!");
-        }
-
-        // Check if item already exists in cart
+        int cartQty = 0;
         Optional<ChiTietHoaDon> existing = getChiTietHoaDon(idHoaDon).stream()
                 .filter(ct -> ct.getSanPhamChiTiet().getId().equals(idSanPhamChiTiet))
                 .findFirst();
+        if (existing.isPresent()) {
+            cartQty = existing.get().getSoLuong();
+        }
+
+        if (spct.getSoLuongTon() < (cartQty + soLuong)) {
+            throw new RuntimeException("Số lượng tồn kho không đủ!");
+        }
 
         ChiTietHoaDon ct;
         if (existing.isPresent()) {
@@ -106,9 +106,8 @@ public class BanHangServiceImpl implements BanHangService {
             ct.setThanhTien(spct.getGiaBan().multiply(new BigDecimal(soLuong)));
         }
         
-        // Deduct inventory temporarily
-        spct.setSoLuongTon(spct.getSoLuongTon() - soLuong);
-        sanPhamChiTietRepository.save(spct);
+        // Deduct inventory only on checkout
+
 
         ct = chiTietHoaDonRepository.save(ct);
         tinhTongTien(hd);
@@ -126,8 +125,8 @@ public class BanHangServiceImpl implements BanHangService {
             throw new RuntimeException("Số lượng tồn kho không đủ!");
         }
         
-        spct.setSoLuongTon(spct.getSoLuongTon() - diff);
-        sanPhamChiTietRepository.save(spct);
+        // Deduct inventory only on checkout
+
         
         ct.setSoLuong(soLuong);
         ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(soLuong)));
@@ -143,9 +142,8 @@ public class BanHangServiceImpl implements BanHangService {
         ChiTietHoaDon ct = chiTietHoaDonRepository.findById(idChiTiet).orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết hóa đơn"));
         SanPhamChiTiet spct = ct.getSanPhamChiTiet();
         
-        // Restore inventory
-        spct.setSoLuongTon(spct.getSoLuongTon() + ct.getSoLuong());
-        sanPhamChiTietRepository.save(spct);
+        // Inventory restored only if cancelled, but here we don't deduct until checkout
+
         
         HoaDon hd = ct.getHoaDon();
         chiTietHoaDonRepository.delete(ct);
@@ -182,11 +180,22 @@ public class BanHangServiceImpl implements BanHangService {
 
     @Override
     @Transactional
-    public HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang) {
+    public HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang, BigDecimal phiShip, String sdtNhan, String diaChiGiao) {
         HoaDon hd = hoaDonRepository.findById(idHoaDon).orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn"));
         
-        if (getChiTietHoaDon(idHoaDon).isEmpty()) {
+        List<ChiTietHoaDon> chiTiets = getChiTietHoaDon(idHoaDon);
+        if (chiTiets.isEmpty()) {
             throw new RuntimeException("Giỏ hàng trống!");
+        }
+        
+        // Deduct inventory
+        for (ChiTietHoaDon ct : chiTiets) {
+            SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+            if (spct.getSoLuongTon() < ct.getSoLuong()) {
+                throw new RuntimeException("Sản phẩm " + spct.getSanPham().getTenSanPham() + " không đủ số lượng tồn kho!");
+            }
+            spct.setSoLuongTon(spct.getSoLuongTon() - ct.getSoLuong());
+            sanPhamChiTietRepository.save(spct);
         }
 
         hd.setTrangThai(1); // 1 = Đã thanh toán
@@ -196,6 +205,21 @@ public class BanHangServiceImpl implements BanHangService {
         } else if (hd.getKhachHang() == null) {
             hd.setTenNguoiNhan("Khách lẻ");
         }
+        
+        // Cập nhật thông tin giao hàng
+        if (phiShip != null && phiShip.compareTo(BigDecimal.ZERO) > 0) {
+            hd.setTienVanChuyen(phiShip);
+            hd.setTongTienThanhToan(hd.getTongTienThanhToan().add(phiShip)); // Cộng thêm phí ship vào tổng thanh toán
+        }
+        if (sdtNhan != null && !sdtNhan.trim().isEmpty()) {
+            hd.setSdtNguoiNhan(sdtNhan);
+        }
+        if (diaChiGiao != null && !diaChiGiao.trim().isEmpty()) {
+            hd.setDiaChiGiao(diaChiGiao);
+            // Có thể đổi loại hóa đơn nếu có địa chỉ giao
+            hd.setLoaiHoaDon("GIAO_HANG");
+        }
+
         hd.setNgayCapNhat(LocalDateTime.now());
         // You would typically save Payment records here depending on your models
         

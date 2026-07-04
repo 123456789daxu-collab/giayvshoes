@@ -83,6 +83,11 @@ public class BanHangRestController {
                     map.put("hinhAnh", spct.getDanhSachHinhAnh().isEmpty() ? null : spct.getDanhSachHinhAnh().get(0));
                     map.put("giaBan", spct.getGiaBan());
                     map.put("soLuongTon", spct.getSoLuongTon());
+                    if (spct.getSanPham() != null) {
+                        map.put("thuongHieu", spct.getSanPham().getThuongHieu() != null ? spct.getSanPham().getThuongHieu().getTenThuongHieu() : "");
+                        map.put("danhMuc", spct.getSanPham().getDanhMuc() != null ? spct.getSanPham().getDanhMuc().getTenDanhMuc() : "");
+                        map.put("chatLieu", spct.getSanPham().getChatLieu() != null ? spct.getSanPham().getChatLieu().getTenChatLieu() : "");
+                    }
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -132,7 +137,11 @@ public class BanHangRestController {
             String ghiChu = payload.get("ghiChu") != null ? payload.get("ghiChu").toString() : "";
             String tenKhachHang = payload.get("tenKhachHang") != null ? payload.get("tenKhachHang").toString() : null;
             
-            HoaDon hd = banHangService.thanhToan(id, hinhThucThanhToan, tienKhachDua, ghiChu, tenKhachHang);
+            BigDecimal phiShip = payload.get("phiShip") != null ? new BigDecimal(payload.get("phiShip").toString()) : BigDecimal.ZERO;
+            String sdtNhan = payload.get("sdtNhan") != null ? payload.get("sdtNhan").toString() : null;
+            String diaChiGiao = payload.get("diaChiGiao") != null ? payload.get("diaChiGiao").toString() : null;
+            
+            HoaDon hd = banHangService.thanhToan(id, hinhThucThanhToan, tienKhachDua, ghiChu, tenKhachHang, phiShip, sdtNhan, diaChiGiao);
             return ResponseEntity.ok(mapHoaDon(hd));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

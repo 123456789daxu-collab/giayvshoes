@@ -19,5 +19,5 @@ public interface BanHangService {
     HoaDon capNhatKhachHang(Long idHoaDon, Long idKhachHang);
     HoaDon capNhatPhieuGiamGia(Long idHoaDon, Long idPhieuGiamGia);
     
-    HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang);
+    HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang, BigDecimal phiShip, String sdtNhan, String diaChiGiao);
 }

@@ -264,6 +264,9 @@ const posApp = {
     },
 
     // --- 3. Products ---
+    productCurrentPage: 1,
+    productPageSize: 5,
+
     openProductModal: async function() {
         if(!this.currentOrderId) {
             Swal.fire('Chú ý', 'Vui lòng chọn hoặc tạo hóa đơn trước!', 'warning');
@@ -273,19 +276,62 @@ const posApp = {
             const res = await fetch('/api/pos/san-pham');
             if(res.ok) {
                 this.products = await res.json();
+                this.populateProductFilters();
+                this.productCurrentPage = 1;
                 this.renderProductModal();
                 this.productModal.show();
             }
         } catch (error) { console.error(error); }
     },
 
-    renderProductModal: function(searchTerm = '') {
+    populateProductFilters: function() {
+        const brands = new Set();
+        const categories = new Set();
+        this.products.forEach(p => {
+            if (p.thuongHieu) brands.add(p.thuongHieu);
+            if (p.danhMuc) categories.add(p.danhMuc);
+        });
+        
+        const brandSelect = document.getElementById('modalProductBrand');
+        brandSelect.innerHTML = '<option value="">Tất cả thương hiệu</option>';
+        brands.forEach(b => brandSelect.insertAdjacentHTML('beforeend', `<option value="${b}">${b}</option>`));
+        
+        const catSelect = document.getElementById('modalProductCategory');
+        catSelect.innerHTML = '<option value="">Tất cả danh mục</option>';
+        categories.forEach(c => catSelect.insertAdjacentHTML('beforeend', `<option value="${c}">${c}</option>`));
+    },
+
+    renderProductModal: function() {
+        const term = document.getElementById('modalProductSearch').value.toLowerCase();
+        const brand = document.getElementById('modalProductBrand').value;
+        const category = document.getElementById('modalProductCategory').value;
+
+        // Filter
+        let filtered = this.products.filter(p => {
+            let matchSearch = !term || p.tenSanPham.toLowerCase().includes(term) || (p.ma && p.ma.toLowerCase().includes(term));
+            let matchBrand = !brand || p.thuongHieu === brand;
+            let matchCat = !category || p.danhMuc === category;
+            return matchSearch && matchBrand && matchCat;
+        });
+
+        // Pagination
+        const totalItems = filtered.length;
+        const totalPages = Math.ceil(totalItems / this.productPageSize) || 1;
+        if (this.productCurrentPage > totalPages) this.productCurrentPage = totalPages;
+        
+        const start = (this.productCurrentPage - 1) * this.productPageSize;
+        const end = Math.min(start + this.productPageSize, totalItems);
+        const pagedData = filtered.slice(start, end);
+
+        document.getElementById('modalProductCount').innerText = `Hiển thị ${totalItems} sản phẩm`;
+
         const tbody = document.getElementById('modalProductBody');
         tbody.innerHTML = '';
-        this.products.forEach(p => {
-            if(searchTerm && !p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase()) && !p.ma.toLowerCase().includes(searchTerm.toLowerCase())) return;
+        pagedData.forEach((p, index) => {
+            const stt = start + index + 1;
             const tr = `
                 <tr>
+                    <td>${stt}</td>
                     <td>${p.ma || 'N/A'}</td>
                     <td class="text-start fw-semibold">
                         <div class="d-flex align-items-center">
@@ -294,6 +340,7 @@ const posApp = {
                         </div>
                     </td>
                     <td>${p.mauSac}</td>
+                    <td><span class="badge bg-light text-dark border">${p.size}</span></td>
                     <td><span class="badge ${p.soLuongTon > 0 ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'} rounded-pill">${p.soLuongTon}</span></td>
                     <td class="text-primary fw-bold">${this.formatCurrency(p.giaBan)}</td>
                     <td>
@@ -305,11 +352,41 @@ const posApp = {
             `;
             tbody.insertAdjacentHTML('beforeend', tr);
         });
+
+        this.renderProductPagination(totalPages);
+    },
+
+    renderProductPagination: function(totalPages) {
+        const container = document.getElementById('modalProductPagination');
+        container.innerHTML = '';
+        
+        // Prev
+        const btnPrev = document.createElement('button');
+        btnPrev.className = `btn btn-sm btn-light border ${this.productCurrentPage === 1 ? 'disabled' : ''}`;
+        btnPrev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        btnPrev.onclick = () => { if(this.productCurrentPage > 1) { this.productCurrentPage--; this.renderProductModal(); } };
+        container.appendChild(btnPrev);
+        
+        // Pages
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `btn btn-sm ${i === this.productCurrentPage ? 'btn-primary' : 'btn-light border'}`;
+            btn.innerText = i;
+            btn.onclick = () => { this.productCurrentPage = i; this.renderProductModal(); };
+            container.appendChild(btn);
+        }
+        
+        // Next
+        const btnNext = document.createElement('button');
+        btnNext.className = `btn btn-sm btn-light border ${this.productCurrentPage === totalPages ? 'disabled' : ''}`;
+        btnNext.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        btnNext.onclick = () => { if(this.productCurrentPage < totalPages) { this.productCurrentPage++; this.renderProductModal(); } };
+        container.appendChild(btnNext);
     },
 
     filterProducts: function() {
-        const term = document.getElementById('modalProductSearch').value;
-        this.renderProductModal(term);
+        this.productCurrentPage = 1;
+        this.renderProductModal();
     },
 
     addToCart: async function(idSanPhamChiTiet) {
@@ -366,6 +443,16 @@ const posApp = {
         this.renderSuggestion(order);
 
         this.calculateChange();
+    },
+
+    toggleShippingInfo: function() {
+        const isChecked = document.getElementById('giaoHangSwitch').checked;
+        const block = document.getElementById('shippingInfoBlock');
+        block.style.display = isChecked ? 'block' : 'none';
+        if (!isChecked) {
+            document.getElementById('shipFee').value = '0';
+        }
+        this.updateSummary(this.getCurrentOrder());
     },
 
     autoApplyBestVoucher: function(order) {
@@ -617,6 +704,13 @@ const posApp = {
         const order = this.getCurrentOrder();
         if(!order) return;
         
+        let shipFee = 0;
+        if (document.getElementById('giaoHangSwitch').checked) {
+            shipFee = parseFloat(document.getElementById('shipFee').value) || 0;
+        }
+        const totalToPay = (order.tongTienThanhToan || 0) + shipFee;
+        document.getElementById('summaryFinalAmount').innerText = this.formatCurrency(totalToPay);
+
         const method = document.querySelector('input[name="paymentMethod"]:checked').value;
         const cashInput = document.getElementById('customerCash');
         const qrGroup = document.getElementById('transferQrGroup');
@@ -634,7 +728,7 @@ const posApp = {
             const bankId = 'VCB'; // Vietcombank
             const accountNo = '9789290632'; // Số tài khoản VCB
             const accountName = 'DINH VU ANH DUNG'; // Tên chủ tài khoản
-            const amount = order.tongTienThanhToan || 0;
+            const amount = totalToPay;
             const message = `THANH TOAN ${order.maHoaDon}`;
             
             // Generate VietQR URL: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-compact.png?amount=<AMOUNT>&addInfo=<MESSAGE>&accountName=<ACCOUNT_NAME>
@@ -688,7 +782,9 @@ const posApp = {
             
             cashInput.setSelectionRange(newCursorPosition, newCursorPosition);
 
-            const diff = cash - order.tongTienThanhToan;
+            cashInput.setSelectionRange(newCursorPosition, newCursorPosition);
+
+            const diff = cash - totalToPay;
             document.getElementById('returnCash').innerText = this.formatCurrency(diff > 0 ? diff : 0);
         }
     },
@@ -697,26 +793,50 @@ const posApp = {
         const order = this.getCurrentOrder();
         if(!order || !order.cart || order.cart.length === 0) return;
 
+        let shipFee = 0;
+        let isShipping = document.getElementById('giaoHangSwitch').checked;
+        if (isShipping) {
+            shipFee = parseFloat(document.getElementById('shipFee').value) || 0;
+        }
+        const totalToPay = (order.tongTienThanhToan || 0) + shipFee;
+
         const method = document.querySelector('input[name="paymentMethod"]:checked').value;
         let cash = parseFloat(document.getElementById('customerCash').value.replace(/[^0-9]/g, '')) || 0;
         
-        if(method === 'CASH' && cash < order.tongTienThanhToan) {
+        if(method === 'CASH' && cash < totalToPay) {
             Swal.fire('Lỗi', 'Khách đưa không đủ tiền!', 'error');
             return;
         }
         
         if(method === 'TRANSFER') {
-            cash = order.tongTienThanhToan; // Chuyển khoản coi như đưa đủ tiền
+            cash = totalToPay; // Chuyển khoản coi như đưa đủ tiền
         }
 
         const note = document.getElementById('orderNote').value;
-        const customerInput = document.getElementById('searchCustomerInput').value.trim();
+        let customerInput = document.getElementById('searchCustomerInput').value.trim();
+        let shipAddress = null;
+        let shipPhone = null;
+        
+        if (isShipping) {
+            const sName = document.getElementById('shipName').value.trim();
+            shipPhone = document.getElementById('shipPhone').value.trim();
+            shipAddress = document.getElementById('shipAddress').value.trim();
+            if(sName) customerInput = sName;
+        }
 
         try {
             const res = await fetch(`/api/pos/hoa-don/${order.id}/thanh-toan`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ hinhThucThanhToan: method, tienKhachDua: cash, ghiChu: note, tenKhachHang: customerInput })
+                body: JSON.stringify({ 
+                    hinhThucThanhToan: method, 
+                    tienKhachDua: cash, 
+                    ghiChu: note, 
+                    tenKhachHang: customerInput,
+                    phiShip: shipFee,
+                    sdtNhan: shipPhone,
+                    diaChiGiao: shipAddress
+                })
             });
 
             if(res.ok) {
