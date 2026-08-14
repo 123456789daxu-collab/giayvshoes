@@ -1,12 +1,15 @@
-/* Nhúng Font chữ Inter từ Google Fonts để giao diện hiện đại và cao cấp */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Nhúng Font chữ Outfit từ Google Fonts để giao diện hiện đại và cao cấp */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 /* Thiết lập cơ bản cho toàn bộ trang */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+}
+
+body, input, button, select, textarea {
+    font-family: 'Outfit', sans-serif;
 }
 
 body {
@@ -20,6 +23,13 @@ body {
     display: flex;
     width: 100%;
     min-height: 100vh;
+}
+
+/* LOGO FIX */
+.logo-img {
+    max-height: 140px;
+    width: auto;
+    object-fit: contain;
 }
 
 /* SIDEBAR STYLES */
@@ -475,6 +485,126 @@ body {
 .toast-close-btn:hover {
     background-color: #f1f5f9;
     color: #475569;
+}
+
+/* ============================================================
+   UNIFIED PREMIUM CARDS FOR ALL SCREENS
+   ============================================================ */
+.filter-section-card, .tk-filter-card, .white-card, .glass-card, .content-card, .list-section {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
+    margin-bottom: 24px;
+    margin-top: -10px !important;
+}
+
+/* ============================================================
+   GLOBAL FILTER INPUTS
+   ============================================================ */
+.fi-input {
+    height: 34px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #1e293b;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+.fi-input:focus {
+    border-color: #0f2d4a;
+    box-shadow: 0 0 0 3px rgba(15, 45, 74, 0.12);
+}
+.fi-select {
+    cursor: pointer;
+    appearance: auto;
+}
+.fi-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.fi-search-icon {
+    position: absolute;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    color: #94a3b8;
+    pointer-events: none;
+    flex-shrink: 0;
+}
+.fi-search-wrap .fi-input {
+    padding-left: 32px;
+}
+.fi-reset-btn {
+    width: 34px;
+    height: 34px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #64748b;
+    flex-shrink: 0;
+}
+.fi-reset-btn:hover {
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 45, 74, 0.25);
+}
+.fi-reset-btn i {
+    width: 15px;
+    height: 15px;
+}
+
+/* ============================================================
+   GLOBAL FILTER LAYOUT CLASSES
+   ============================================================ */
+.filter-inline-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.fi-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.fi-col-search { flex: 2 1 200px; }
+.fi-col-date   { flex: 2 1 240px; min-width: 240px; }
+.fi-col-status { flex: 1 1 140px; }
+.fi-col-btn    { flex: 0 0 auto; }
+.fi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+}
+.fi-date-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.fi-date-input {
+    flex: 1;
+    min-width: 0;
+}
+.fi-date-dash {
+    font-size: 14px;
+    color: #94a3b8;
+    font-weight: 500;
+    flex-shrink: 0;
 }
 
 

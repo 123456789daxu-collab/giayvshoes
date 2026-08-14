@@ -1,7 +1,7 @@
 package com.example.be.service.impl;
 
 import com.example.be.dto.DotGiamGiaDto;
-import com.example.be.dto.SanPhamChiTietDto;
+import com.example.be.dto.SanPhamChiTietGiamGiaDto;
 import com.example.be.entity.DotGiamGia;
 import com.example.be.entity.ChiTietDotGiamGia;
 import com.example.be.entity.SanPhamChiTiet;
@@ -9,6 +9,7 @@ import com.example.be.entity.SanPham;
 import com.example.be.repository.DotGiamGiaRepository;
 import com.example.be.repository.ChiTietDotGiamGiaRepository;
 import com.example.be.repository.SanPhamChiTietRepository;
+import com.example.be.repository.SanPhamRepository;
 import com.example.be.service.DotGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -41,6 +42,15 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
 
     @Autowired
     private SanPhamChiTietRepository sanPhamChiTietRepository;
+
+    @Autowired
+    private SanPhamRepository sanPhamRepository;
+
+    @Autowired
+    private com.example.be.repository.KhachHangRepository khachHangRepository;
+
+    @Autowired
+    private com.example.be.service.EmailService emailService;
 
     @Override
     public Page<DotGiamGia> searchCampaigns(
@@ -124,6 +134,12 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 chiTietDotGiamGiaRepository.save(mapping);
             }
         }
+        
+        // Gửi email cho toàn bộ khách hàng nếu đợt giảm giá đang kích hoạt
+        if (savedCampaign.getTrangThai() == 1) {
+            List<com.example.be.entity.KhachHang> customers = khachHangRepository.findAll();
+            emailService.sendCampaignNotification(customers, savedCampaign, "CREATE");
+        }
 
         return savedCampaign;
     }
@@ -173,6 +189,12 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 chiTietDotGiamGiaRepository.save(mapping);
             }
         }
+        
+        // Gửi email cho toàn bộ khách hàng nếu đợt giảm giá đang kích hoạt
+        if (updatedCampaign.getTrangThai() == 1) {
+            List<com.example.be.entity.KhachHang> customers = khachHangRepository.findAll();
+            emailService.sendCampaignNotification(customers, updatedCampaign, "UPDATE");
+        }
 
         return updatedCampaign;
     }
@@ -195,6 +217,13 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     }
 
     @Override
+    @Transactional
+    public void deleteCampaign(Long id) {
+        chiTietDotGiamGiaRepository.deleteByDotGiamGiaId(id);
+        dotGiamGiaRepository.deleteById(id);
+    }
+
+    @Override
     public List<Long> getProductDetailIdsByCampaignId(Long campaignId) {
         return chiTietDotGiamGiaRepository.findByDotGiamGiaId(campaignId)
                 .stream()
@@ -203,39 +232,103 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     }
 
     @Override
-    public Page<SanPhamChiTietDto> getProductDetails(String search, int page, int size) {
+    public List<SanPhamChiTietGiamGiaDto> getProductDetailsByCampaignId(Long campaignId) {
+        return chiTietDotGiamGiaRepository.findByDotGiamGiaId(campaignId)
+                .stream()
+                .map(mapping -> {
+                    SanPhamChiTiet spct = mapping.getSanPhamChiTiet();
+                    return SanPhamChiTietGiamGiaDto.builder()
+                            .id(spct.getId())
+                            .maSanPham(spct.getMa())
+                            .tenSanPham(spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "")
+                            .tenMauSac(spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "")
+                            .tenKichCo(spct.getCoGiay() != null ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "")
+                            .giaBan(spct.getGiaBan())
+                            .hinhAnh(spct.getHinhAnh())
+                            .soLuong(spct.getSoLuongTon())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<SanPhamChiTietGiamGiaDto> getProductDetails(String search, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Specification<SanPhamChiTiet> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            // Only active product details
+            // Only active products
             predicates.add(cb.equal(root.get("trangThai"), 1));
 
             if (search != null && !search.trim().isEmpty()) {
                 String searchTrim = "%" + search.trim().toLowerCase() + "%";
-                Join<SanPhamChiTiet, SanPham> spJoin = root.join("sanPham", JoinType.LEFT);
+                Join<SanPhamChiTiet, SanPham> sanPhamJoin = root.join("sanPham", JoinType.LEFT);
+                Join<SanPhamChiTiet, com.example.be.entity.MauSac> mauSacJoin = root.join("mauSac", JoinType.LEFT);
+                Join<SanPhamChiTiet, com.example.be.entity.CoGiay> coGiayJoin = root.join("coGiay", JoinType.LEFT);
+                
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("ma")), searchTrim),
-                        cb.like(cb.lower(spJoin.get("tenSanPham")), searchTrim),
-                        cb.like(cb.lower(spJoin.get("maSanPham")), searchTrim)
+                        cb.like(cb.lower(sanPhamJoin.get("tenSanPham")), searchTrim),
+                        cb.like(cb.lower(mauSacJoin.get("tenMauSac")), searchTrim),
+                        cb.like(coGiayJoin.get("sizeGiay").as(String.class), searchTrim)
                 ));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return sanPhamChiTietRepository.findAll(spec, pageable).map(spct -> {
-            String tenMau = spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "Mặc định";
-            Integer sizeGiay = spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : 0;
-            String tenSp = spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "Không tên";
-            return SanPhamChiTietDto.builder()
+        return sanPhamChiTietRepository.findAll(spec, pageable).map(spct -> 
+            SanPhamChiTietGiamGiaDto.builder()
                     .id(spct.getId())
-                    .ma(spct.getMa())
-                    .tenSanPham(tenSp)
-                    .tenMauSac(tenMau)
-                    .sizeGiay(sizeGiay)
+                    .maSanPham(spct.getMa())
+                    .tenSanPham(spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "")
+                    .tenMauSac(spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "")
+                    .tenKichCo(spct.getCoGiay() != null ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "")
                     .giaBan(spct.getGiaBan())
-                    .soLuongTon(spct.getSoLuongTon())
-                    .trangThai(spct.getTrangThai())
-                    .build();
+                    .phanTramGiam(chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId()))
+                    .build()
+        );
+    }
+
+    @Override
+    public Page<com.example.be.dto.SanPhamGiamGiaDto> getProductsWithVariants(String search, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        
+        // 1. Fetch paginated active products
+        Page<SanPham> sanPhamPage = sanPhamRepository.search(
+                (search != null && !search.trim().isEmpty()) ? search.trim() : null, 
+                1, null, null, null, pageable);
+
+        // 2. Map to DTOs and fetch active variants
+        return sanPhamPage.map(sp -> {
+            List<SanPhamChiTiet> chiTiets = sanPhamChiTietRepository.findBySanPhamId(sp.getId());
+            
+            List<SanPhamChiTietGiamGiaDto> variants = chiTiets.stream()
+                .filter(ct -> ct.getTrangThai() != null && ct.getTrangThai() == 1)
+                .map(ct -> SanPhamChiTietGiamGiaDto.builder()
+                    .id(ct.getId())
+                    .maSanPham(ct.getMa())
+                    .tenSanPham(sp.getTenSanPham())
+                    .tenMauSac(ct.getMauSac() != null ? ct.getMauSac().getTenMauSac() : "")
+                    .tenKichCo(ct.getCoGiay() != null ? String.valueOf(ct.getCoGiay().getSizeGiay()) : "")
+                    .giaBan(ct.getGiaBan())
+                    .hinhAnh(ct.getHinhAnh())
+                    .soLuong(ct.getSoLuongTon())
+                    .phanTramGiam(chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(ct.getId()))
+                    .build()
+                ).collect(Collectors.toList());
+
+            Integer maxSpDiscount = variants.stream()
+                .map(SanPhamChiTietGiamGiaDto::getPhanTramGiam)
+                .filter(java.util.Objects::nonNull)
+                .max(Integer::compareTo)
+                .orElse(null);
+
+            return com.example.be.dto.SanPhamGiamGiaDto.builder()
+                .id(sp.getId())
+                .maSanPham(sp.getMaSanPham())
+                .tenSanPham(sp.getTenSanPham())
+                .phanTramGiam(maxSpDiscount)
+                .variants(variants)
+                .build();
         });
     }
 
@@ -280,7 +373,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 row.createCell(0).setCellValue(rowIdx);
                 row.createCell(1).setCellValue(dgg.getMaDotGiamGia() != null ? dgg.getMaDotGiamGia() : "");
                 row.createCell(2).setCellValue(dgg.getTenDotGiamGia() != null ? dgg.getTenDotGiamGia() : "");
-                row.createCell(3).setCellValue((dgg.getPhanTramGiam() != null ? dgg.getPhanTramGiam() : 0) + "%");
+                row.createCell(3).setCellValue(dgg.getPhanTramGiam() != null ? dgg.getPhanTramGiam().toString() + "%" : "");
                 row.createCell(4).setCellValue(dgg.getNgayBatDau() != null ? dgg.getNgayBatDau().format(formatter) : "");
                 row.createCell(5).setCellValue(dgg.getNgayKetThuc() != null ? dgg.getNgayKetThuc().format(formatter) : "");
 
@@ -288,11 +381,11 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 if (dgg.getTrangThai() == 1) {
                     LocalDateTime now = LocalDateTime.now();
                     if (dgg.getNgayBatDau() != null && now.isBefore(dgg.getNgayBatDau())) {
-                        statusLabel = "Chưa diễn ra";
+                        statusLabel = "Sắp diễn ra";
                     } else if (dgg.getNgayKetThuc() != null && now.isAfter(dgg.getNgayKetThuc())) {
                         statusLabel = "Hết hạn";
                     } else {
-                        statusLabel = "Kích hoạt";
+                        statusLabel = "Diễn ra";
                     }
                 }
                 row.createCell(6).setCellValue(statusLabel);

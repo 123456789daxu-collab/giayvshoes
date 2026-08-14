@@ -17,14 +17,20 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Long>, Jpa
     boolean existsBySoDienThoai(String soDienThoai);
     boolean existsByEmail(String email);
     Optional<KhachHang> findByMaKhachHang(String maKhachHang);
-    
+    Optional<KhachHang> findFirstByMaKhachHangStartingWithOrderByMaKhachHangDesc(String prefix);
+    Optional<KhachHang> findByEmail(String email);
+    Optional<KhachHang> findBySoDienThoai(String soDienThoai);
+    java.util.List<KhachHang> findAllByEmail(String email);
+    java.util.List<KhachHang> findAllBySoDienThoai(String soDienThoai);
+
+
     // Tìm mã khách hàng lớn nhất có tiền tố KH để tự sinh mã
     @Query("SELECT k.maKhachHang FROM KhachHang k WHERE k.maKhachHang LIKE 'KH%' ORDER BY LENGTH(k.maKhachHang) DESC, k.maKhachHang DESC")
     Page<String> findMaxMaKhachHang(Pageable pageable);
 
     @Query("SELECT new com.example.be.dto.KhachHangVoucherDto(" +
            "kh.id, kh.maKhachHang, kh.hoTen, kh.soDienThoai, kh.email, kh.ngaySinh, " +
-           "MAX(hd.ngayTao), COUNT(hd.id), SUM(hd.tongTienThanhToan)) " +
+           "MAX(hd.ngayTao), COUNT(hd.id), SUM(hd.tongTien)) " +
            "FROM KhachHang kh " +
            "LEFT JOIN HoaDon hd ON hd.khachHang.id = kh.id " +
            "WHERE (:search IS NULL OR LOWER(kh.hoTen) LIKE LOWER(CONCAT('%', :search, '%')) " +

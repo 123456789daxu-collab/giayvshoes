@@ -21,26 +21,27 @@ public class DiaChi {
     @JoinColumn(name = "id_khach_hang")
     private KhachHang khachHang;
 
-    @Column(name = "ten_nguoi_nhan")
+    @Column(name = "ten_nguoi_nhan", columnDefinition = "nvarchar(255)")
     private String tenNguoiNhan;
 
     @Column(name = "sdt")
     private String sdt;
 
-    @Column(name = "tinh_thanh")
+    @Column(name = "tinh_thanh", columnDefinition = "nvarchar(255)")
     private String tinhThanh;
 
-    @Column(name = "quan_huyen")
+    @Column(name = "quan_huyen", columnDefinition = "nvarchar(255)")
     private String quanHuyen;
 
-    @Column(name = "phuong_xa")
+    @Column(name = "phuong_xa", columnDefinition = "nvarchar(255)")
     private String phuongXa;
 
-    @Column(name = "dia_chi_chi_tiet")
+    @Column(name = "dia_chi_chi_tiet", columnDefinition = "nvarchar(500)")
     private String diaChiChiTiet;
 
-    @Column(name = "loai_dia_chi")
+    @Column(name = "loai_dia_chi", columnDefinition = "nvarchar(255)")
     private String loaiDiaChi;
+
 
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;

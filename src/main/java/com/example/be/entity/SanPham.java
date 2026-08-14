@@ -36,11 +36,12 @@ public class SanPham {
     @Column(name = "ma_san_pham")
     private String maSanPham;
 
-    @Column(name = "ten_san_pham")
+    @Column(name = "ten_san_pham", columnDefinition = "nvarchar(255)")
     private String tenSanPham;
 
     @Column(name = "mo_ta_chi_tiet", columnDefinition = "nvarchar(max)")
     private String moTaChiTiet;
+
 
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
@@ -60,12 +61,4 @@ public class SanPham {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @Column(name = "gia_nhap")
-    private java.math.BigDecimal giaNhap;
-
-    @Column(name = "gia_ban")
-    private java.math.BigDecimal giaBan;
-
-    @Column(name = "so_luong")
-    private Integer soLuong;
 }

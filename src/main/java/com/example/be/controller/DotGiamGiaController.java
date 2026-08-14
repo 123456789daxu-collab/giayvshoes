@@ -2,7 +2,6 @@ package com.example.be.controller;
 
 import com.example.be.entity.DotGiamGia;
 import com.example.be.dto.DotGiamGiaDto;
-import com.example.be.dto.SanPhamChiTietDto;
 import com.example.be.service.DotGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +21,20 @@ public class DotGiamGiaController {
 
     @Autowired
     private DotGiamGiaService dotGiamGiaService;
+
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
+    @GetMapping("/filters")
+    public ResponseEntity<?> getFilters() {
+        try {
+            List<String> colors = entityManager.createQuery("SELECT DISTINCT m.tenMauSac FROM MauSac m WHERE m.trangThai = true AND m.tenMauSac IS NOT NULL ORDER BY m.tenMauSac", String.class).getResultList();
+            List<Integer> sizes = java.util.stream.IntStream.rangeClosed(36, 44).boxed().collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(Map.of("colors", colors, "sizes", sizes));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi lấy danh sách bộ lọc: " + e.getMessage()));
+        }
+    }
 
     // 1. Phân trang + lọc danh sách đợt giảm giá
     @GetMapping
@@ -37,7 +49,6 @@ public class DotGiamGiaController {
         try {
             LocalDateTime start = null;
             LocalDateTime end = null;
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
             if (ngayBatDau != null && !ngayBatDau.trim().isEmpty()) {
                 start = LocalDateTime.parse(ngayBatDau);
@@ -70,6 +81,17 @@ public class DotGiamGiaController {
         try {
             List<Long> ids = dotGiamGiaService.getProductDetailIdsByCampaignId(id);
             return ResponseEntity.ok(ids);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // 3.5 Lấy danh sách sản phẩm chi tiết đầy đủ được áp dụng
+    @GetMapping("/{id}/product-details")
+    public ResponseEntity<?> getProductDetailsByCampaign(@PathVariable("id") Long id) {
+        try {
+            List<com.example.be.dto.SanPhamChiTietGiamGiaDto> details = dotGiamGiaService.getProductDetailsByCampaignId(id);
+            return ResponseEntity.ok(details);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -111,6 +133,17 @@ public class DotGiamGiaController {
         }
     }
 
+    // Xóa đợt giảm giá
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCampaign(@PathVariable("id") Long id) {
+        try {
+            dotGiamGiaService.deleteCampaign(id);
+            return ResponseEntity.ok(Map.of("message", "Xóa đợt giảm giá thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     // 7. Lấy danh sách sản phẩm chi tiết kèm phân trang để chọn
     @GetMapping("/san-pham-chi-tiet")
     public ResponseEntity<?> getProductDetails(
@@ -119,10 +152,25 @@ public class DotGiamGiaController {
             @RequestParam(value = "size", defaultValue = "10") int size
     ) {
         try {
-            Page<SanPhamChiTietDto> result = dotGiamGiaService.getProductDetails(search, page, size);
+            Page<com.example.be.dto.SanPhamChiTietGiamGiaDto> result = dotGiamGiaService.getProductDetails(search, page, size);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", "Lỗi lấy danh sách sản phẩm: " + e.getMessage()));
+        }
+    }
+
+    // 7.5 Lấy danh sách sản phẩm theo nhóm biến thể
+    @GetMapping("/san-pham-group")
+    public ResponseEntity<?> getProductsGroup(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        try {
+            Page<com.example.be.dto.SanPhamGiamGiaDto> result = dotGiamGiaService.getProductsWithVariants(search, page, size);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Lỗi lấy danh sách sản phẩm nhóm: " + e.getMessage()));
         }
     }
 

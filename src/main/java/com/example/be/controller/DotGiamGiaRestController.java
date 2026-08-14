@@ -16,7 +16,7 @@ public class DotGiamGiaRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findById(@PathVariable("id") Long id) {
+    public ResponseEntity<?> findById(@PathVariable Long id) {
         try {
             DotGiamGia campaign = dotGiamGiaService.findById(id);
             return ResponseEntity.ok(campaign);

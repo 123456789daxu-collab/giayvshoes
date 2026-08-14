@@ -5,7 +5,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thống kê | VShoes</title>
-    <link rel="stylesheet" href="/css/sidebar.css">
+    
+    <!-- Nhúng CSS sidebar & khách hàng dùng chung -->
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/khach-hang.css?v=99">
+    <link rel="stylesheet" href="/css/phieu-giam-gia.css?v=99">
+    
+    <style>
+        /* Custom CSS cho trang Thống kê */
+        .thong-ke-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tk-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .tk-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-report {
+            background-color: #e0f2fe;
+            color: #00adef;
+            border: 1px solid #bae6fd;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-report:hover {
+            background-color: #bae6fd;
+        }
+
+        /* Filter section */
+        .tk-filter-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .tk-filter-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .btn-outline:hover {
+            background: #f8fafc;
+        }
+        
+        .btn-outline.active {
+            background-color: #e0f2fe;
+            color: #00adef;
+            border-color: #bae6fd;
+        }
+
+        /* KPI Cards */
+        .tk-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .kpi-sub {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* Chart section */
+        .chart-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .grid-2-col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+    </style>
 </head>
 
 <body>
@@ -13,13 +170,636 @@
         <!-- Nhúng Sidebar dùng chung -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính đơn giản -->
+        <!-- NỘI DUNG CHÍNH -->
         <main class="main-content">
-            <div class="content-card">
-                <h1 class="content-title">Thống kê</h1>
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
+            
+            <div class="thong-ke-container">
+                
+                <!-- HEADER -->
+                <div class="tk-header" style="margin-bottom: 20px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 20px; color: #1e293b; font-weight: 700;">Thống kê doanh thu</h2>
+                        <div class="tk-subtitle">
+                            <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+                            <span id="current-date-info">Đang hiển thị dữ liệu của hôm nay</span>
+                        </div>
+                    </div>
+                    <button class="btn-report">
+                        <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                        Gửi báo cáo
+                    </button>
+                </div>
+
+                <!-- FILTER -->
+                <div class="tk-filter-card">
+                    <div class="tk-filter-row">
+                        <div class="fi-col" style="margin-bottom: 0;">
+                            <label class="fi-label">Khoảng thời gian</label>
+                            <div class="fi-date-range">
+                                <input type="date" id="filter-start" class="fi-input fi-date-input">
+                                <span class="fi-date-dash">—</span>
+                                <input type="date" id="filter-end" class="fi-input fi-date-input">
+                            </div>
+                        </div>
+                        <button id="btn-loc-du-lieu" class="btn-outline active" style="height: 40px;">
+                            <i data-lucide="filter" style="width: 16px; height: 16px;"></i> Lọc dữ liệu
+                        </button>
+                        <button id="btn-tai-lai" class="btn-outline" style="height: 40px;">
+                            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Tải lại
+                        </button>
+                        <div style="flex-grow: 1;"></div>
+                        <button class="btn-outline active" style="height: 40px;">
+                            <i data-lucide="line-chart" style="width: 16px; height: 16px;"></i> Biểu đồ đường
+                        </button>
+                        <button class="btn-outline" style="height: 40px;">
+                            <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i> Biểu đồ cột
+                        </button>
+                    </div>
+                    <div class="tk-filter-row">
+                        <button id="btn-filter-day" class="btn-outline active">
+                            <i data-lucide="calendar" style="width: 16px; height: 16px;"></i> Theo ngày
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI TOP ROW -->
+                <div class="tk-kpi-grid" style="grid-template-columns: repeat(2, 1fr);">
+                    <div class="kpi-card">
+                        <div class="kpi-title">Tổng đơn hàng</div>
+                        <div class="kpi-value" id="kpi-tong-don">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Tổng doanh thu</div>
+                        <div class="kpi-value" id="kpi-tong-doanh-thu">0 ₫</div>
+                    </div>
+                </div>
+
+                <!-- KPI TIME ROW -->
+                <div class="tk-kpi-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="kpi-card">
+                        <div class="kpi-title">Hôm nay</div>
+                        <div class="kpi-value" id="kpi-hn-dt">0 ₫</div>
+                        <div class="kpi-sub" id="kpi-hn-sub">Sản phẩm: 0 | Đơn: 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Tháng này</div>
+                        <div class="kpi-value" id="kpi-thn-dt">0 ₫</div>
+                        <div class="kpi-sub" id="kpi-thn-sub">Sản phẩm: 0 | Đơn: 0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-title">Năm này</div>
+                        <div class="kpi-value" id="kpi-nn-dt">0 ₫</div>
+                        <div class="kpi-sub" id="kpi-nn-sub">Sản phẩm: 0 | Đơn: 0</div>
+                    </div>
+                </div>
+
+                <!-- MAIN CHART -->
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <div class="chart-title">Biểu đồ doanh thu theo thời gian</div>
+                        <div style="font-size: 13px; color: #64748b;">Bấm vào 1 điểm trên biểu đồ để xem doanh thu</div>
+                    </div>
+                    <div style="height: 300px; width: 100%;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- TABLES & PIE CHART -->
+                <div class="grid-2-col">
+                    <!-- Bảng thống kê chi tiết -->
+                    <div class="chart-section">
+                        <div class="chart-title" style="margin-bottom: 16px;">Bảng thống kê chi tiết theo thời gian</div>
+                        <table class="customer-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Doanh thu</th>
+                                    <th>Số đơn</th>
+                                    <th>Giá trị trung bình/đơn</th>
+                                    <th>Tăng trưởng (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="chi-tiet-thoi-gian-body">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 24px;">Đang tải dữ liệu...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Biểu đồ trạng thái -->
+                    <div class="chart-section">
+                        <div class="chart-title" style="margin-bottom: 16px;">Phân bố trạng thái đơn hàng</div>
+                        <div style="height: 250px; width: 100%;">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOP SẢN PHẨM BÁN CHẠY -->
+                <div class="chart-section">
+                    <div class="chart-title" style="margin-bottom: 16px;">Top sản phẩm bán chạy</div>
+                    
+                    <!-- BỘ LỌC TOP SẢN PHẨM -->
+                    <div class="tk-filter-card mb-4" id="top-sp-filters" style="margin-bottom: 16px; padding: 16px; box-shadow: none; background-color: #f8fafc;">
+                        <div class="row" style="display: flex; gap: 12px; margin-bottom: 12px;">
+                            <div style="flex: 1;">
+                                <label class="fi-label">Chất Liệu:</label>
+                                <select class="fi-input fi-select" id="filter-chat-lieu">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="cl : ${listChatLieu}" th:value="${cl.id}" th:text="${cl.tenChatLieu}"></option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="fi-label">Thương Hiệu:</label>
+                                <select class="fi-input fi-select" id="filter-thuong-hieu">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}"></option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="fi-label">Loại giày:</label>
+                                <select class="fi-input fi-select" id="filter-loai-giay">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}"></option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="fi-label">Kích cỡ:</label>
+                                <select class="fi-input fi-select" id="filter-kich-co">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="cg : ${listCoGiay}" th:value="${cg.id}" th:text="${cg.sizeGiay}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row" style="display: flex; gap: 12px; align-items: flex-end;">
+                            <div style="flex: 1;">
+                                <label class="fi-label">Màu Sắc:</label>
+                                <select class="fi-input fi-select" id="filter-mau-sac">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="ms : ${listMauSac}" th:value="${ms.id}" th:text="${ms.tenMauSac}"></option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="fi-label">Danh Mục:</label>
+                                <select class="fi-input fi-select" id="filter-danh-muc">
+                                    <option value="">Tất cả</option>
+                                    <option th:each="dm : ${listDanhMuc}" th:value="${dm.id}" th:text="${dm.tenDanhMuc}"></option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="fi-label">Trạng Thái:</label>
+                                <select class="fi-input fi-select" id="filter-trang-thai">
+                                    <option value="">Tất cả</option>
+                                    <option value="1">Kinh Doanh</option>
+                                    <option value="0">Ngừng kinh doanh</option>
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <button id="btn-loc-top-sp" class="btn-outline active" style="width: 100%; justify-content: center; height: 38px;">
+                                    <i data-lucide="filter" style="width: 16px; height: 16px;"></i> Lọc
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-scrollable">
+                        <table class="customer-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">STT</th>
+                                    <th>Mã SP</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Thuộc tính</th>
+                                    <th>Giá</th>
+                                    <th>Tồn kho</th>
+                                    <th>Đã bán</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-sp-body">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">Đang tải dữ liệu...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="top-sp-pagination" style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 5px;"></div>
+                </div>
+
             </div>
         </main>
     </div>
+
+    <!-- Script Lucide Icons & Chart.js -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            
+            // Set current date info
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            document.getElementById('current-date-info').innerText = `Đang hiển thị dữ liệu của hôm nay (${dateStr})`;
+            
+            // Set default date picker values
+            document.getElementById('filter-start').value = dateStr;
+            document.getElementById('filter-end').value = dateStr;
+
+            initCharts();
+            loadThongKeData();
+            
+            // Xử lý sự kiện nút "Lọc dữ liệu"
+            const btnLoc = document.getElementById('btn-loc-du-lieu');
+            if (btnLoc) {
+                btnLoc.addEventListener('click', () => {
+                    loadThongKeData();
+                });
+            }
+            
+            const btnTaiLai = document.getElementById('btn-tai-lai');
+            if (btnTaiLai) {
+                btnTaiLai.addEventListener('click', () => {
+                    const today = new Date();
+                    const dateStr = today.toISOString().split('T')[0];
+                    document.getElementById('filter-start').value = dateStr;
+                    document.getElementById('filter-end').value = dateStr;
+                    if (typeof setActiveFilterBtn === 'function') {
+                        setActiveFilterBtn(document.getElementById('btn-filter-day'));
+                    }
+                    loadThongKeData();
+                });
+            }
+
+            // Xử lý bộ lọc nhanh
+            const btnDay = document.getElementById('btn-filter-day');
+
+            function setActiveFilterBtn(activeBtn) {
+                if(btnDay) btnDay.classList.remove('active');
+                if(activeBtn) activeBtn.classList.add('active');
+            }
+
+            const formatDate = (d) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            if (btnDay) {
+                btnDay.addEventListener('click', () => {
+                    setActiveFilterBtn(btnDay);
+                    const today = new Date();
+                    document.getElementById('filter-start').value = formatDate(today);
+                    document.getElementById('filter-end').value = formatDate(today);
+                    loadThongKeData();
+                });
+            }
+        });
+
+        let mainChartInstance = null;
+        let pieChartInstance = null;
+
+        function initCharts() {
+            // Main Line Chart
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            mainChartInstance = new Chart(ctxMain, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: [],
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Pie Chart
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#f87171', // red
+                            '#60a5fa', // blue
+                            '#fbbf24', // yellow/orange
+                            '#2dd4bf', // teal
+                            '#4ade80', // green
+                            '#94a3b8'  // gray
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+        
+        function loadThongKeData() {
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            
+            let queryParams = '';
+            if (start && end) {
+                queryParams = `?startDate=${start}T00:00:00&endDate=${end}T23:59:59`;
+            } else if (start) {
+                queryParams = `?startDate=${start}T00:00:00`;
+            } else if (end) {
+                queryParams = `?endDate=${end}T23:59:59`;
+            }
+            
+            // 1. Fetch Tong Quan
+            fetch(`/api/thong-ke/tong-quan${queryParams}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('kpi-tong-don').innerText = data.tongDonHang || 0;
+                    document.getElementById('kpi-tong-doanh-thu').innerText = formatCurrency(data.tongDoanhThu);
+                    
+                    document.getElementById('kpi-hn-dt').innerText = formatCurrency(data.doanhThuHomNay);
+                    document.getElementById('kpi-hn-sub').innerText = `Sản phẩm: ${data.soSanPhamHomNay || 0} | Đơn: ${data.soDonHomNay || 0}`;
+                    
+                    document.getElementById('kpi-thn-dt').innerText = formatCurrency(data.doanhThuThangNay);
+                    document.getElementById('kpi-thn-sub').innerText = `Sản phẩm: ${data.soSanPhamThangNay || 0} | Đơn: ${data.soDonThangNay || 0}`;
+                    
+                    document.getElementById('kpi-nn-dt').innerText = formatCurrency(data.doanhThuNamNay);
+                    document.getElementById('kpi-nn-sub').innerText = `Sản phẩm: ${data.soSanPhamNamNay || 0} | Đơn: ${data.soDonNamNay || 0}`;
+
+                    // Update table Bảng thống kê chi tiết
+                    const tbodyChiTiet = document.getElementById('chi-tiet-thoi-gian-body');
+                    if (tbodyChiTiet) {
+                        const hDt = data.doanhThuHomNay || 0;
+                        const hDon = data.soDonHomNay || 0;
+                        const hAvg = hDon > 0 ? (hDt / hDon) : 0;
+                        
+                        const tDt = data.doanhThuTuanNay || 0;
+                        const tDon = data.soDonTuanNay || 0;
+                        const tAvg = tDon > 0 ? (tDt / tDon) : 0;
+
+                        const thDt = data.doanhThuThangNay || 0;
+                        const thDon = data.soDonThangNay || 0;
+                        const thAvg = thDon > 0 ? (thDt / thDon) : 0;
+
+                        const nDt = data.doanhThuNamNay || 0;
+                        const nDon = data.soDonNamNay || 0;
+                        const nAvg = nDon > 0 ? (nDt / nDon) : 0;
+
+                        tbodyChiTiet.innerHTML = `
+                            <tr>
+                                <td>Hôm nay</td>
+                                <td>${formatCurrency(hDt)}</td>
+                                <td>${hDon}</td>
+                                <td>${formatCurrency(hAvg)}</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>Tháng này</td>
+                                <td>${formatCurrency(thDt)}</td>
+                                <td>${thDon}</td>
+                                <td>${formatCurrency(thAvg)}</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>Năm này</td>
+                                <td>${formatCurrency(nDt)}</td>
+                                <td>${nDon}</td>
+                                <td>${formatCurrency(nAvg)}</td>
+                                <td>-</td>
+                            </tr>
+                        `;
+                    }
+                });
+                
+            // 2. Fetch Bieu Do Doanh Thu
+            fetch(`/api/thong-ke/bieu-do${queryParams}`)
+                .then(res => res.json())
+                .then(data => {
+                    let labels = [];
+                    let values = [];
+                    
+                    const start = document.getElementById('filter-start').value;
+                    const end = document.getElementById('filter-end').value;
+                    
+                    if (start && end) {
+                        const [sYear, sMonth, sDay] = start.split('-').map(Number);
+                        const [eYear, eMonth, eDay] = end.split('-').map(Number);
+                        const startDate = new Date(sYear, sMonth - 1, sDay);
+                        const endDate = new Date(eYear, eMonth - 1, eDay);
+                        
+                        const diffTime = Math.abs(endDate - startDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays > 300) { // Theo năm -> Nhóm theo tháng
+                            const monthlyData = Array(12).fill(0);
+                            data.forEach(item => {
+                                const dateParts = item.ngay.split('-');
+                                if (dateParts.length >= 2) {
+                                    const monthIndex = parseInt(dateParts[1]) - 1;
+                                    monthlyData[monthIndex] += item.doanhThu;
+                                }
+                            });
+                            labels = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+                            values = monthlyData;
+                        } else { // Trải đều các ngày từ start đến end
+                            let currentDate = new Date(startDate);
+                            const dataMap = {};
+                            data.forEach(item => {
+                                dataMap[item.ngay] = item.doanhThu;
+                            });
+
+                            while (currentDate <= endDate) {
+                                const year = currentDate.getFullYear();
+                                const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                                const day = String(currentDate.getDate()).padStart(2, '0');
+                                const dateStr = `${year}-${month}-${day}`;
+                                
+                                labels.push(dateStr);
+                                values.push(dataMap[dateStr] || 0);
+                                
+                                currentDate.setDate(currentDate.getDate() + 1);
+                            }
+                        }
+                    } else { // Fallback (không xảy ra vì mặc định luôn có ngày)
+                        labels = data.map(item => item.ngay);
+                        values = data.map(item => item.doanhThu);
+                    }
+                    
+                    if (mainChartInstance) {
+                        mainChartInstance.data.labels = labels;
+                        mainChartInstance.data.datasets[0].data = values;
+                        mainChartInstance.update();
+                    }
+                });
+                
+            // 3. Fetch Bieu Do Trang Thai
+            fetch(`/api/thong-ke/trang-thai${queryParams}`)
+                .then(res => res.json())
+                .then(data => {
+                    // Mapping trạng thái theo logic dự án (ví dụ)
+                    const statusMap = {
+                        0: 'Chờ xác nhận',
+                        1: 'Xác nhận',
+                        2: 'Chờ lấy hàng',
+                        3: 'Đang giao',
+                        4: 'Đã giao',
+                        5: 'Hoàn thành',
+                        6: 'Đã hủy'
+                    };
+                    
+                    const labels = data.map(item => statusMap[item.trangThai] || 'Khác');
+                    const values = data.map(item => item.soLuong);
+                    
+                    if (pieChartInstance) {
+                        pieChartInstance.data.labels = labels;
+                        pieChartInstance.data.datasets[0].data = values;
+                        pieChartInstance.update();
+                    }
+                });
+                
+            // 4. Fetch Top Sản Phẩm (Gọi hàm riêng để hỗ trợ bộ lọc riêng)
+            loadTopSanPhamData();
+        }
+        
+        function loadTopSanPhamData() {
+            const start = document.getElementById('filter-start').value;
+            const end = document.getElementById('filter-end').value;
+            let url = `/api/thong-ke/top-san-pham?1=1`;
+            
+            if (start) {
+                url += `&startDate=${start}T00:00:00`;
+            }
+            if (end) {
+                url += `&endDate=${end}T23:59:59`;
+            }
+            
+            // Đọc thêm các filter của Top Sản Phẩm
+            const chatLieu = document.getElementById('filter-chat-lieu')?.value;
+            if (chatLieu) url += `&idChatLieu=${chatLieu}`;
+            
+            const thuongHieu = document.getElementById('filter-thuong-hieu')?.value;
+            if (thuongHieu) url += `&idThuongHieu=${thuongHieu}`;
+            
+            const loaiGiay = document.getElementById('filter-loai-giay')?.value;
+            if (loaiGiay) url += `&idLoaiGiay=${loaiGiay}`;
+            
+            const kichCo = document.getElementById('filter-kich-co')?.value;
+            if (kichCo) url += `&idCoGiay=${kichCo}`;
+            
+            const mauSac = document.getElementById('filter-mau-sac')?.value;
+            if (mauSac) url += `&idMauSac=${mauSac}`;
+            
+            const danhMuc = document.getElementById('filter-danh-muc')?.value;
+            if (danhMuc) url += `&idDanhMuc=${danhMuc}`;
+            
+            const trangThai = document.getElementById('filter-trang-thai')?.value;
+            if (trangThai !== "" && trangThai !== undefined) url += `&trangThai=${trangThai}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    allTopSanPham = data || [];
+                    renderTopSanPhamTable(1);
+                });
+        }
+        
+        // Gắn sự kiện cho nút Lọc của Top Sản Phẩm
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnLocTopSp = document.getElementById('btn-loc-top-sp');
+            if (btnLocTopSp) {
+                btnLocTopSp.addEventListener('click', () => {
+                    loadTopSanPhamData();
+                });
+            }
+        });
+        
+        let allTopSanPham = [];
+        let currentTopSpPage = 1;
+        const topSpItemsPerPage = 5;
+
+        function renderTopSanPhamTable(page) {
+            const tbody = document.getElementById('top-sp-body');
+            const paginationDiv = document.getElementById('top-sp-pagination');
+            
+            if (!allTopSanPham || allTopSanPham.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">Không có dữ liệu.</td></tr>';
+                paginationDiv.innerHTML = '';
+                return;
+            }
+            
+            const totalPages = Math.ceil(allTopSanPham.length / topSpItemsPerPage);
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            currentTopSpPage = page;
+            
+            const startIdx = (page - 1) * topSpItemsPerPage;
+            const endIdx = startIdx + topSpItemsPerPage;
+            const pageData = allTopSanPham.slice(startIdx, endIdx);
+            
+            let html = '';
+            pageData.forEach((sp, index) => {
+                html += `
+                    <tr>
+                        <td>${startIdx + index + 1}</td>
+                        <td style="font-weight: 500;">${sp.maSanPham || '-'}</td>
+                        <td>${sp.tenSanPham || '-'}</td>
+                        <td><span class="badge badge-cash">${sp.thuocTinh || '-'}</span></td>
+                        <td>${formatCurrency(sp.donGia)}</td>
+                        <td style="text-align: center;">${sp.tonKho || 0}</td>
+                        <td style="text-align: center; font-weight: 600; color: #16a34a;">${sp.daBan || 0}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            
+            // Render pagination
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+            
+            let pageHtml = '';
+            pageHtml += `<button class="btn-outline" style="padding: 4px 10px;" onclick="renderTopSanPhamTable(${currentTopSpPage - 1})" ${currentTopSpPage === 1 ? 'disabled' : ''}>&laquo;</button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentTopSpPage) {
+                    pageHtml += `<button class="btn-outline active" style="padding: 4px 10px;">${i}</button>`;
+                } else {
+                    pageHtml += `<button class="btn-outline" style="padding: 4px 10px;" onclick="renderTopSanPhamTable(${i})">${i}</button>`;
+                }
+            }
+            
+            pageHtml += `<button class="btn-outline" style="padding: 4px 10px;" onclick="renderTopSanPhamTable(${currentTopSpPage + 1})" ${currentTopSpPage === totalPages ? 'disabled' : ''}>&raquo;</button>`;
+            
+            paginationDiv.innerHTML = pageHtml;
+        }
+        
+        function formatCurrency(val) {
+            if (val === null || val === undefined) return '0 ₫';
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+        }
+    </script>
 </body>
 
 </html>

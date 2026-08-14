@@ -19,24 +19,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterStatus = document.getElementById("filterStatus");
 
     // 2. Initialize Toast Container
-    const toastContainer = document.createElement("div");
-    toastContainer.className = "toast-container";
-    document.body.appendChild(toastContainer);
     window.showToast = (message, type = "success") => {
-        const toast = document.createElement("div");
-        toast.className = `premium-toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-icon">
-                <i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}" style="width: 14px; height: 14px;"></i>
-            </div>
-            <span class="toast-message">${message}</span>
-        `;
-        toastContainer.appendChild(toast);
-        lucide.createIcons({ attrs: { style: 'stroke-width: 2.5' } });
-        setTimeout(() => {
-            toast.classList.add("hide");
-            setTimeout(() => toast.remove(), 400);
-        }, 3500);
+        if (type === "success") {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: message,
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+        } else {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type,
+                title: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
     };
 
     // 3. Open Modal
@@ -80,6 +83,47 @@ document.addEventListener("DOMContentLoaded", () => {
         const start = document.getElementById("discStart").value;
         const end = document.getElementById("discEnd").value;
         
+        const maCode = document.getElementById("discCode").value.trim().toUpperCase();
+        const ten = document.getElementById("discName").value.trim();
+        const percentRaw = document.getElementById("discPercent").value;
+        const percent = Number(percentRaw);
+
+        if (!maCode) {
+            showToast("Vui lòng nhập mã đợt giảm giá!", "warning");
+            return;
+        }
+        
+        const codeRegex = /^[A-Z0-9]+$/;
+        if (!codeRegex.test(maCode)) {
+            showToast("Mã đợt giảm giá chỉ được chứa chữ cái viết hoa và số, không chứa khoảng trắng hay ký tự đặc biệt!", "warning");
+            return;
+        }
+
+        if (!ten) {
+            showToast("Vui lòng nhập tên đợt giảm giá!", "warning");
+            return;
+        }
+
+        if (percentRaw === "") {
+            showToast("Vui lòng nhập phần trăm giảm giá!", "warning");
+            return;
+        }
+
+        if (isNaN(percent) || percent <= 0 || percent > 100) {
+            showToast("Phần trăm giảm giá phải lớn hơn 0 và tối đa là 100!", "warning");
+            return;
+        }
+
+        if (!start) {
+            showToast("Vui lòng chọn thời gian bắt đầu!", "warning");
+            return;
+        }
+        
+        if (!end) {
+            showToast("Vui lòng chọn thời gian kết thúc!", "warning");
+            return;
+        }
+        
         // Date validation
         if (new Date(start) >= new Date(end)) {
             showToast("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc!", "error");
@@ -87,9 +131,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const payload = {
-            maDotGiamGia: document.getElementById("discCode").value.trim().toUpperCase(),
-            tenDotGiamGia: document.getElementById("discName").value.trim(),
-            phanTramGiam: Number(document.getElementById("discPercent").value),
+            maDotGiamGia: maCode,
+            tenDotGiamGia: ten,
+            phanTramGiam: percent,
             ngayBatDau: start,
             ngayKetThuc: end,
             moTa: document.getElementById("discDesc").value.trim(),
@@ -105,25 +149,38 @@ document.addEventListener("DOMContentLoaded", () => {
             requestMethod = "PUT";
         }
 
-        fetch(requestUrl, {
-            method: requestMethod,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-        .then(async (res) => {
-            if (!res.ok) {
-                const errMsg = await res.text();
-                throw new Error(errMsg || "Lưu thông tin thất bại!");
+        Swal.fire({
+            title: 'Xác nhận lưu',
+            text: 'Bạn có chắc chắn muốn lưu thông tin đợt giảm giá này?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#0ea5e9',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(requestUrl, {
+                    method: requestMethod,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const errMsg = await res.text();
+                        throw new Error(errMsg || "Lưu thông tin thất bại!");
+                    }
+                    return res.json();
+                })
+                .then(() => {
+                    showToast(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
+                    hideModal();
+                    loadDiscounts();
+                })
+                .catch((error) => {
+                    showToast(error.message, "error");
+                });
             }
-            return res.json();
-        })
-        .then(() => {
-            showToast(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
-            hideModal();
-            loadDiscounts();
-        })
-        .catch((error) => {
-            showToast(error.message, "error");
         });
     };
 
@@ -300,23 +357,27 @@ function editDiscount(id) {
 }
 
 function toggleStatus(id) {
-    fetch(`/api/dot-giam-gia/${id}/toggle-trang-thai`, { method: "PUT" })
-        .then(res => {
-            if (!res.ok) throw new Error("Thay đổi thất bại");
-            showToast("Đã đổi trạng thái!");
+    Swal.fire({
+        title: 'Xác nhận thay đổi',
+        text: 'Bạn có chắc chắn muốn thay đổi trạng thái của đợt giảm giá này?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0ea5e9',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Hủy'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/dot-giam-gia/${id}/toggle-trang-thai`, { method: "PUT" })
+                .then(res => {
+                    if (!res.ok) throw new Error("Thay đổi thất bại");
+                    showToast("Đã đổi trạng thái!");
+                    loadDiscounts();
+                })
+                .catch(err => showToast(err.message, "error"));
+        } else {
+            // Revert the toggle visually if user cancels
             loadDiscounts();
-        })
-        .catch(err => showToast(err.message, "error"));
-}
-
-function deleteDiscount(id) {
-    if (confirm("Bạn có chắc chắn muốn xóa vĩnh viễn đợt giảm giá này?")) {
-        fetch(`/api/dot-giam-gia/${id}`, { method: "DELETE" })
-            .then(res => {
-                if (!res.ok) throw new Error("Xóa thất bại");
-                showToast("Xóa thành công!");
-                loadDiscounts();
-            })
-            .catch(err => showToast(err.message, "error"));
-    }
+        }
+    });
 }

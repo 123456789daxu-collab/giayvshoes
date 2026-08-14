@@ -363,7 +363,7 @@
 }
 
 .switch-control input:checked + .switch-slider {
-    background-color: #1e3a8a;
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
 }
 
 .switch-control input:checked + .switch-slider:before {

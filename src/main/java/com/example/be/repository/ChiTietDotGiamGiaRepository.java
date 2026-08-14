@@ -12,4 +12,7 @@ public interface ChiTietDotGiamGiaRepository extends JpaRepository<ChiTietDotGia
     List<ChiTietDotGiamGia> findByDotGiamGiaId(Long dotGiamGiaId);
     
     void deleteByDotGiamGiaId(Long dotGiamGiaId);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT MAX(d.phanTramGiam) FROM ChiTietDotGiamGia c JOIN c.dotGiamGia d WHERE c.sanPhamChiTiet.id = :spctId AND d.trangThai = 1 AND d.ngayBatDau <= CURRENT_TIMESTAMP AND d.ngayKetThuc >= CURRENT_TIMESTAMP")
+    Integer findMaxActiveDiscountBySanPhamChiTietId(@org.springframework.data.repository.query.Param("spctId") Long spctId);
 }

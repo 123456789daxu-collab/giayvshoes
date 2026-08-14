@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +23,78 @@ public class PhieuGiamGiaController {
 
     @Autowired
     private PhieuGiamGiaService phieuGiamGiaService;
+
+    @Autowired
+    private com.example.be.repository.PhieuGiamGiaRepository phieuGiamGiaRepository;
+
+    // 0. Kiểm tra voucher hợp lệ và trả về thông tin
+    @GetMapping("/check")
+    public ResponseEntity<?> checkVoucher(
+            @RequestParam String ma,
+            @RequestParam(defaultValue = "0") java.math.BigDecimal tongTien) {
+
+        java.util.Optional<PhieuGiamGia> opt = phieuGiamGiaRepository.findByMaVoucher(ma.trim().toUpperCase());
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        PhieuGiamGia v = opt.get();
+
+        // Kiểm tra trạng thái active
+        if (v.getTrangThai() == null || v.getTrangThai() != 1) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!"));
+        }
+
+        // Kiểm tra thời hạn
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        if (v.getNgayBatDau() != null && now.isBefore(v.getNgayBatDau())) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Chưa tới ngày áp dụng phiếu giảm giá này!"));
+        }
+        if (v.getNgayKetThuc() != null && now.isAfter(v.getNgayKetThuc())) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!"));
+        }
+
+        // Kiểm tra số lượng còn lại
+        if (v.getSoLuong() != null && v.getSoLuongDaDung() != null
+                && v.getSoLuongDaDung() >= v.getSoLuong()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Phiếu giảm giá này đã hết lượt sử dụng, vui lòng chọn phiếu giảm giá khác!"));
+        }
+
+        // Kiểm tra đơn tối thiểu
+        if (v.getDonToiThieu() != null && tongTien.compareTo(v.getDonToiThieu()) < 0) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Giá trị đơn hàng chưa đạt mức tối thiểu để áp dụng phiếu giảm giá này!"));
+        }
+
+        // Trả về thông tin voucher
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("id",           v.getId());
+        result.put("maVoucher",    v.getMaVoucher());
+        result.put("tenVoucher",   v.getTenVoucher());
+        result.put("loaiGiamGia",  v.getLoaiGiamGia());   // "PERCENT" | "AMOUNT"
+        result.put("giaTriGiam",   v.getGiaTriGiam());
+        result.put("giamToiDa",    v.getGiamToiDa());
+        result.put("donToiThieu",  v.getDonToiThieu());
+        return ResponseEntity.ok(result);
+    }
+
+    // 1. Lấy danh sách tất cả phiếu giảm giá đang hoạt động cho trang checkout
+    @GetMapping("/list")
+    public ResponseEntity<?> getActiveVouchers() {
+        try {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            java.util.List<PhieuGiamGia> allVouchers = phieuGiamGiaRepository.findAll();
+            java.util.List<PhieuGiamGia> activeVouchers = allVouchers.stream()
+                .filter(v -> v.getTrangThai() != null && v.getTrangThai() == 1)
+                .filter(v -> v.getNgayBatDau() == null || !now.isBefore(v.getNgayBatDau()))
+                .filter(v -> v.getNgayKetThuc() == null || !now.isAfter(v.getNgayKetThuc()))
+                .filter(v -> v.getSoLuong() == null || v.getSoLuongDaDung() == null || v.getSoLuongDaDung() < v.getSoLuong())
+                .filter(v -> v.getLoaiPhieu() == null || "Công khai".equalsIgnoreCase(v.getLoaiPhieu()) || "Public".equalsIgnoreCase(v.getLoaiPhieu()))
+                .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(activeVouchers);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Lỗi lấy danh sách voucher: " + e.getMessage()));
+        }
+    }
 
     // 1. Phân trang + lọc danh sách phiếu giảm giá
     @GetMapping
@@ -38,7 +110,7 @@ public class PhieuGiamGiaController {
         try {
             LocalDateTime start = null;
             LocalDateTime end = null;
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
             
             if (ngayBatDau != null && !ngayBatDau.trim().isEmpty()) {
                 start = LocalDateTime.parse(ngayBatDau);

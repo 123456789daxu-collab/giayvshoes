@@ -28,9 +28,47 @@ public class NhanVienService {
 
     public NhanVien save(NhanVien nhanVien) {
         boolean isNew = nhanVien.getId() == null;
+        
+        // Kiểm tra trùng lặp
+        if (isNew) {
+            if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty() && nhanVienRepository.existsByEmail(nhanVien.getEmail())) {
+                throw new RuntimeException("Email đã tồn tại trong hệ thống!");
+            }
+            if (nhanVien.getSoDienThoai() != null && !nhanVien.getSoDienThoai().trim().isEmpty() && nhanVienRepository.existsBySoDienThoai(nhanVien.getSoDienThoai())) {
+                throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
+            }
+        } else {
+            if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty() && nhanVienRepository.existsByEmailAndIdNot(nhanVien.getEmail(), nhanVien.getId())) {
+                throw new RuntimeException("Email đã tồn tại ở một nhân viên khác!");
+            }
+            if (nhanVien.getSoDienThoai() != null && !nhanVien.getSoDienThoai().trim().isEmpty() && nhanVienRepository.existsBySoDienThoaiAndIdNot(nhanVien.getSoDienThoai(), nhanVien.getId())) {
+                throw new RuntimeException("Số điện thoại đã tồn tại ở một nhân viên khác!");
+            }
+        }
+
+        if (isNew && (nhanVien.getMatKhau() == null || nhanVien.getMatKhau().trim().isEmpty())) {
+            String randomPass = String.format("%06d", new java.util.Random().nextInt(1000000));
+            nhanVien.setMatKhau(randomPass);
+        }
+        
         String unencryptedPassword = nhanVien.getMatKhau(); // Keep plain text to send in email
         
         NhanVien saved = nhanVienRepository.save(nhanVien);
+        
+        // Auto-generate maNhanVien if empty
+        if (saved.getMaNhanVien() == null || saved.getMaNhanVien().isEmpty()) {
+            String maxMa = nhanVienRepository.findMaxMaNhanVien();
+            int nextNumber = 1;
+            if (maxMa != null && maxMa.startsWith("NV")) {
+                try {
+                    nextNumber = Integer.parseInt(maxMa.substring(2)) + 1;
+                } catch (Exception e) {
+                    // Ignore parsing errors, keep default 1 or handle fallback
+                }
+            }
+            saved.setMaNhanVien(String.format("NV%03d", nextNumber));
+            saved = nhanVienRepository.save(saved);
+        }
         
         // If it's a newly created employee, send notifications
         if (isNew) {
@@ -41,8 +79,13 @@ public class NhanVienService {
         return saved;
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void deleteById(Long id) {
-        nhanVienRepository.deleteById(id);
+        // Thực hiện xóa mềm (chuyển trạng thái về 0 - Nghỉ làm) thay vì xóa cứng
+        NhanVien nv = nhanVienRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với id: " + id));
+        nv.setTrangThai(0);
+        nhanVienRepository.save(nv);
     }
 
     public List<NhanVien> search(String keyword) {

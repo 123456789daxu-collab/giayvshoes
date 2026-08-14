@@ -1,7 +1,7 @@
 package com.example.be.service;
 
 import com.example.be.dto.DotGiamGiaDto;
-import com.example.be.dto.SanPhamChiTietDto;
+import com.example.be.dto.SanPhamChiTietGiamGiaDto;
 import com.example.be.entity.DotGiamGia;
 import org.springframework.data.domain.Page;
 
@@ -26,9 +26,15 @@ public interface DotGiamGiaService {
     
     DotGiamGia toggleStatus(Long id, Integer status);
     
+    void deleteCampaign(Long id);
+    
     List<Long> getProductDetailIdsByCampaignId(Long campaignId);
     
-    Page<SanPhamChiTietDto> getProductDetails(String search, int page, int size);
+    List<SanPhamChiTietGiamGiaDto> getProductDetailsByCampaignId(Long campaignId);
+    
+    Page<SanPhamChiTietGiamGiaDto> getProductDetails(String search, int page, int size);
+    
+    Page<com.example.be.dto.SanPhamGiamGiaDto> getProductsWithVariants(String search, int page, int size);
     
     byte[] exportExcel(
             String search,

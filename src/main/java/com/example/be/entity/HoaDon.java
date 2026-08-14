@@ -34,47 +34,116 @@ public class HoaDon {
     private String maHoaDon;
 
     @Column(name = "loai_hoa_don")
-    private String loaiHoaDon;
+    @Setter(lombok.AccessLevel.NONE)
+    private Boolean loaiHoaDon; // bit in DB
 
-    @Column(name = "ten_nguoi_nhan")
+    @Column(name = "ten_nguoi_nhan", columnDefinition = "nvarchar(255)")
     private String tenNguoiNhan;
 
     @Column(name = "sdt_nguoi_nhan")
     private String sdtNguoiNhan;
 
-    @Column(name = "dia_chi_giao")
-    private String diaChiGiao;
+    @Column(name = "dia_chi_nhan", columnDefinition = "nvarchar(500)")
+    private String diaChiNhan; // dia_chi_nhan in DB
 
-    @Column(name = "ghi_chu")
+    @Column(name = "ghi_chu", columnDefinition = "nvarchar(max)")
     private String ghiChu;
 
-    @Column(name = "tong_tien_hang")
-    private BigDecimal tongTienHang;
 
-    @Column(name = "tien_giam_gia")
-    private BigDecimal tienGiamGia;
+    @Transient
+    private BigDecimal tongTienHang; // not in DB
 
-    @Column(name = "tien_van_chuyen")
-    private BigDecimal tienVanChuyen;
+    @Column(name = "tien_giam")
+    private BigDecimal tienGiam; // tien_giam in DB
 
-    @Column(name = "tong_tien_thanh_toan")
-    private BigDecimal tongTienThanhToan;
+    @Column(name = "phi_ship")
+    @Builder.Default
+    private BigDecimal phiShip = BigDecimal.valueOf(30000); // phi_ship in DB
+
+    @Column(name = "tong_tien")
+    private BigDecimal tongTien; // tong_tien in DB
 
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
 
-    @Column(name = "nguoi_tao")
-    private String nguoiTao;
+    @Transient
+    private String nguoiTao; // not in DB
 
-    @Column(name = "ngay_cap_nhat")
-    private LocalDateTime ngayCapNhat;
+    @Column(name = "ngay_thanh_toan")
+    private LocalDateTime ngayThanhToan; // ngay_thanh_toan in DB
 
-    @Column(name = "nguoi_cap_nhat")
-    private String nguoiCapNhat;
+    @Transient
+    private String nguoiCapNhat; // not in DB
 
     @Column(name = "trang_thai")
     private Integer trangThai;
 
-    @Column(name = "ly_do_huy")
-    private String lyDoHuy;
+    @Transient
+    private String lyDoHuy; // not in DB
+
+    @ManyToOne
+    @JoinColumn(name = "id_giao_ca")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private GiaoCa giaoCa;
+
+    // Compatibility getters & setters for Jackson serialization / REST API
+
+    public void setTongTienThanhToan(BigDecimal val) {
+        this.tongTien = val;
+    }
+
+    public BigDecimal getTongTienThanhToan() {
+        return this.tongTien;
+    }
+
+    public void setTienGiamGia(BigDecimal val) {
+        this.tienGiam = val;
+    }
+
+    public BigDecimal getTienGiamGia() {
+        return this.tienGiam;
+    }
+
+    public void setTienVanChuyen(BigDecimal val) {
+        this.phiShip = val;
+    }
+
+    public BigDecimal getTienVanChuyen() {
+        return this.phiShip;
+    }
+
+    public void setDiaChiGiao(String val) {
+        this.diaChiNhan = val;
+    }
+
+    public String getDiaChiGiao() {
+        return this.diaChiNhan;
+    }
+
+    public void setNgayCapNhat(LocalDateTime val) {
+        this.ngayThanhToan = val;
+    }
+
+    public LocalDateTime getNgayCapNhat() {
+        return this.ngayThanhToan;
+    }
+
+    // Jackson / API compatibility for loaiHoaDon String or Boolean values
+    public void setLoaiHoaDon(Object val) {
+        if (val instanceof Boolean) {
+            this.loaiHoaDon = (Boolean) val;
+        } else if (val instanceof String) {
+            String s = (String) val;
+            if ("Online".equalsIgnoreCase(s) || "Trực tuyến".equalsIgnoreCase(s)) {
+                this.loaiHoaDon = true;
+            } else if ("Tại quầy".equalsIgnoreCase(s) || "Tai quay".equalsIgnoreCase(s) || "TAI_QUAY".equalsIgnoreCase(s)) {
+                this.loaiHoaDon = false;
+            } else {
+                this.loaiHoaDon = null;
+            }
+        } else {
+            this.loaiHoaDon = null;
+        }
+    }
 }
+

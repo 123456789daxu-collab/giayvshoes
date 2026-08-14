@@ -1,26 +1,717 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang chủ | VShoes</title>
-    <link rel="stylesheet" href="/css/sidebar.css">
+    <meta name="description" content="VHOES - Chuyên giày chạy bộ nam chính hãng, chất lượng cao. Mua giày chạy bộ với giá tốt nhất, giao hàng toàn quốc.">
+    <title>VHOES - Giày Chạy Bộ | Chính Hãng Giá Tốt</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/trang-chu.css?v=2.3">
+
+    <!-- Google Fonts: Inter (giống sidebar/invoice) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-
 <body>
-    <div class="app-container">
-        <!-- Nhúng Sidebar dùng chung -->
-        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính đơn giản -->
-        <main class="main-content">
-            <div class="content-card">
-                <h1 class="content-title">Trang chủ / Tổng quan</h1>
-                <p class="content-desc">Nội dung của trang chủ sẽ hiển thị ở đây.</p>
-            </div>
-        </main>
+<!-- ===== MARQUEE BANNER ===== -->
+<div class="marquee-banner" role="marquee">
+    <div class="marquee-track">
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>⚡ GIẢM 15% cho thành viên mới khi đăng ký</span>
+        <span>🛡️ BẢO HÀNH chính hãng 12 tháng toàn sản phẩm</span>
+        <span>🔄 ĐỔI TRẢ dễ dàng trong vòng 30 ngày</span>
+        <span>📦 GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+        <!-- duplicate for seamless scroll -->
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>⚡ GIẢM 15% cho thành viên mới khi đăng ký</span>
+        <span>🛡️ BẢO HÀNH chính hãng 12 tháng toàn sản phẩm</span>
+        <span>🔄 ĐỔI TRẢ dễ dàng trong vòng 30 ngày</span>
+        <span>📦 GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
     </div>
-</body>
+</div>
 
+<!-- ===== HEADER ===== -->
+<header class="site-header" role="banner">
+    <div class="container">
+
+        <!-- Top bar -->
+        <div class="header-top">
+            <div class="header-top-left">
+                <a href="tel:19006789">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Hotline: 1900 6789
+                </a>
+                <a href="mailto:vshoes@gmail.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><polyline points="1,4 12,13 23,4"/></svg>
+                    vshoes@gmail.com
+                </a>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Hệ thống cửa hàng
+                </a>
+            </div>
+            <div class="header-top-right" id="headerAuthSection">
+                <a href="/client/tra-cuu">Theo dõi đơn hàng</a>
+                <a href="/client/dang-nhap" id="loginLink">Đăng nhập</a>
+                <a href="/client/dang-ky" class="btn-register" id="registerLink">Đăng ký</a>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="header-main">
+            <a href="/trang-chu" class="header-logo">
+                <div class="logo-img-wrap">
+                    <img src="/images/logo.png" alt="VHOES Logo"
+                         onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex'">
+                    <div id="logoFallback" style="display:none;width:48px;height:48px;background:linear-gradient(135deg,#7c3aed,#2563eb);border-radius:10px;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:900;">S</div>
+                </div>
+                <div class="logo-text-wrap">
+                    <div class="brand-name">VHOES</div>
+                    <div class="brand-tagline">Giày chạy bộ</div>
+                </div>
+            </a>
+
+            <form class="header-search" id="searchForm" role="search">
+                <div class="search-input-wrap">
+                    <input type="search" id="searchKeyword"
+                           placeholder="Tìm kiếm giày chạy bộ..." autocomplete="off">
+                    <button type="submit" class="search-btn" aria-label="Tìm kiếm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </form>
+
+            <div class="header-actions">
+                <a href="/client/cart" class="action-btn" id="cartBtn" aria-label="Giỏ hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span id="cartCountBadge" class="cart-count" style="display:none;">0</span>
+                    <span>Giỏ hàng</span>
+                </a>
+                <a href="#" class="action-btn" aria-label="Tài khoản">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Tài khoản</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/trang-chu" class="nav-item active" aria-current="page">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Trang Chủ
+                </a>
+                                <a href="/client/san-pham" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
+                    Sản Phẩm
+                </a>
+                <a href="/client/tin-tuc" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Tin Tức
+                </a>
+                <a href="/client/gioi-thieu" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Giới Thiệu
+                </a>
+                <a href="/client/lien-he" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Liên Hệ
+                </a>
+                <!-- Flash sale -->
+                <a href="/client/flash-sale" class="nav-item" style="margin-left:auto;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Flash Sale
+                </a>
+                <!-- Admin link -->
+                <a href="/ban-hang" class="nav-item nav-item-admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Quản Lý Bán Hàng
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- ===== HERO SLIDER ===== -->
+<section class="hero-slider" aria-label="Hero banner">
+
+    <!-- Slide 1 -->
+    <div class="slide active">
+        <div class="slide-bg" style="background-image: url('/images/hero_banner.png');"></div>
+        <div class="slide-bg-overlay"></div>
+        <div class="slide-accent-overlay"></div>
+        <div class="container" style="position:relative;z-index:5;width:100%;">
+            <div class="slide-content">
+                <div class="slide-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Bộ sưu tập 2026
+                </div>
+                <h1 class="slide-title">BƯỚC CHẠY<br><span>VƯƠN XA</span></h1>
+                <p class="slide-desc">Khám phá bộ sưu tập giày chạy bộ mới nhất.<br>Công nghệ tiên tiến — Hiệu suất đỉnh cao.</p>
+                <div class="slide-actions">
+                    <a href="#san-pham-moi" class="btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="16" height="16"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                        Mua Ngay
+                    </a>
+                    <a href="#" class="btn-outline-white">Xem Bộ Sưu Tập</a>
+                </div>
+            </div>
+        </div>
+        <div class="slide-image-wrap">
+            <div class="slide-image-card">
+                <img id="heroSlideImg1" src="/upload/variant_5_3_1785554345929_0.png" alt="Adidas EVO SL" loading="eager" onerror="this.src='/images/shoe1.png'">
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide">
+        <div class="slide-bg" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);"></div>
+        <div class="slide-bg-overlay" style="background:linear-gradient(100deg,rgba(10,5,30,0.7) 0%,transparent 60%);"></div>
+        <div class="slide-accent-overlay"></div>
+        <div class="container" style="position:relative;z-index:5;width:100%;">
+            <div class="slide-content">
+                <div class="slide-badge" style="background: linear-gradient(135deg,#2563eb,#06b6d4);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    Flash Sale — Giảm đến 30%
+                </div>
+                <h1 class="slide-title">SIÊU SALE<br><span style="background:linear-gradient(135deg,#60a5fa,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">CUỐI MÙA</span></h1>
+                <p class="slide-desc">Ưu đãi đặc biệt — Số lượng có hạn.<br>Nhanh tay sở hữu đôi chạy bộ yêu thích!</p>
+                <div class="slide-actions">
+                    <a href="#san-pham-moi" class="btn-primary" style="background:linear-gradient(135deg,#2563eb,#06b6d4);box-shadow:0 4px 14px rgba(37,99,235,0.4);">
+                        Xem Ưu Đãi
+                    </a>
+                    <a href="/client/san-pham" class="btn-outline-white">Tất cả sản phẩm</a>
+                </div>
+            </div>
+        </div>
+        <div class="slide-image-wrap">
+            <div class="slide-image-card">
+                <img id="heroSlideImg2" src="/upload/variant_full_6_1785553805471_0.png" alt="Nike elite" loading="lazy" onerror="this.src='/images/shoe2.png'">
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide">
+        <div class="slide-bg" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);"></div>
+        <div class="slide-bg-overlay" style="background:linear-gradient(100deg,rgba(10,5,30,0.7) 0%,transparent 60%);"></div>
+        <div class="slide-accent-overlay"></div>
+        <div class="container" style="position:relative;z-index:5;width:100%;">
+            <div class="slide-content">
+                <div class="slide-badge" style="background: linear-gradient(135deg,#7c3aed,#a855f7);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    Hàng Mới Về
+                </div>
+                <h1 class="slide-title">PUMA<br><span>ELITE PRO</span></h1>
+                <p class="slide-desc">Đế EVA siêu nhẹ · Lưới thoáng khí · Độ bám cao.<br>Tối ưu cho mọi cung đường chạy bộ.</p>
+                <div class="slide-actions">
+                    <a href="#san-pham-moi" class="btn-primary">Khám Phá Ngay</a>
+                    <a href="/client/san-pham" class="btn-outline-white">Tìm hiểu thêm</a>
+                </div>
+            </div>
+        </div>
+        <div class="slide-image-wrap">
+            <div class="slide-image-card">
+                <img id="heroSlideImg3" src="/upload/variant_full_5_1785553852205_0.png" alt="PUMA ELITE" loading="lazy" onerror="this.src='/images/shoe4.png'">
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <button class="slider-arrow slider-prev" id="sliderPrev" aria-label="Slide trước">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="slider-arrow slider-next" id="sliderNext" aria-label="Slide tiếp">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <div class="slider-dots" role="tablist">
+        <button class="dot active" role="tab" aria-label="Slide 1"></button>
+        <button class="dot" role="tab" aria-label="Slide 2"></button>
+        <button class="dot" role="tab" aria-label="Slide 3"></button>
+    </div>
+</section>
+
+<!-- ===== FEATURE BAR ===== -->
+<div class="feature-bar">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                </div>
+                <div class="feature-text">
+                    <div class="title">Miễn phí vận chuyển</div>
+                    <div class="desc">Đơn hàng từ 500.000₫</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="feature-text">
+                    <div class="title">Bảo hành chính hãng</div>
+                    <div class="desc">12 tháng toàn sản phẩm</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </div>
+                <div class="feature-text">
+                    <div class="title">Đổi trả dễ dàng</div>
+                    <div class="desc">Trong vòng 30 ngày</div>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </div>
+                <div class="feature-text">
+                    <div class="title">Hỗ trợ 24/7</div>
+                    <div class="desc">Tư vấn miễn phí</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FLASH SALE SECTION ===== -->
+<section class="section" style="background: linear-gradient(135deg, #0b1120 0%, #1e1b4b 60%, #0f172a 100%); color: white; padding: 48px 0;" aria-labelledby="flashSaleTitle">
+    <div class="container">
+        <div class="section-header reveal" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px;">
+            <div class="section-title-wrap" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: linear-gradient(135deg, #ef4444, #f97316); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(239,68,68,0.5);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <div>
+                        <h2 id="flashSaleTitle" style="color: white; font-size: 24px; font-weight: 800; margin: 0; line-height: 1.2;">FLASH SALE GIỜ VÀNG</h2>
+                        <span style="color: #fdba74; font-size: 12.5px; font-weight: 600;">SĂN DEAL HOT — GIẢM ĐẾN 50%</span>
+                    </div>
+                </div>
+
+                <!-- Homepage countdown box -->
+                <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.08); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.7); text-transform: uppercase; font-weight: 700; margin-right: 4px;">Kết thúc sau:</span>
+                    <span id="homeFsH" style="background:#0f172a; padding:3px 6px; border-radius:6px; font-weight:800; font-size:13px; color:#fca5a5;">04</span> :
+                    <span id="homeFsM" style="background:#0f172a; padding:3px 6px; border-radius:6px; font-weight:800; font-size:13px; color:#fca5a5;">25</span> :
+                    <span id="homeFsS" style="background:#0f172a; padding:3px 6px; border-radius:6px; font-weight:800; font-size:13px; color:#fca5a5;">18</span>
+                </div>
+            </div>
+            <a href="/client/flash-sale" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #ef4444, #f97316); color: white; padding: 9px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 14px rgba(239,68,68,0.4); transition: transform 0.2s ease;">
+                Xem tất cả Flash Sale
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+
+        <div class="products-grid" id="homeFlashSaleGrid">
+            <!-- Populated dynamically -->
+        </div>
+    </div>
+</section>
+
+<!-- ===== SẢN PHẨM MỚI ===== -->
+<section class="section section-light" id="san-pham-moi" aria-labelledby="newProductsTitle">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="section-title-wrap">
+                <div class="pre-title">Mới nhất 2026</div>
+                <h2 id="newProductsTitle">Giày Chạy Bộ Mới Về Trong Tháng</h2>
+            </div>
+            <a href="/client/san-pham" class="view-all-btn">
+                Xem tất cả
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+        <div class="products-grid" id="newProductsGrid">
+            <!-- Dynamic loading skeletons populated from CSDL via /api/san-pham/search-sale -->
+            <div class="skeleton-card" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8edf3;"><div class="skeleton" style="height:220px;background:#f1f5f9;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;background:#f1f5f9;"></div><div class="skeleton" style="height:16px;background:#f1f5f9;"></div><div class="skeleton" style="height:14px;width:60%;background:#f1f5f9;"></div></div></div>
+            <div class="skeleton-card" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8edf3;"><div class="skeleton" style="height:220px;background:#f1f5f9;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;background:#f1f5f9;"></div><div class="skeleton" style="height:16px;background:#f1f5f9;"></div><div class="skeleton" style="height:14px;width:60%;background:#f1f5f9;"></div></div></div>
+            <div class="skeleton-card" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8edf3;"><div class="skeleton" style="height:220px;background:#f1f5f9;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;background:#f1f5f9;"></div><div class="skeleton" style="height:16px;background:#f1f5f9;"></div><div class="skeleton" style="height:14px;width:60%;background:#f1f5f9;"></div></div></div>
+            <div class="skeleton-card" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e8edf3;"><div class="skeleton" style="height:220px;background:#f1f5f9;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;background:#f1f5f9;"></div><div class="skeleton" style="height:16px;background:#f1f5f9;"></div><div class="skeleton" style="height:14px;width:60%;background:#f1f5f9;"></div></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== DANH MỤC ===== -->
+<section class="section section-gray" aria-labelledby="categoriesTitle">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="section-title-wrap">
+                <div class="pre-title">Danh mục</div>
+                <h2 id="categoriesTitle">Phân Loại Giày Chạy Bộ</h2>
+            </div>
+        </div>
+        <div class="categories-grid">
+            <a href="/client/san-pham" class="category-card reveal">
+                <img id="catImg1" src="/upload/variant_5_3_1785554345929_0.png" alt="Giày chạy đường dài" onerror="this.src='/images/shoe1.png'">
+                <div class="category-overlay"></div>
+                <div class="category-label">
+                    <div class="cat-name">👟 Chạy Đường Dài</div>
+                    <div class="cat-count">Adidas EVO SL</div>
+                </div>
+            </a>
+            <a href="/client/san-pham" class="category-card reveal" style="transition-delay:.1s">
+                <img id="catImg2" src="/upload/variant_full_6_1785553805471_0.png" alt="Giày chạy tốc độ" onerror="this.src='/images/shoe2.png'">
+                <div class="category-overlay"></div>
+                <div class="category-label">
+                    <div class="cat-name">⚡ Chạy Tốc Độ</div>
+                    <div class="cat-count">Nike elite</div>
+                </div>
+            </a>
+            <a href="/client/san-pham" class="category-card reveal" style="transition-delay:.2s">
+                <img id="catImg3" src="/upload/variant_full_5_1785553852205_0.png" alt="Trail Running" onerror="this.src='/images/shoe3.png'">
+                <div class="category-overlay"></div>
+                <div class="category-label">
+                    <div class="cat-name">🏔️ Trail Running</div>
+                    <div class="cat-count">PUMA ELITE</div>
+                </div>
+            </a>
+            <a href="/client/san-pham" class="category-card reveal" style="transition-delay:.3s;background:linear-gradient(135deg,#7c3aed,#2563eb);">
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:2;">
+                    <div style="font-size:36px;">🏷️</div>
+                    <div style="color:white;font-size:17px;font-weight:800;text-align:center;line-height:1.3;">Flash<br>Sale</div>
+                    <div style="background:white;color:var(--primary);font-size:11px;font-weight:800;padding:3px 12px;border-radius:50px;">Đến -35%</div>
+                </div>
+                <div class="category-label">
+                    <div class="cat-name">🔥 Ưu Đãi Hot</div>
+                    <div class="cat-count">Giảm đến 35%</div>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PROMO BANNERS ===== -->
+<div class="promo-banner-section">
+    <div class="container">
+        <div class="promo-grid">
+            <div class="promo-card reveal" style="background:#0f172a;">
+                <img id="promoImgMain" src="/upload/variant_full_2_1785553935717_0.png" alt="Ưu đãi đặc biệt" style="object-fit:contain;padding:24px;opacity:0.9;" onerror="this.src='/images/banner_promo.png'">
+                <div class="promo-card-overlay">
+                    <div class="promo-tag">Ưu đãi cuối mùa</div>
+                    <div class="promo-title">Giảm Đến<br>30% Tất Cả</div>
+                    <div class="promo-desc">Săn sale ngay hôm nay — Số lượng có hạn</div>
+                    <a href="/client/san-pham" class="promo-btn">
+                        Mua Ngay
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:18px;">
+                <div class="promo-card promo-card-sm reveal" style="background:linear-gradient(135deg,#1e293b,#0f172a);border-color:rgba(124,58,237,0.2);">
+                    <div class="promo-card-overlay" style="background:none;justify-content:center;">
+                        <div class="promo-tag">Thành viên mới</div>
+                        <div class="promo-title" style="font-size:17px;">Giảm 15%<br>Đơn đầu tiên</div>
+                        <a href="#" class="promo-btn" style="margin-top:10px;">Đăng Ký →</a>
+                    </div>
+                </div>
+                <div class="promo-card promo-card-sm reveal" style="background:linear-gradient(135deg,#1e293b,#0f172a);border-color:rgba(37,99,235,0.2);">
+                    <div class="promo-card-overlay" style="background:none;justify-content:center;">
+                        <div class="promo-tag" style="background:linear-gradient(135deg,#2563eb,#06b6d4);">Miễn phí ship</div>
+                        <div class="promo-title" style="font-size:17px;">Đơn từ<br>500.000₫</div>
+                        <a href="#" class="promo-btn" style="margin-top:10px;">Khám Phá →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== THỐNG KÊ ===== -->
+<section class="stats-section" aria-label="Thống kê cửa hàng">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item reveal">
+                <div class="stat-number" data-target="15000">0</div>
+                <div style="font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">+</div>
+                <div class="stat-label">Khách hàng tin dùng</div>
+            </div>
+            <div class="stat-item reveal" style="transition-delay:.15s">
+                <div class="stat-number" data-target="200">0</div>
+                <div style="font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">+</div>
+                <div class="stat-label">Mẫu giày chạy bộ</div>
+            </div>
+            <div class="stat-item reveal" style="transition-delay:.3s">
+                <div class="stat-number" data-target="98">0</div>
+                <div style="font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">%</div>
+                <div class="stat-label">Khách hàng hài lòng</div>
+            </div>
+            <div class="stat-item reveal" style="transition-delay:.45s">
+                <div class="stat-number" data-target="6">0</div>
+                <div style="font-size:20px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">năm</div>
+                <div class="stat-label">Kinh nghiệm phục vụ</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ĐÁNH GIÁ ===== -->
+<section class="section section-gray" aria-labelledby="reviewsTitle">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="section-title-wrap">
+                <div class="pre-title">Phản hồi</div>
+                <h2 id="reviewsTitle">Khách Hàng Nói Gì</h2>
+            </div>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card reveal">
+                <div class="testimonial-stars">
+                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                </div>
+                <p class="testimonial-text">"Mua giày chạy bộ tại VShoes, chất lượng vượt mong đợi! Đế êm ái, form đẹp, chạy cả buổi sáng không mỏi chân. Giao hàng cực nhanh, đóng gói cẩn thận."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">N</div>
+                    <div>
+                        <div class="author-name">Nguyễn Văn An</div>
+                        <div class="author-role">Hà Nội • Mua tháng 6/2026</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card reveal" style="transition-delay:.1s">
+                <div class="testimonial-stars">
+                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                </div>
+                <p class="testimonial-text">"Shop tư vấn nhiệt tình, đặt hàng chiều hôm trước sáng hôm sau nhận được. Giày đúng màu, đúng size. Chạy marathon đầu tiên với đôi này, cảm giác cực tốt!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar" style="background:linear-gradient(135deg,#2563eb,#06b6d4);">T</div>
+                    <div>
+                        <div class="author-name">Trần Minh Tuấn</div>
+                        <div class="author-role">TP.HCM • Mua tháng 5/2026</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card reveal" style="transition-delay:.2s">
+                <div class="testimonial-stars">
+                    <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+                </div>
+                <p class="testimonial-text">"Lần đầu mua online mà rất ưng. Giày chạy trail rất bám, chắc chân trên địa hình gồ ghề. Chính sách đổi trả 30 ngày an tâm mua sắm!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">L</div>
+                    <div>
+                        <div class="author-name">Lê Hữu Phúc</div>
+                        <div class="author-role">Đà Nẵng • Mua tháng 6/2026</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== THƯƠNG HIỆU ===== -->
+<section class="brands-section" aria-label="Thương hiệu đối tác">
+    <div class="container">
+        <p class="brands-title">Thương hiệu giày chạy bộ chính hãng</p>
+        <div style="overflow:hidden;">
+            <div class="brands-track">
+                <span class="brands-text-item">NIKE</span>
+                <span class="brands-text-item">ADIDAS</span>
+                <span class="brands-text-item">ASICS</span>
+                <span class="brands-text-item">NEW BALANCE</span>
+                <span class="brands-text-item">BROOKS</span>
+                <span class="brands-text-item">SAUCONY</span>
+                <span class="brands-text-item">HOKA</span>
+                <span class="brands-text-item">MIZUNO</span>
+                <!-- duplicate -->
+                <span class="brands-text-item">NIKE</span>
+                <span class="brands-text-item">ADIDAS</span>
+                <span class="brands-text-item">ASICS</span>
+                <span class="brands-text-item">NEW BALANCE</span>
+                <span class="brands-text-item">BROOKS</span>
+                <span class="brands-text-item">SAUCONY</span>
+                <span class="brands-text-item">HOKA</span>
+                <span class="brands-text-item">MIZUNO</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== NEWSLETTER ===== -->
+<section class="newsletter-section" aria-labelledby="newsletterTitle">
+    <div class="container">
+        <div class="newsletter-inner">
+            <h2 id="newsletterTitle">🔔 Đăng Ký Nhận Tin</h2>
+            <p>Nhận thông báo về sản phẩm mới &amp; ưu đãi độc quyền sớm nhất!</p>
+            <form class="newsletter-form" id="newsletterForm">
+                <input type="email" placeholder="Nhập email của bạn..." required aria-label="Email đăng ký">
+                <button type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Đăng ký
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-about">
+                <div class="footer-logo">
+                    <img src="/images/logo.png" alt="VShoes" onerror="this.style.display='none'">
+                    <span class="brand-name">VShoes</span>
+                </div>
+                <p>Chuyên cung cấp giày chạy bộ nam chính hãng, chất lượng cao với giá cả hợp lý. Giao hàng toàn quốc, bảo hành chính hãng 12 tháng.</p>
+                <div class="footer-contact">
+                    <div class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <span>Hotline: 1900 6789 (8h–22h)</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><polyline points="1,4 12,13 23,4"/></svg>
+                        <span>vshoes@gmail.com</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>58 Trịnh Văn Bô, Nam Từ Liêm, HN</span>
+                    </div>
+                </div>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="YouTube">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Zalo">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-col-title">Sản Phẩm</div>
+                <ul class="footer-links">
+                    <li><a href="#">Giày Chạy Đường Dài</a></li>
+                    <li><a href="#">Giày Chạy Tốc Độ</a></li>
+                    <li><a href="#">Trail Running</a></li>
+                    <li><a href="#">Giày Tập Gym</a></li>
+                    <li><a href="#">Hàng Mới Về</a></li>
+                    <li><a href="#">Sale Off</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-col-title">Hỗ Trợ</div>
+                <ul class="footer-links">
+                    <li><a href="#">Hướng dẫn mua hàng</a></li>
+                    <li><a href="#">Chính sách đổi trả</a></li>
+                    <li><a href="#">Chính sách vận chuyển</a></li>
+                    <li><a href="#">Bảo hành sản phẩm</a></li>
+                    <li><a href="#">Tra cứu đơn hàng</a></li>
+                    <li><a href="#">Câu hỏi thường gặp</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-col-title">Hệ Thống Cửa Hàng</div>
+                <div class="footer-contact">
+                    <div class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>CN1: 58 Trịnh Văn Bô, Nam Từ Liêm, HN</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>CN2: 456 Phố Giày Dép, Hoàn Kiếm, HN</span>
+                    </div>
+                    <div class="contact-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span>CN3: 789 Trần Phú, Hải Châu, Đà Nẵng</span>
+                    </div>
+                </div>
+                <div style="margin-top:16px;">
+                    <div class="footer-col-title" style="margin-bottom:10px;">Thanh Toán</div>
+                    <div class="payment-icons">
+                        <span class="payment-icon">VISA</span>
+                        <span class="payment-icon">MasterCard</span>
+                        <span class="payment-icon">MoMo</span>
+                        <span class="payment-icon">ZaloPay</span>
+                        <span class="payment-icon">COD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 VShoes — Chuyên giày chạy bộ nam. All rights reserved.</span>
+            <div style="display:flex;gap:16px;">
+                <a href="#" style="color:rgba(255,255,255,0.3);font-size:12px;">Điều khoản sử dụng</a>
+                <a href="#" style="color:rgba(255,255,255,0.3);font-size:12px;">Chính sách bảo mật</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- ===== CART SIDEBAR ===== -->
+<div class="cart-overlay" id="cartOverlay" role="presentation"></div>
+<aside class="cart-sidebar" id="cartSidebar" role="dialog" aria-label="Giỏ hàng">
+    <div class="cart-sidebar-header">
+        <div class="cart-sidebar-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Giỏ hàng của bạn
+        </div>
+        <button class="cart-close" id="cartClose" aria-label="Đóng giỏ hàng">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+    <div class="cart-items-list" id="cartItemsContainer">
+        <div class="cart-empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <p>Giỏ hàng trống</p>
+            <span style="font-size:12.5px;color:var(--gray-400);">Hãy thêm sản phẩm yêu thích!</span>
+        </div>
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total-row">
+            <span class="cart-total-label">Tổng thanh toán:</span>
+            <span class="cart-total-val" id="cartTotalAmount">0 ₫</span>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Tiến hành thanh toán
+        </button>
+    </div>
+</aside>
+
+<!-- ===== PRODUCT DETAIL MODAL ===== -->
+<div class="product-modal-overlay" id="productModalOverlay" role="dialog" aria-label="Chi tiết sản phẩm"
+     onclick="if(event.target===this) closeProductModal()">
+    <div class="product-modal" id="productModalContent"></div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+<!-- ===== SCROLL TO TOP ===== -->
+<button class="scroll-top" id="scrollTopBtn" aria-label="Lên đầu trang">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="/js/client/auth-header.js"></script>
+<script src="/js/trang-chu.js"></script>
+<!-- ===== AI CHAT WIDGET (BOTTOM LEFT) ===== -->
+<div th:replace="~{client-chat-widget :: chat-widget}"></div>
+
+</body>
 </html>
+
+
+
+
+
+

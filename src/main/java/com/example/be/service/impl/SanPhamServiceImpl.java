@@ -21,6 +21,31 @@ public class SanPhamServiceImpl implements SanPhamService {
     private SanPhamRepository sanPhamRepository;
 
     @Override
+    public Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, Pageable pageable) {
+        return sanPhamRepository.search(keyword, trangThai, soLuongTon, idThuongHieu, idLoaiGiay, pageable);
+    }
+
+    @Override
+    public SanPham findById(Long id) {
+        return sanPhamRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        sanPhamRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsByTenSanPham(String tenSanPham) {
+        return sanPhamRepository.existsByTenSanPham(tenSanPham);
+    }
+
+    @Override
+    public boolean existsByMaSanPham(String maSanPham) {
+        return sanPhamRepository.existsByMaSanPham(maSanPham);
+    }
+
+    @Override
     public List<SanPham> getAll() {
         return sanPhamRepository.findAll((org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id")));
     }
@@ -62,7 +87,7 @@ public class SanPhamServiceImpl implements SanPhamService {
         
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sortObj);
         String kw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
-        return sanPhamRepository.searchFilter(kw, idThuongHieu, idLoaiGiay, trangThai, pageable);
+        return sanPhamRepository.search(kw, trangThai, null, idThuongHieu, idLoaiGiay, pageable);
     }
 
     @Override

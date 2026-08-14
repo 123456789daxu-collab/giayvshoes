@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phiếu giảm giá | VShoes</title>
     <!-- Nhúng CSS sidebar & khách hàng dùng chung -->
-    <link rel="stylesheet" href="/css/sidebar.css">
-    <link rel="stylesheet" href="/css/khach-hang.css">
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/khach-hang.css?v=99">
     <!-- Nhúng CSS riêng của trang phiếu giảm giá -->
-    <link rel="stylesheet" href="/css/phieu-giam-gia.css">
+    <link rel="stylesheet" href="/css/phieu-giam-gia.css?v=99">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -19,9 +22,13 @@
 
         <!-- NỘI DUNG CHÍNH -->
         <main class="main-content">
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
             <!-- TIÊU ĐỀ MÀN HÌNH -->
             <div class="screen-header" style="margin-bottom: 24px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý phiếu giảm giá</h1>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Quản lý phiếu giảm giá</h2>
+                </div>
             </div>
 
             <div class="voucher-container">
@@ -30,26 +37,29 @@
                 <div id="list-panel" class="tab-panel active">
 
                     <!-- BỘ LỌC TÌM KIẾM -->
-                    <div class="filter-card">
-                        <div class="filter-header">
-                            <span class="filter-title">Bộ lọc tìm kiếm</span>
-                            <button class="refresh-btn" onclick="resetVoucherFilters()" title="Làm mới bộ lọc">
-                                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                    <div class="filter-section-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="filter-section-title mb-0">Bộ lọc tìm kiếm</p>
+                            <button class="fi-reset-btn" onclick="resetVoucherFilters()" title="Làm mới bộ lọc" style="width: 32px; height: 32px;">
+                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
                             </button>
                         </div>
 
-                        <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 2fr;">
+                        <div class="filter-grid" style="grid-template-columns: 2fr 1fr 1fr 2fr; gap: 16px; display: grid;">
                             <!-- Tên hoặc mã phiếu -->
-                            <div class="form-group">
-                                <label for="filter-search">Tên hoặc mã phiếu giảm giá</label>
-                                <input type="text" id="filter-search" class="input-control"
-                                    placeholder="Nhập tên hoặc mã phiếu..." oninput="applyVoucherFilters()">
+                            <div class="fi-col">
+                                <label class="fi-label" for="filter-search">Tên hoặc mã phiếu giảm giá</label>
+                                <div class="fi-search-wrap">
+                                    <i class="bi bi-search fi-search-icon" style="top: 11px;"></i>
+                                    <input type="text" id="filter-search" class="fi-input"
+                                        placeholder="Nhập tên hoặc mã phiếu..." oninput="applyVoucherFilters()">
+                                </div>
                             </div>
 
                             <!-- Kiểu giảm -->
-                            <div class="form-group">
-                                <label for="filter-loai-giam">Kiểu giảm</label>
-                                <select id="filter-loai-giam" class="input-control" onchange="applyVoucherFilters()">
+                            <div class="fi-col">
+                                <label class="fi-label" for="filter-loai-giam">Kiểu giảm</label>
+                                <select id="filter-loai-giam" class="fi-input fi-select" onchange="applyVoucherFilters()">
                                     <option value="">Tất cả</option>
                                     <option value="Phần trăm">Phần trăm</option>
                                     <option value="Tiền mặt">Tiền mặt</option>
@@ -57,9 +67,9 @@
                             </div>
 
                             <!-- Đối tượng -->
-                            <div class="form-group">
-                                <label for="filter-loai-phieu">Đối tượng</label>
-                                <select id="filter-loai-phieu" class="input-control" onchange="applyVoucherFilters()">
+                            <div class="fi-col">
+                                <label class="fi-label" for="filter-loai-phieu">Đối tượng</label>
+                                <select id="filter-loai-phieu" class="fi-input fi-select" onchange="applyVoucherFilters()">
                                     <option value="">Tất cả</option>
                                     <option value="Công khai">Công khai</option>
                                     <option value="Cá nhân">Cá nhân</option>
@@ -67,13 +77,13 @@
                             </div>
 
                             <!-- Khoảng ngày áp dụng -->
-                            <div class="form-group">
-                                <label>Khoảng ngày áp dụng</label>
-                                <div class="date-range-container">
-                                    <input type="date" id="filter-start-date" class="input-control"
+                            <div class="fi-col">
+                                <label class="fi-label">Khoảng ngày áp dụng</label>
+                                <div class="fi-date-range">
+                                    <input type="date" id="filter-start-date" class="fi-input fi-date-input"
                                         onchange="applyVoucherFilters()">
-                                    <span class="date-separator">&rarr;</span>
-                                    <input type="date" id="filter-end-date" class="input-control"
+                                    <span class="fi-date-dash">—</span>
+                                    <input type="date" id="filter-end-date" class="fi-input fi-date-input"
                                         onchange="applyVoucherFilters()">
                                 </div>
                             </div>
@@ -274,13 +284,13 @@
                                 <div class="form-group">
                                     <label for="voucher-start-date">Ngày bắt đầu <span
                                             class="required-star">*</span></label>
-                                    <input type="date" id="voucher-start-date" class="input-control" required>
+                                    <input type="datetime-local" id="voucher-start-date" class="input-control" required>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="voucher-end-date">Ngày kết thúc <span
                                             class="required-star">*</span></label>
-                                    <input type="date" id="voucher-end-date" class="input-control" required>
+                                    <input type="datetime-local" id="voucher-end-date" class="input-control" required>
                                 </div>
                             </div>
 
@@ -419,12 +429,14 @@
             endInput.min = formatDateLocalDate(now);
         });
 
-        // Hàm format Date thành chuỗi yyyy-MM-dd để nhét vào input date
+        // Hàm format Date thành chuỗi yyyy-MM-ddThh:mm để nhét vào input datetime-local
         function formatDateLocalDate(date) {
             const yyyy = date.getFullYear();
             const MM = String(date.getMonth() + 1).padStart(2, '0');
             const dd = String(date.getDate()).padStart(2, '0');
-            return `${yyyy}-${MM}-${dd}`;
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
         }
 
         // =========================================================================
@@ -521,11 +533,11 @@
                 const soLuongTd = `<td style="text-align: center; font-weight: 500; color: #334155;">${voucher.soLuong}</td>`;
 
                 // Ngày bắt đầu
-                const ngayBatDauText = formatDateTimeStrShort(voucher.ngayBatDau);
+                const ngayBatDauText = formatDateTimeStr(voucher.ngayBatDau);
                 const ngayBatDauTd = `<td style="text-align: center; color: #334155;">${ngayBatDauText}</td>`;
 
                 // Ngày kết thúc
-                const ngayKetThucText = formatDateTimeStrShort(voucher.ngayKetThuc);
+                const ngayKetThucText = formatDateTimeStr(voucher.ngayKetThuc);
                 const ngayKetThucTd = `<td style="text-align: center; color: #334155;">${ngayKetThucText}</td>`;
 
                 // Tính toán trạng thái thực tế dựa trên thời gian và db
@@ -560,6 +572,20 @@
             lucide.createIcons();
         }
 
+        function parseDateTimeArray(dateArr) {
+            if (!dateArr) return new Date();
+            if (Array.isArray(dateArr)) {
+                const yyyy = dateArr[0];
+                const MM = dateArr[1] - 1; // JS months are 0-11
+                const dd = dateArr[2];
+                const hh = dateArr[3] || 0;
+                const mm = dateArr[4] || 0;
+                const ss = dateArr[5] || 0;
+                return new Date(yyyy, MM, dd, hh, mm, ss);
+            }
+            return new Date(dateArr);
+        }
+
         // Tính trạng thái voucher
         function getVoucherStatus(voucher) {
             if (voucher.trangThai === 0) {
@@ -567,8 +593,8 @@
             }
 
             const now = new Date();
-            const start = new Date(voucher.ngayBatDau);
-            const end = new Date(voucher.ngayKetThuc);
+            const start = parseDateTimeArray(voucher.ngayBatDau);
+            const end = parseDateTimeArray(voucher.ngayKetThuc);
 
             if (now < start) {
                 return { text: "Đang chờ", class: "badge-status-pending" };
@@ -927,16 +953,17 @@
             }
         }
 
-        // Format Date Array hoặc string từ server thành yyyy-MM-dd
+        // Format Date Array hoặc string từ server thành yyyy-MM-ddThh:mm
         function formatIsoString(dateArr) {
             if (!dateArr) return "";
             let date;
             if (Array.isArray(dateArr)) {
-                // [yyyy, MM, dd]
                 const yyyy = dateArr[0];
                 const MM = String(dateArr[1]).padStart(2, '0');
                 const dd = String(dateArr[2]).padStart(2, '0');
-                return `${yyyy}-${MM}-${dd}`;
+                const hh = String(dateArr[3] || 0).padStart(2, '0');
+                const mm = String(dateArr[4] || 0).padStart(2, '0');
+                return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
             } else {
                 date = new Date(dateArr);
             }
@@ -1008,11 +1035,24 @@
                 donToiThieu,
                 giamToiDa: loaiGiamGia === "Phần trăm" ? giamToiDa : 0,
                 soLuong: loaiPhieu === "Cá nhân" ? selectedCustomerIds.size : soLuong,
-                ngayBatDau: ngayBatDauVal + "T00:00:00",
-                ngayKetThuc: ngayKetThucVal + "T23:59:59",
+                ngayBatDau: ngayBatDauVal.length === 16 ? ngayBatDauVal + ":00" : ngayBatDauVal,
+                ngayKetThuc: ngayKetThucVal.length === 16 ? ngayKetThucVal + ":00" : ngayKetThucVal,
                 trangThai: 1, // mặc định hoạt động
                 customerIds: loaiPhieu === "Cá nhân" ? Array.from(selectedCustomerIds) : []
             };
+
+            const result = await Swal.fire({
+                title: id ? 'Xác nhận cập nhật?' : 'Xác nhận thêm mới?',
+                text: "Bạn có chắc chắn muốn lưu thông tin phiếu giảm giá này?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#cbd5e1',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (!result.isConfirmed) return;
 
             const url = id ? `/api/phieu-giam-gia/${id}` : "/api/phieu-giam-gia";
             const method = id ? "PUT" : "POST";
@@ -1029,10 +1069,16 @@
                     throw new Error(errData.message || "Lỗi lưu thông tin phiếu giảm giá");
                 }
 
-                alert(id ? "Cập nhật phiếu giảm giá thành công!" : "Thêm mới phiếu giảm giá thành công!");
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: id ? "Cập nhật phiếu giảm giá thành công!" : "Thêm mới phiếu giảm giá thành công!",
+                    showConfirmButton: false,
+                    timer: 2000
+                });
                 backToListPanel();
             } catch (err) {
-                alert("Thao tác thất bại: " + err.message);
+                Swal.fire('Lỗi', "Thao tác thất bại: " + err.message, 'error');
             }
         }
 
@@ -1227,6 +1273,8 @@
             loadCustomersTable();
         }
     </script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

@@ -1,17 +1,68 @@
 /* employee.css - Modern, Premium Glassmorphism styling for Employee Management */
 
 /* 1. Global Page Layout & Containers */
+.controls-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    width: 18px;
+    height: 18px;
+}
+
+.search-wrapper .glass-input {
+    padding-left: 42px;
+    width: 100%;
+}
+
+.filter-select {
+    min-width: 180px;
+}
+
+/* 3. Table Elements & Badges */
+.avatar-td {
+    width: 60px;
+}
+
+.avatar-wrapper {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+/* employee.css - Modern, Premium Glassmorphism styling for Employee Management */
+
+/* 1. Global Page Layout & Containers */
 .app-container {
     display: flex;
     min-height: 100vh;
-    background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.08) 0%, rgba(37, 99, 235, 0.05) 50%, rgba(15, 23, 42, 0.02) 100%);
+    background: radial-gradient(circle at top right, rgba(0, 173, 239, 0.08) 0%, rgba(15, 45, 74, 0.05) 50%, rgba(15, 23, 42, 0.02) 100%);
 }
 
-.main-content {
-    flex: 1;
-    padding: 30px;
-    overflow-y: auto;
-}
+/* Removed main-content to inherit from sidebar.css */
 
 /* 2. Top Controls (Search & Filter Section) */
 .controls-row {
@@ -73,15 +124,13 @@
 }
 
 .badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .badge-success {
@@ -109,7 +158,7 @@
 .btn-brown-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -117,12 +166,12 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2);
     transition: all 0.2s;
 }
 .btn-brown-icon:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 6px 15px rgba(0, 173, 239, 0.3);
 }
 .btn-brown-icon i {
     width: 16px;
@@ -133,8 +182,8 @@
     width: 34px;
     height: 34px;
     background: white;
-    color: #7c3aed;
-    border: 1px solid rgba(124, 58, 237, 0.4);
+    color: #00adef;
+    border: 1px solid rgba(0, 173, 239, 0.4);
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
@@ -143,48 +192,47 @@
     transition: all 0.2s ease;
 }
 .btn-brown-outline-sm:hover {
-    background: rgba(124, 58, 237, 0.05);
-    border-color: #7c3aed;
+    background: rgba(0, 173, 239, 0.05);
+    border-color: #00adef;
 }
 
-/* Toggle Switch */
-.toggle-switch {
+/* Switch toggle like KhachHang */
+.switch-control {
     position: relative;
     display: inline-block;
     width: 44px;
-    height: 24px;
-    margin: 0;
+    height: 22px;
 }
-.toggle-switch input {
+.switch-control input {
     opacity: 0;
     width: 0;
     height: 0;
 }
-.slider {
+.switch-slider {
     position: absolute;
     cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
     background-color: #cbd5e1;
-    transition: .4s;
-    border-radius: 24px;
+    transition: .3s;
+    border-radius: 22px;
 }
-.slider:before {
+.switch-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
+    height: 16px;
+    width: 16px;
     left: 3px;
     bottom: 3px;
     background-color: white;
-    transition: .4s;
+    transition: .3s;
     border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
-input:checked + .slider {
-    background: #1e293b;
+.switch-control input:checked + .switch-slider {
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
 }
-input:checked + .slider:before {
-    transform: translateX(20px);
+.switch-control input:checked + .switch-slider:before {
+    transform: translateX(22px);
 }
 
 /* 5. Pagination Bar */
@@ -230,16 +278,16 @@ input:checked + .slider:before {
 
 .btn-page:hover:not(:disabled) {
     background: #ffffff;
-    border-color: #7c3aed;
-    color: #7c3aed;
+    border-color: #00adef;
+    color: #00adef;
     transform: translateY(-1px);
 }
 
 .btn-page.active {
-    background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
     border-color: transparent;
     color: #ffffff;
-    box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
+    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.25);
 }
 
 .btn-page:disabled {
@@ -260,8 +308,8 @@ input:checked + .slider:before {
 }
 
 .avatar-upload-container:hover, .avatar-upload-container.dragover {
-    border-color: #7c3aed;
-    background: rgba(124, 58, 237, 0.02);
+    border-color: #00adef;
+    background: rgba(0, 173, 239, 0.02);
 }
 
 .avatar-preview-box {
@@ -293,13 +341,13 @@ input:checked + .slider:before {
 .btn-upload-trigger {
     font-size: 13px;
     font-weight: 600;
-    color: #7c3aed;
+    color: #00adef;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .btn-upload-trigger:hover {
-    color: #6d28d9;
+    color: #0ea5e9;
 }
 
 .upload-tip {
@@ -393,7 +441,147 @@ input:checked + .slider:before {
 }
 
 .gender-option input {
-    accent-color: #7c3aed;
+    accent-color: #00adef;
     width: 18px;
     height: 18px;
+}
+
+/* --- QR Scanner Custom Styling --- */
+.qr-brackets {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+.qr-brackets .bracket {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-color: white;
+    border-style: solid;
+    border-width: 0;
+}
+.qr-brackets .top-left {
+    top: 20px; left: 20px;
+    border-top-width: 3px;
+    border-left-width: 3px;
+}
+.qr-brackets .top-right {
+    top: 20px; right: 20px;
+    border-top-width: 3px;
+    border-right-width: 3px;
+}
+.qr-brackets .bottom-left {
+    bottom: 20px; left: 20px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+}
+.qr-brackets .bottom-right {
+    bottom: 20px; right: 20px;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+}
+
+.qr-laser {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #00adef;
+    box-shadow: 0 0 10px #00adef, 0 0 20px #00adef;
+    animation: scanLaser 2s infinite ease-in-out;
+    z-index: 11;
+}
+
+@keyframes scanLaser {
+    0% { top: 10%; }
+    50% { top: 90%; }
+    100% { top: 10%; }
+}
+
+/* Hide html5-qrcode default UI elements aggressively */
+#qr-reader {
+    border: none !important;
+}
+#qr-reader img {
+    display: none !important;
+}
+#qr-reader button {
+    display: none !important;
+}
+#qr-reader select {
+    display: none !important;
+}
+#qr-reader a {
+    display: none !important;
+}
+#qr-reader span {
+    display: none !important;
+}
+#qr-reader div {
+    border: none !important;
+}
+#qr-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+/* ACTION BUTTONS (Synchronized with Dot Giam Gia) */
+.action-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-icon-btn.edit {
+    background-color: #fef9c3;
+    color: #a16207;
+}
+
+.action-icon-btn.edit:hover {
+    background-color: #eab308;
+    color: #ffffff;
+}
+
+.action-icon-btn.schedule {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+.action-icon-btn.schedule:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+/* Status Badges matched from voucher */
+.badge-status-active {
+    background-color: #e6f4ea !important;
+    color: #137333 !important;
+    border: none;
+    box-shadow: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    display: inline-block;
+}
+
+.badge-status-inactive {
+    background-color: #fce8e6 !important;
+    color: #c5221f !important;
+    border: none;
+    box-shadow: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    display: inline-block;
 }

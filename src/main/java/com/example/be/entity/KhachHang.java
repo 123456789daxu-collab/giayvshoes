@@ -21,8 +21,9 @@ public class KhachHang {
     @Column(name = "ma_khach_hang")
     private String maKhachHang;
 
-    @Column(name = "ho_ten")
+    @Column(name = "ho_ten", columnDefinition = "nvarchar(255)")
     private String hoTen;
+
 
     @Column(name = "email")
     private String email;

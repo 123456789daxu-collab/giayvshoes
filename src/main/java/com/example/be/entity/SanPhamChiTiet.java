@@ -49,4 +49,17 @@ public class SanPhamChiTiet {
 
     @Column(name = "trang_thai")
     private Integer trangThai;
+
+    @Transient
+    public java.util.List<String> getDanhSachHinhAnh() {
+        if (hinhAnh == null || hinhAnh.trim().isEmpty() || hinhAnh.equals("[]") || hinhAnh.equals("[\"\"]")) {
+            return new java.util.ArrayList<>();
+        }
+        // Loại bỏ các ký tự [, ], và " để chuỗi trở thành dạng csv thuần túy
+        String cleanStr = hinhAnh.replaceAll("[\\[\\]\"]", "").trim();
+        if (cleanStr.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        return java.util.Arrays.asList(cleanStr.split("\\s*,\\s*"));
+    }
 }

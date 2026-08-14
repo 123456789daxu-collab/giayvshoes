@@ -38,25 +38,19 @@
         .stat-icon.red    { background: #fef2f2; color: #ef4444; }
 
         /* === FILTER CARD === */
-        .card-filter { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 24px; }
+        .card-filter { background: white; border-radius: 12px; padding: 16px 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 24px; }
         .card-filter .form-control,
-        .card-filter .form-select { font-size: 0.82rem; height: 38px; padding: 0 12px; border-color: #e2e8f0; border-radius: 6px; color: #475569; }
+        .card-filter .form-select { font-size: 0.85rem; height: 40px; padding: 0 12px; border-color: #cbd5e1; border-radius: 8px; color: #334155; transition: all 0.15s ease-in-out; }
         .card-filter .form-control:focus,
-        .card-filter .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
-        .search-wrapper { position: relative; width: 100%; }
-        .search-wrapper .search-icon-left { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem; }
-        .search-wrapper input.form-control { padding-left: 36px !important; }
-        .btn-search { height: 38px; width: 42px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; background: #0ea5e9; border: none; color: white; transition: background .2s; flex-shrink: 0; }
-        .btn-search:hover { background: #0284c7; }
-        .btn-refresh { width: 38px; height: 38px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #64748b; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 0.9rem; }
-        .btn-refresh:hover { background: #f8fafc; color: #334155; }
-        .filter-divider { height: 1px; background-color: #f1f5f9; margin: 20px 0; }
+        .card-filter .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+        .btn-refresh { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #64748b; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 0.95rem; }
+        .btn-refresh:hover { background: #f1f5f9; color: #1e293b; border-color: #94a3b8; }
 
         /* === ACTION BUTTONS === */
-        .btn-excel { height: 36px; padding: 0 16px; font-size: 0.82rem; border-radius: 6px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-excel:hover { background: #dcfce7; }
-        .btn-add-product { height: 36px; padding: 0 16px; font-size: 0.82rem; border-radius: 6px; background: #0284c7; color: white; border: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-add-product:hover { background: #0369a1; color: white; }
+        .btn-excel { height: 40px; padding: 0 18px; font-size: 0.85rem; border-radius: 8px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease-in-out; }
+        .btn-excel:hover { background: #dcfce7; color: #15803d; border-color: #86efac; transform: translateY(-1px); }
+        .btn-add-product { height: 40px; padding: 0 18px; font-size: 0.85rem; border-radius: 8px; background: #0284c7; color: white; border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease-in-out; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15); }
+        .btn-add-product:hover { background: #0369a1; color: white; transform: translateY(-1px); box-shadow: 0 6px 14px rgba(2, 132, 199, 0.25); }
 
         /* === TABLE === */
         .card-table { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; overflow: hidden; padding: 10px 20px; }
@@ -125,231 +119,178 @@
         </script>
 
         <!-- Page Header -->
-        <div class="page-header">
-            <div>
-                <h1>Quản lý sản phẩm</h1>
-                <p>Hệ thống quản lý kho hàng và danh mục sản phẩm giày VSHOES</p>
-            </div>
-            <div class="user-badge">
-                <div class="info">
-                    <div class="name">Senior Admin</div>
-                    <div class="role">Cửa hàng VSHOES</div>
-                </div>
-                <div class="avatar">A</div>
-            </div>
-        </div>
-
-        <!-- Stat Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <div class="stat-label">TỔNG SẢN PHẨM</div>
-                        <div class="stat-value" th:text="${totalProducts}">0</div>
-                    </div>
-                    <div class="stat-icon blue"><i class="bi bi-box-seam"></i></div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <div class="stat-label">ĐANG KINH DOANH</div>
-                        <div class="stat-value" th:text="${activeProducts}">0</div>
-                    </div>
-                    <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div>
-                        <div class="stat-label">NGỪNG KINH DOANH</div>
-                        <div class="stat-value" th:text="${inactiveProducts}">0</div>
-                    </div>
-                    <div class="stat-icon red"><i class="bi bi-x-circle"></i></div>
-                </div>
-            </div>
+        <div class="page-header mb-4 mt-2">
+            <h1 style="font-size: 1.4rem; font-weight: 700; color: #1e293b; margin: 0;">Quản lý sản phẩm</h1>
         </div>
 
         <!-- Filter + Action -->
-        <div class="card-filter">
-            <!-- Form tìm kiếm -->
-            <form method="GET" action="/san-pham">
-                <!-- Row 1: Search & Filters -->
-                <div class="row g-2 align-items-center mb-3">
-                    <div class="col-md-3">
-                        <div class="d-flex gap-2 align-items-center">
-                            <div class="search-wrapper">
-                                <i class="bi bi-search search-icon-left"></i>
-                                <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Tìm theo mã hoặc tên...">
+        <div class="card bg-white border-0 rounded-3 mb-4" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0 !important;">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                <h6 class="mb-0 text-muted fw-bold" style="font-size: 0.9rem; letter-spacing: 0.5px;"><i class="bi bi-funnel me-2"></i> BỘ LỌC TÌM KIẾM</h6>
+            </div>
+            <div class="card-body pt-3 pb-4">
+                <form method="GET" action="/san-pham" id="filterForm">
+                    <div class="row g-3 align-items-end mb-4">
+                        <div class="col-md-7">
+                            <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Tìm kiếm</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="bi bi-search" style="font-size: 1rem;"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0 shadow-none py-2" name="keyword" th:value="${keyword}" placeholder="Tìm theo mã / tên sản phẩm..." style="border-radius: 0 6px 6px 0; font-size: 0.95rem;">
                             </div>
-                            <button type="submit" class="btn-search"><i class="bi bi-search"></i></button>
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <a href="/san-pham" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Đặt lại
+                            </a>
+                            <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
+                                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+                            </a>
+                            <a href="/san-pham/create" class="btn rounded-3 px-3 py-2 shadow-sm text-white" style="font-size: 0.95rem; font-weight: 500; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; box-shadow: 0 4px 12px rgba(0, 173, 239, 0.2); transition: all 0.2s;" onmouseover="this.style.background='#00adef'; this.style.boxShadow='0 6px 20px rgba(0, 173, 239, 0.35)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='linear-gradient(135deg, #0f2d4a 0%, #00adef 100%)'; this.style.boxShadow='0 4px 12px rgba(0, 173, 239, 0.2)'; this.style.transform='translateY(0)';">
+                                <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
+                            </a>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="idThuongHieu" onchange="this.form.submit()">
-                            <option value="">-- Thương hiệu --</option>
-                            <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}" th:selected="${idThuongHieu == th.id}"></option>
-                        </select>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Thương hiệu</label>
+                            <select class="form-select shadow-none py-2" name="idThuongHieu" onchange="document.getElementById('filterForm').submit()" style="font-size: 0.95rem; border-radius: 6px; color: #475569;">
+                                <option value="">Tất cả thương hiệu</option>
+                                <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}" th:selected="${idThuongHieu == th.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Loại giày</label>
+                            <select class="form-select shadow-none py-2" name="idLoaiGiay" onchange="document.getElementById('filterForm').submit()" style="font-size: 0.95rem; border-radius: 6px; color: #475569;">
+                                <option value="">Tất cả loại giày</option>
+                                <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}" th:selected="${idLoaiGiay == lg.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Trạng thái</label>
+                            <select class="form-select shadow-none py-2" name="trangThai" onchange="document.getElementById('filterForm').submit()" style="font-size: 0.95rem; border-radius: 6px; color: #475569;">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="1" th:selected="${trangThai == 1}">Kinh doanh</option>
+                                <option value="0" th:selected="${trangThai == 0}">Ngừng kinh doanh</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="idLoaiGiay" onchange="this.form.submit()">
-                            <option value="">-- Loại giày --</option>
-                            <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}" th:selected="${idLoaiGiay == lg.id}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="trangThai" onchange="this.form.submit()">
-                            <option value="">-- Trạng thái --</option>
-                            <option value="1" th:selected="${trangThai == 1}">Kinh doanh</option>
-                            <option value="0" th:selected="${trangThai == 0}">Ngừng kinh doanh</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select class="form-select" name="sort" onchange="this.form.submit()">
-                            <option value="" th:selected="${sort == null || sort == ''}">Sắp xếp: Mới nhất</option>
-                            <option value="name_asc" th:selected="${sort == 'name_asc'}">Tên A → Z</option>
-                            <option value="name_desc" th:selected="${sort == 'name_desc'}">Tên Z → A</option>
-                            <option value="price_asc" th:selected="${sort == 'price_asc'}">Giá tăng dần</option>
-                            <option value="price_desc" th:selected="${sort == 'price_desc'}">Giá giảm dần</option>
-                            <option value="qty_desc" th:selected="${sort == 'qty_desc'}">Số lượng nhiều nhất</option>
-                            <option value="qty_asc" th:selected="${sort == 'qty_asc'}">Số lượng ít nhất</option>
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <a href="/san-pham" class="btn-refresh" title="Làm mới"><i class="bi bi-arrow-clockwise"></i></a>
-                    </div>
-                </div>
-            </form>
-            
-            <div class="filter-divider"></div>
-
-            <!-- Row 2: Action buttons right-aligned -->
-            <div class="d-flex justify-content-end gap-2">
-                <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" class="btn-excel" style="text-decoration: none;">
-                    <i class="bi bi-file-earmark-excel"></i> Xuất Excel
-                </a>
-                <button class="btn-add-product" data-bs-toggle="modal" data-bs-target="#productModal" onclick="openAddModal()">
-                    <i class="bi bi-plus"></i> Thêm sản phẩm
-                </button>
+                </form>
             </div>
         </div>
 
         <!-- Table -->
-        <div class="card-table">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th style="width:50px">STT</th>
-                        <th style="width:100px">MÃ SP</th>
-                        <th>TÊN SẢN PHẨM</th>
-                        <th>THƯƠNG HIỆU</th>
-                        <th style="width:100px">SỐ LƯỢNG</th>
-                        <th style="width:130px">GIÁ BÁN</th>
-                        <th style="width:130px">TRẠNG THÁI</th>
-                        <th style="width:140px">HÀNH ĐỘNG</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="sp, stat : ${listSanPham}">
-                        <td th:text="${(currentPage - 1) * 5 + stat.count}" class="text-muted" style="font-size:0.8rem;"></td>
-                        <td>
-                            <span th:text="${sp.maSanPham}" style="font-size:0.8rem; color:#64748b;"></span>
-                        </td>
-                        <td>
-                            <div class="product-name" th:text="${sp.tenSanPham}"></div>
-                            <div class="product-sub" th:text="'Loại: ' + (${sp.loaiGiay != null ? sp.loaiGiay.tenLoaiGiay : 'Chưa cập nhật'})"></div>
-                        </td>
-                        <td>
-                            <span th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : 'Chưa cập nhật'}" style="font-size:0.83rem; color:#475569;"></span>
-                        </td>
-                        <td style="font-weight: 600; color:#334155;" th:text="${sp.soLuong != null ? sp.soLuong : 0}">
-                        </td>
-                        <td style="font-weight: 700; color:#0f172a;" th:text="${sp.giaBan != null ? #numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT') + 'đ' : '0đ'}">
-                        </td>
-                        <td>
-                            <span th:if="${sp.trangThai == 1}" class="badge-active">
-                                <span class="badge-dot"></span> Kinh doanh
-                            </span>
-                            <span th:if="${sp.trangThai != 1}" class="badge-inactive">
-                                <span class="badge-dot"></span> Ngừng KD
-                            </span>
-                        </td>
-                        <td>
-                            <div class="action-group">
-                                <button class="btn-icon view" title="Xem chi tiết"
-                                        th:data-id="${sp.id}"
-                                        th:data-ma="${sp.maSanPham}"
-                                        th:data-ten="${sp.tenSanPham}"
-                                        th:data-thuonghieu="${sp.thuongHieu != null ? sp.thuongHieu.id : ''}"
-                                        th:data-loaigiay="${sp.loaiGiay != null ? sp.loaiGiay.id : ''}"
-                                        th:data-gianhap="${sp.giaNhap}"
-                                        th:data-giaban="${sp.giaBan}"
-                                        th:data-soluong="${sp.soLuong}"
-                                        th:data-mota="${sp.moTaChiTiet}"
-                                        th:data-trangthai="${sp.trangThai}"
-                                        onclick="openViewModal(this)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button class="btn-icon edit" title="Chỉnh sửa"
-                                        th:data-id="${sp.id}"
-                                        th:data-ma="${sp.maSanPham}"
-                                        th:data-ten="${sp.tenSanPham}"
-                                        th:data-thuonghieu="${sp.thuongHieu != null ? sp.thuongHieu.id : ''}"
-                                        th:data-loaigiay="${sp.loaiGiay != null ? sp.loaiGiay.id : ''}"
-                                        th:data-gianhap="${sp.giaNhap}"
-                                        th:data-giaban="${sp.giaBan}"
-                                        th:data-soluong="${sp.soLuong}"
-                                        th:data-mota="${sp.moTaChiTiet}"
-                                        th:data-trangthai="${sp.trangThai}"
-                                        onclick="openEditModal(this)">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <a th:href="@{/san-pham/toggle-status/{id}(id=${sp.id})}" class="btn-icon toggle" title="Đổi trạng thái">
-                                    <i class="bi bi-power"></i>
-                                </a>
-                                <button class="btn-icon del" title="Xóa" th:onclick="'confirmDelete(' + ${sp.id} + ')'">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(listSanPham)}">
-                        <td colspan="8" class="text-center py-5 text-muted" style="font-size:0.85rem;">
-                            <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
-                            Chưa có dữ liệu sản phẩm
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <div class="pagination-wrapper" th:if="${totalPages > 0}">
-                <div class="pagination-info">
-                    Hiển thị 
-                    <strong th:text="${(currentPage - 1) * 5 + 1}"></strong> - 
-                    <strong th:text="${(currentPage * 5) > totalItems ? totalItems : (currentPage * 5)}"></strong> 
-                    trong tổng số <strong th:text="${totalItems}"></strong> sản phẩm
-                </div>
-                <nav>
-                    <ul class="pagination">
-                        <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/san-pham(page=${currentPage - 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}">
-                                <i class="bi bi-chevron-left" style="font-size:0.75rem;"></i>
-                            </a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
-                            th:classappend="${currentPage == i ? 'active' : ''}">
-                            <a class="page-link" th:href="@{/san-pham(page=${i}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" th:text="${i}"></a>
-                        </li>
-                        <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
-                            <a class="page-link" th:href="@{/san-pham(page=${currentPage + 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}">
-                                <i class="bi bi-chevron-right" style="font-size:0.75rem;"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+        <div class="card bg-white border-0 rounded-3 mb-4" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0 !important;">
+            <div class="card-header bg-white border-bottom pt-4 pb-3">
+                <h6 class="mb-0 text-muted fw-bold" style="font-size: 0.95rem;"><i class="bi bi-box me-2"></i> Danh sách sản phẩm</h6>
             </div>
-        </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0" style="font-size: 1rem; border-color: #f1f5f9;">
+                        <thead>
+                            <tr>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4 ps-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 5%;">STT</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Mã SP</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 25%;">Tên SP</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Thương hiệu</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 10%;">Số lượng</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Trạng thái</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4 text-center" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-top-0">
+                            <tr th:each="sp, stat : ${listSanPham}">
+                                <td class="ps-4 text-muted py-3" th:text="${(currentPage - 1) * 5 + stat.count}"></td>
+                                <td class="text-muted py-3" th:text="${sp.maSanPham}"></td>
+                                <td class="text-dark fw-medium py-3" th:text="${sp.tenSanPham}"></td>
+                                <td class="text-muted py-3" th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : ''}"></td>
+                                <td class="text-muted py-3" th:text="${sp.soLuong != null ? sp.soLuong : 0}"></td>
+                                <td class="py-3">
+                                    <span th:if="${sp.trangThai == 1}" class="px-3 py-1 fw-medium" style="background-color: #e6f4ea; color: #1e8e3e; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #ceead6;">Kinh doanh</span>
+                                    <span th:if="${sp.trangThai != 1}" class="px-3 py-1 fw-medium" style="background-color: #fce8e6; color: #d93025; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #fad2cf;">Ngừng KD</span>
+                                </td>
+                                <td class="text-center align-middle py-3">
+                                    <a class="btn btn-light text-info me-2 px-3 py-2" 
+                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #f0f9ff; border: none; text-decoration: none;"
+                                        title="Xem chi tiết"
+                                        th:href="@{/san-pham/edit/{id}(id=${sp.id})}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <button class="btn btn-light text-warning me-2 px-3 py-2" 
+                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #fffbeb; border: none;"
+                                        title="Chuyển đổi trạng thái" 
+                                        th:onclick="'confirmToggleStatus(' + ${sp.id} + ', ' + ${sp.trangThai} + ')'">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                    <button class="btn btn-light text-danger px-3 py-2" 
+                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #fef2f2; border: none;"
+                                        title="Xóa" 
+                                        th:onclick="'confirmDelete(' + ${sp.id} + ')'">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(listSanPham)}">
+                                <td colspan="7" class="text-center py-5 text-muted" style="font-size:0.85rem;">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
+                                    Chưa có dữ liệu sản phẩm
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex align-items-center justify-content-between p-3 border-top" style="border-color: #f1f5f9 !important;" th:if="${totalPages > 0}">
+                    <div class="text-muted" style="font-size: 0.95rem;">
+                        Hiển thị <strong th:text="${(currentPage - 1) * 5 + 1}" class="text-dark"></strong> đến 
+                        <strong th:text="${(currentPage * 5) > totalItems ? totalItems : (currentPage * 5)}" class="text-dark"></strong> 
+                        trong tổng số <strong th:text="${totalItems}" class="text-dark"></strong> mục
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0">
+                            <!-- Nút Trước -->
+                            <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
+                                <a class="page-link text-muted px-3" style="background-color: #f8f9fa; border-color: #dee2e6;" th:href="@{/san-pham(page=${currentPage - 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}">
+                                    Trước
+                                </a>
+                            </li>
+
+                            <!-- Các trang -->
+                            <th:block th:each="i : ${#numbers.sequence(1, totalPages)}">
+                                <!-- Hiển thị trang 1, trang cuối, và các trang xung quanh trang hiện tại -->
+                                <th:block th:if="${i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1)}">
+                                    <li class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
+                                        <a class="page-link" th:href="@{/san-pham(page=${i}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" th:text="${i}"
+                                           th:style="${currentPage == i ? 'background-color: #0ea5e9; border-color: #0ea5e9; color: white;' : 'color: #475569; border-color: #dee2e6;'}"></a>
+                                    </li>
+                                </th:block>
+                                
+                                <!-- Dấu ... trước các trang giữa -->
+                                <th:block th:if="${i == currentPage - 2 && i > 1}">
+                                    <li class="page-item disabled">
+                                        <span class="page-link text-muted" style="background-color: #f8f9fa; border-color: #dee2e6;">...</span>
+                                    </li>
+                                </th:block>
+                                
+                                <!-- Dấu ... sau các trang giữa -->
+                                <th:block th:if="${i == currentPage + 2 && i < totalPages}">
+                                    <li class="page-item disabled">
+                                        <span class="page-link text-muted" style="background-color: #f8f9fa; border-color: #dee2e6;">...</span>
+                                    </li>
+                                </th:block>
+                            </th:block>
+
+                            <!-- Nút Sau -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
+                                <a class="page-link text-muted" th:href="@{/san-pham(page=${currentPage + 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" style="border-color: #dee2e6;">
+                                    Sau
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
 
     </main>
 </div>
@@ -513,6 +454,26 @@
             cancelButtonText: 'Hủy',
             borderRadius: '12px'
         }).then(r => { if (r.isConfirmed) window.location.href = '/san-pham/delete/' + id; });
+    }
+
+    function confirmToggleStatus(id, currentStatus) {
+        let title = currentStatus === 1 ? 'Ngừng kinh doanh?' : 'Kinh doanh lại?';
+        let text = currentStatus === 1 ? 'Sản phẩm này và tất cả biến thể sẽ chuyển sang trạng thái Ngừng Kinh Doanh.' : 'Sản phẩm và tất cả biến thể sẽ được mở bán lại.';
+        let btnColor = currentStatus === 1 ? '#f59e0b' : '#10b981';
+        
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: btnColor,
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy',
+            borderRadius: '12px'
+        }).then(r => { 
+            if (r.isConfirmed) window.location.href = '/san-pham/toggle-status/' + id; 
+        });
     }
 
     document.getElementById('productForm').addEventListener('submit', function(e) {

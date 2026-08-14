@@ -1,5 +1,5 @@
 <!-- File fragment Sidebar dùng chung cho toàn bộ các trang -->
-<div th:fragment="sidebar" class="sidebar">
+<div th:fragment="sidebar" class="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     
     <!-- 1. KHU VỰC LOGO VSHOES -->
     <div class="sidebar-brand">
@@ -14,14 +14,9 @@
 
     <!-- 2. DANH SÁCH MENU SIDEBAR -->
     <nav class="sidebar-menu">
-        <!-- Trang chủ -->
-        <a href="/trang-chu" class="menu-item">
-            <i data-lucide="home" class="menu-icon"></i>
-            <span>Trang chủ</span>
-        </a>
 
         <!-- Thống kê -->
-        <a href="/thong-ke" class="menu-item">
+        <a href="/thong-ke" class="menu-item" sec:authorize="hasRole('ADMIN')">
             <i data-lucide="bar-chart-3" class="menu-icon"></i>
             <span>Thống kê</span>
         </a>
@@ -33,16 +28,29 @@
         </a>
 
         <!-- Hóa đơn -->
-        <a href="/hoa-don" class="menu-item">
+        <a href="/hoa-don" class="menu-item" sec:authorize="hasRole('ADMIN')">
             <i data-lucide="receipt" class="menu-icon"></i>
             <span>Quản lý hóa đơn</span>
         </a>
 
-        <!-- Sản phẩm -->
-        <a href="/san-pham" class="menu-item">
-            <i data-lucide="package" class="menu-icon"></i>
-            <span>Sản phẩm</span>
-        </a>
+        <!-- Quản lý Sản phẩm (Menu Cha - Dropdown) -->
+        <div class="submenu-container">
+            <a href="#" class="menu-item" id="toggle-submenu-sanpham">
+                <i data-lucide="package" class="menu-icon"></i>
+                <span>Quản lý sản phẩm</span>
+                <i data-lucide="chevron-down" class="arrow-icon"></i>
+            </a>
+            <!-- Danh sách các mục sản phẩm con -->
+            <ul class="submenu" id="submenu-sanpham">
+                <li>
+                    <a href="/san-pham" class="submenu-item">Sản Phẩm</a>
+                </li>
+                <li>
+                    <a href="/san-pham/chi-tiet-global" class="submenu-item">Sản Phẩm Chi Tiết</a>
+                </li>
+
+            </ul>
+        </div>
 
         <!-- Phiếu giảm giá -->
         <a href="/phieu-giam-gia" class="menu-item">
@@ -51,25 +59,38 @@
         </a>
 
         <!-- Đợt giảm giá -->
-        <a href="/dot-giam-gia" class="menu-item">
+        <a href="/dot-giam-gia" class="menu-item" sec:authorize="hasRole('ADMIN')">
             <i data-lucide="percent" class="menu-icon"></i>
             <span>Đợt giảm giá</span>
         </a>
 
-        <!-- Tài khoản (Menu Cha - Dropdown) -->
+        <!-- Tài khoản khách hàng -->
+        <a href="/tai-khoan/khach-hang" class="menu-item" sec:authorize="hasRole('ADMIN')">
+            <i data-lucide="users" class="menu-icon"></i>
+            <span>Tài khoản khách hàng</span>
+        </a>
+
+        <!-- Tài khoản nhân viên -->
+        <a href="/tai-khoan/nhan-vien" class="menu-item">
+            <i data-lucide="user-cog" class="menu-icon"></i>
+            <span>Tài khoản nhân viên</span>
+        </a>
+
+
+        <!-- Lịch làm việc & Giao ca (Menu Cha - Dropdown) -->
         <div class="submenu-container">
-            <a href="#" class="menu-item" id="toggle-submenu">
-                <i data-lucide="users" class="menu-icon"></i>
-                <span>Tài khoản</span>
+            <a href="#" class="menu-item" id="toggle-submenu-lich-giao-ca">
+                <i data-lucide="calendar-clock" class="menu-icon"></i>
+                <span>Lịch làm việc & Giao ca</span>
                 <i data-lucide="chevron-down" class="arrow-icon"></i>
             </a>
-            <!-- Danh sách các mục tài khoản con -->
-            <ul class="submenu" id="submenu-tai-khoan">
+            <!-- Danh sách các mục con -->
+            <ul class="submenu" id="submenu-lich-giao-ca">
                 <li>
-                    <a href="/tai-khoan/khach-hang" class="submenu-item">Tài khoản khách hàng</a>
+                    <a href="/lich-lam-viec" class="submenu-item">Lịch làm việc</a>
                 </li>
                 <li>
-                    <a href="/tai-khoan/nhan-vien" class="submenu-item">Tài khoản nhân viên</a>
+                    <a href="/giao-ca" class="submenu-item">Giao ca</a>
                 </li>
             </ul>
         </div>
@@ -89,42 +110,53 @@
             // Tìm tất cả các thẻ <a> liên kết trong Sidebar
             const menuLinks = document.querySelectorAll(".sidebar-menu a");
             
+            // Tìm link phù hợp nhất (dài nhất) để tránh trùng lặp active
+            let bestMatch = null;
+            let bestMatchLength = 0;
+
             menuLinks.forEach(link => {
                 const href = link.getAttribute("href");
+                if (!href || href === '#' || href === '/') return;
                 
-                // So sánh đường dẫn hiện tại với thuộc tính href của thẻ <a>
-                if (currentPath === href) {
-                    // Thêm class 'active' để làm nổi bật mục menu hiện tại
-                    link.classList.add("active");
-                    
-                    // Nếu link đang active nằm trong một menu con (submenu)
-                    const parentSubmenu = link.closest(".submenu");
-                    if (parentSubmenu) {
-                        // Mở rộng menu con ra bằng cách thêm class 'open'
-                        parentSubmenu.classList.add("open");
-                        // Xoay mũi tên chỉ xuống của menu cha
-                        const parentMenuItem = parentSubmenu.previousElementSibling;
-                        if (parentMenuItem) {
-                            parentMenuItem.classList.add("open-parent");
-                        }
+                // So sánh đường dẫn hiện tại với thuộc tính href
+                if (currentPath === href || currentPath.startsWith(href + '/')) {
+                    if (href.length > bestMatchLength) {
+                        bestMatch = link;
+                        bestMatchLength = href.length;
                     }
                 }
             });
 
-            // Xử lý sự kiện click đóng/mở menu con "Tài khoản" khi click vào menu cha
-            const toggleSubmenuBtn = document.getElementById("toggle-submenu");
-            const submenu = document.getElementById("submenu-tai-khoan");
-            
-            if (toggleSubmenuBtn && submenu) {
-                toggleSubmenuBtn.addEventListener("click", function(e) {
+            if (bestMatch) {
+                // Thêm class 'active' để làm nổi bật mục menu hiện tại
+                bestMatch.classList.add("active");
+                
+                // Nếu link đang active nằm trong một menu con (submenu)
+                const parentSubmenu = bestMatch.closest(".submenu");
+                if (parentSubmenu) {
+                    // Mở rộng menu con ra bằng cách thêm class 'open'
+                    parentSubmenu.classList.add("open");
+                    // Xoay mũi tên chỉ xuống của menu cha
+                    const parentMenuItem = parentSubmenu.previousElementSibling;
+                    if (parentMenuItem) {
+                        parentMenuItem.classList.add("open-parent");
+                    }
+                }
+            }
+
+            // Xử lý sự kiện click đóng/mở menu con khi click vào menu cha
+            const submenuToggles = document.querySelectorAll(".submenu-container > a");
+            submenuToggles.forEach(btn => {
+                btn.addEventListener("click", function(e) {
                     e.preventDefault(); // Ngăn trình duyệt nhảy trang lên đầu khi click href="#"
                     
-                    // Toggle class 'open' để trượt mở hoặc đóng submenu
-                    submenu.classList.toggle("open");
-                    // Toggle class 'open-parent' để xoay mũi tên
-                    toggleSubmenuBtn.classList.toggle("open-parent");
+                    const submenu = btn.nextElementSibling;
+                    if (submenu && submenu.classList.contains("submenu")) {
+                        submenu.classList.toggle("open");
+                        btn.classList.toggle("open-parent");
+                    }
                 });
-            }
+            });
         });
     </script>
 

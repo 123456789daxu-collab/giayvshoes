@@ -4,6 +4,7 @@ import com.example.be.entity.*;
 import com.example.be.repository.KhachHangRepository;
 import com.example.be.repository.PhieuGiamGiaRepository;
 import com.example.be.repository.SanPhamChiTietRepository;
+import com.example.be.repository.DiaChiRepository;
 import com.example.be.service.BanHangService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,9 @@ public class BanHangController {
 
     @Autowired
     private KhachHangRepository khachHangRepository;
+
+    @Autowired
+    private DiaChiRepository diaChiRepository;
 
     @Autowired
     private PhieuGiamGiaRepository phieuGiamGiaRepository;
@@ -56,9 +60,9 @@ public class BanHangController {
 
     @GetMapping("/san-pham")
     public ResponseEntity<?> getSanPhamChoPOS(@RequestParam(required = false, defaultValue = "") String keyword) {
-        // Simple search: get all active SanPhamChiTiet
+        // Simple search: get all active SanPhamChiTiet sorted by id DESC so newest appear first
         // In real app, we should use a proper search query with keyword. Here we fetch all and filter for simplicity
-        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findAll();
+        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
         List<Map<String, Object>> result = list.stream()
                 .filter(spct -> spct.getTrangThai() != null && spct.getTrangThai() == 1) // 1 = Đang bán
                 .filter(spct -> spct.getSoLuongTon() != null && spct.getSoLuongTon() > 0)
@@ -135,6 +139,17 @@ public class BanHangController {
                     map.put("hoTen", kh.getHoTen());
                     map.put("soDienThoai", kh.getSoDienThoai());
                     map.put("email", kh.getEmail());
+                    
+                    diaChiRepository.findByKhachHangIdAndMacDinhTrue(kh.getId()).ifPresent(diaChi -> {
+                        String dcFull = "";
+                        if (diaChi.getDiaChiChiTiet() != null) dcFull += diaChi.getDiaChiChiTiet();
+                        if (diaChi.getPhuongXa() != null) dcFull += ", " + diaChi.getPhuongXa();
+                        if (diaChi.getQuanHuyen() != null) dcFull += ", " + diaChi.getQuanHuyen();
+                        if (diaChi.getTinhThanh() != null) dcFull += ", " + diaChi.getTinhThanh();
+                        map.put("diaChiGiao", dcFull);
+                        map.put("sdtNhan", diaChi.getSdt() != null ? diaChi.getSdt() : kh.getSoDienThoai());
+                    });
+                    
                     return map;
                 })
                 .collect(Collectors.toList());
@@ -189,12 +204,18 @@ public class BanHangController {
     @PostMapping("/hoa-don/{id}/thanh-toan")
     public ResponseEntity<?> thanhToan(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         try {
-            BigDecimal tongTienHang = new BigDecimal(payload.get("tongTienHang").toString());
-            BigDecimal tienGiamGia = new BigDecimal(payload.get("tienGiamGia").toString());
             BigDecimal tongTienThanhToan = new BigDecimal(payload.get("tongTienThanhToan").toString());
             String ghiChu = payload.get("ghiChu") != null ? payload.get("ghiChu").toString() : "";
             
-            HoaDon hd = banHangService.thanhToan(id, tongTienHang, tienGiamGia, tongTienThanhToan, ghiChu);
+            String hinhThucThanhToan = payload.get("hinhThucThanhToan") != null ? payload.get("hinhThucThanhToan").toString() : "Tiền mặt";
+            BigDecimal tienKhachDua = payload.get("tienKhachDua") != null ? new BigDecimal(payload.get("tienKhachDua").toString()) : tongTienThanhToan;
+            String tenKhachHang = payload.get("tenKhachHang") != null ? payload.get("tenKhachHang").toString() : null;
+            
+            BigDecimal phiShip = payload.get("phiShip") != null ? new BigDecimal(payload.get("phiShip").toString()) : BigDecimal.ZERO;
+            String sdtNhan = payload.get("sdtNhan") != null ? payload.get("sdtNhan").toString() : null;
+            String diaChiGiao = payload.get("diaChiGiao") != null ? payload.get("diaChiGiao").toString() : null;
+            
+            HoaDon hd = banHangService.thanhToan(id, hinhThucThanhToan, tienKhachDua, ghiChu, tenKhachHang, phiShip, sdtNhan, diaChiGiao);
             return ResponseEntity.ok(mapHoaDonToResponse(hd));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

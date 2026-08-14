@@ -12,4 +12,7 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, Long
     
     // Find the largest voucher code with a prefix to auto-generate codes like PGG00001
     Optional<PhieuGiamGia> findFirstByMaVoucherStartingWithOrderByMaVoucherDesc(String prefix);
+
+    // Find voucher by exact code
+    Optional<PhieuGiamGia> findByMaVoucher(String maVoucher);
 }

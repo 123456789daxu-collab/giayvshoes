@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tài khoản khách hàng | VShoes</title>
     <!-- Nhúng CSS sidebar dùng chung -->
-    <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
     <!-- Nhúng CSS riêng của trang khách hàng -->
-    <link rel="stylesheet" href="/css/khach-hang.css">
+    <link rel="stylesheet" href="/css/khach-hang.css?v=99">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -18,21 +21,22 @@
 
         <!-- NỘI DUNG CHÍNH CỦA TRANG QUẢN LÝ KHÁCH HÀNG -->
         <main class="main-content">
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
             <!-- TIÊU ĐỀ MÀN HÌNH -->
-            <div class="screen-header" style="margin-bottom: 24px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý tài khoản khách hàng
-                </h1>
+            <div class="screen-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Quản lý tài khoản khách hàng</h2>
             </div>
 
             <!-- CARD 1: BỘ LỌC TÌM KIẾM -->
             <div class="customer-container">
                 <!-- PANEL 1: DANH SÁCH KHÁCH HÀNG (LISTING PANEL) -->
                 <div id="list-panel" class="tab-panel active">
-                    <div class="filter-card">
+                    <div class="filter-section-card">
                 <div class="filter-header">
-                    <span class="filter-title">Bộ lọc tìm kiếm</span>
+                    <span class="filter-section-title mb-0">Bộ lọc tìm kiếm</span>
                     <div class="status-filter-wrapper">
-                        <span style="font-size: 13px; font-weight: 500; color: #64748b;">Trạng thái</span>
+                        <span class="fi-label" style="font-size: 13px;">Trạng thái</span>
                         <div class="status-options">
                             <button type="button" class="status-btn active"
                                 onclick="toggleStatusFilter(this, 'all')">Tất cả</button>
@@ -41,24 +45,27 @@
                             <button type="button" class="status-btn" onclick="toggleStatusFilter(this, '0')">Ngừng hoạt
                                 động</button>
                         </div>
-                        <button class="refresh-btn" onclick="resetFilters()" title="Làm mới bộ lọc">
-                            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc" style="width: 32px; height: 32px;">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="filter-grid">
                     <!-- Tìm kiếm Tên/SĐT/Email -->
-                    <div class="form-group">
-                        <label for="search-input">Họ và tên, sđt, email</label>
-                        <input type="text" id="search-input" class="input-control"
-                            placeholder="Nhập họ và tên, sđt, email" oninput="applyFilters()">
+                    <div class="fi-col">
+                        <label class="fi-label" for="search-input">Họ và tên, sđt, email</label>
+                        <div class="fi-search-wrap">
+                            <i class="bi bi-search fi-search-icon" style="top: 11px;"></i>
+                            <input type="text" id="search-input" class="fi-input"
+                                placeholder="Nhập họ và tên, sđt, email" oninput="applyFilters()">
+                        </div>
                     </div>
 
                     <!-- Lọc Giới tính -->
-                    <div class="form-group">
-                        <label>Giới tính</label>
-                        <div class="gender-row">
+                    <div class="fi-col">
+                        <label class="fi-label">Giới tính</label>
+                        <div class="gender-row" style="padding: 6px 0;">
                             <label class="gender-checkbox">
                                 <input type="checkbox" id="gender-nam" value="Nam" onchange="applyFilters()"> Nam
                             </label>
@@ -69,9 +76,9 @@
                     </div>
 
                     <!-- Lọc Ngày sinh -->
-                    <div class="form-group">
-                        <label for="dob-input">Ngày sinh</label>
-                        <input type="date" id="dob-input" class="input-control" placeholder="dd-MM-yyyy"
+                    <div class="fi-col">
+                        <label class="fi-label" for="dob-input">Ngày sinh</label>
+                        <input type="date" id="dob-input" class="fi-input" placeholder="dd-MM-yyyy"
                             onchange="applyFilters()">
                     </div>
                 </div>
@@ -189,7 +196,7 @@
                         <label for="cust-dob">Ngày sinh</label>
                         <input type="date" id="cust-dob" class="input-control">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="status-group">
                         <label for="cust-status">Trạng thái</label>
                         <select id="cust-status" class="input-control">
                             <option value="1">Hoạt động</option>
@@ -733,6 +740,8 @@
             document.getElementById("cust-code").readOnly = true;
             document.getElementById("customer-modal-title").innerText = "Thêm Khách Hàng Mới";
             document.getElementById("initial-address-section").style.display = "block";
+            document.getElementById("status-group").style.display = "none";
+            document.getElementById("cust-status").value = "1";
 
             // Yêu cầu nhập các thông tin địa chỉ ban đầu nếu cần
             document.getElementById("addr-province").required = false;
@@ -770,6 +779,7 @@
                 document.getElementById("cust-gender").value = String(customer.gioiTinh);
                 document.getElementById("cust-dob").value = customer.ngaySinh || "";
                 document.getElementById("cust-status").value = String(customer.trangThai);
+                document.getElementById("status-group").style.display = "block";
 
                 // Ẩn phần điền địa chỉ ban đầu khi Sửa thông tin chính
                 document.getElementById("initial-address-section").style.display = "none";
@@ -804,6 +814,44 @@
             const ngaySinh = document.getElementById("cust-dob").value || null;
             const trangThai = parseInt(document.getElementById("cust-status").value);
 
+            // Validate số điện thoại (Việt Nam)
+            const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+            if (!soDienThoai || !phoneRegex.test(soDienThoai)) {
+                showToast("Thất bại", "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số, bắt đầu bằng 03, 05, 07, 08, hoặc 09).", "error");
+                return;
+            }
+
+            // Validate email
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast("Thất bại", "Email không đúng định dạng. Vui lòng nhập lại.", "error");
+                    return;
+                }
+            }
+
+            // Validate ngày sinh
+            if (ngaySinh) {
+                const dobDate = new Date(ngaySinh);
+                const today = new Date();
+                
+                if (dobDate > today) {
+                    showToast("Thất bại", "Ngày sinh không được ở tương lai.", "error");
+                    return;
+                }
+
+                let age = today.getFullYear() - dobDate.getFullYear();
+                const m = today.getMonth() - dobDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+                    age--;
+                }
+
+                if (age < 16) {
+                    showToast("Thất bại", "Khách hàng phải từ 16 tuổi trở lên.", "error");
+                    return;
+                }
+            }
+
             // Không gửi maKhachHang khi thêm mới/cập nhật vì hệ thống tự quản lý
             let payload = {
                 hoTen,
@@ -834,6 +882,19 @@
                 }
             }
 
+            const result = await Swal.fire({
+                title: id ? 'Xác nhận cập nhật?' : 'Xác nhận thêm mới?',
+                text: "Bạn có chắc chắn muốn lưu thông tin khách hàng này?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#cbd5e1',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            });
+            
+            if (!result.isConfirmed) return;
+
             const url = id ? `/api/khach-hang/${id}` : "/api/khach-hang";
             const method = id ? "PUT" : "POST";
 
@@ -849,11 +910,17 @@
                     throw new Error(errorData.message || "Lỗi lưu thông tin khách hàng");
                 }
 
-                alert(id ? "Cập nhật thông tin thành công!" : "Thêm mới khách hàng thành công!");
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: id ? "Cập nhật thông tin thành công!" : "Thêm mới khách hàng thành công!",
+                    showConfirmButton: false,
+                    timer: 2000
+                });
                 closeCustomerModal();
                 loadTable();
             } catch (err) {
-                alert("Thao tác thất bại: " + err.message);
+                Swal.fire('Lỗi', "Thao tác thất bại: " + err.message, 'error');
             }
         }
 
@@ -1227,6 +1294,8 @@
             }
         }
     </script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 
 </html>

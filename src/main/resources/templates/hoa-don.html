@@ -1,25 +1,271 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hóa đơn | VShoes</title>
-    <link rel="stylesheet" href="/css/sidebar.css">
-</head>
 
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/store.css?v=99">
+    <link rel="stylesheet" href="/css/invoice.css?v=99">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
         <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
 
-        <!-- Nội dung chính đơn giản -->
+        <!-- Nội dung chính -->
         <main class="main-content">
-            <div class="content-card">
-                <h1 class="content-title">Quản lý hóa đơn</h1>
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
+
+            <div class="invoice-container">
+                <!-- Tiêu đề trang -->
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-family: 'Outfit', sans-serif;">
+                    <h1 style="font-size: 22px; font-weight: 700; color: #1e293b; margin: 0;">Quản lý hóa đơn</h1>
+                </div>
+
+                <!-- ===== BỘ LỌC TÌM KIẾM ===== -->
+                <div class="filter-section-card">
+                    <p class="filter-section-title">Bộ lọc tìm kiếm</p>
+                    <div class="filter-inline-row">
+
+                        <!-- Tìm kiếm -->
+                        <div class="fi-col fi-col-search">
+                            <label class="fi-label">Tìm kiếm</label>
+                            <div class="fi-search-wrap">
+                                <i data-lucide="search" class="fi-search-icon"></i>
+                                <input type="text" id="searchKeyword" class="fi-input"
+                                       placeholder="Nhập tên hoặc mã đơn hàng...">
+                            </div>
+                        </div>
+
+                        <!-- Khoảng ngày -->
+                        <div class="fi-col fi-col-date">
+                            <label class="fi-label">Khoảng ngày áp dụng</label>
+                            <div class="fi-date-range">
+                                <input type="date" id="startDate" class="fi-input fi-date-input">
+                                <span class="fi-date-dash">—</span>
+                                <input type="date" id="endDate" class="fi-input fi-date-input">
+                            </div>
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="fi-col fi-col-status">
+                            <label class="fi-label">Trạng thái</label>
+                            <select id="filterType" class="fi-input fi-select">
+                                <option value="">Tất cả</option>
+                                <option value="Tại quầy">Tại quầy</option>
+                                <option value="Trực tuyến">Trực tuyến</option>
+                            </select>
+                        </div>
+
+                        <!-- Bộ lọc giá -->
+                        <div class="fi-col fi-col-price">
+                            <label class="fi-label">
+                                Tổng tiền tối đa:
+                                <span id="priceSliderValue" class="fi-price-val">100.000.000 đ</span>
+                            </label>
+                            <div class="fi-slider-wrap">
+                                <input type="range" id="priceSlider"
+                                       min="0" max="100000000" step="50000" value="100000000"
+                                       class="fi-slider">
+                            </div>
+                        </div>
+
+                        <!-- Nút Reset -->
+                        <div class="fi-col fi-col-btn">
+                            <label class="fi-label">&nbsp;</label>
+                            <button class="fi-reset-btn" id="btnReset" title="Đặt lại bộ lọc">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- VALIDATION MESSAGES -->
+                    <div id="filterValidationBox" class="filter-validation-box" style="display:none;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- ===== DANH SÁCH HÓA ĐƠN ===== -->
+                <div class="list-section">
+
+                    <!-- Header: Title + Actions -->
+                    <div class="list-header-row">
+                        <h2 class="list-heading">Danh sách hóa đơn</h2>
+                        <div class="list-header-actions">
+                            <button class="btn-export-excel" id="btnExport">
+                                <i data-lucide="file-spreadsheet"></i> Xuất Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Tabs -->
+                    <div class="status-tabs-container">
+                        <div class="status-tabs">
+                            <button class="status-tab active" data-status="">Tất cả <span class="status-count-badge" id="count-all">0</span></button>
+                            <button class="status-tab" data-status="0">Chờ xác nhận <span class="status-count-badge" id="count-0">0</span></button>
+                            <button class="status-tab" data-status="1">Đã xác nhận <span class="status-count-badge" id="count-1">0</span></button>
+                            <button class="status-tab" data-status="3">Đang giao <span class="status-count-badge" id="count-3">0</span></button>
+                            <button class="status-tab" data-status="4">Đã giao <span class="status-count-badge" id="count-4">0</span></button>
+                            <button class="status-tab" data-status="6">Hoàn thành <span class="status-count-badge" id="count-6">0</span></button>
+                            <button class="status-tab" data-status="7">Đã huỷ <span class="status-count-badge" id="count-7">0</span></button>
+                            <button class="status-tab" data-status="8">Yêu cầu huỷ <span class="status-count-badge" id="count-8">0</span></button>
+                            <button class="status-tab" data-status="9">Đã hoàn tiền <span class="status-count-badge" id="count-9">0</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-container">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">STT</th>
+                                    <th>Mã hóa đơn</th>
+                                    <th>Tên nhân viên</th>
+                                    <th>Khách hàng</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Loại hóa đơn</th>
+                                    <th>Tổng tiền</th>
+                                    <th style="text-align:center;">Số lượng</th>
+                                    <th>Ngày tạo</th>
+                                    <th style="text-align:center;">Trạng thái</th>
+                                    <th style="text-align:center;width:110px;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceTableBody">
+                                <!-- Data populated by invoice.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination-container">
+                        <div class="pagination-info" id="paginationInfo">Hiển thị 0 / 0 hóa đơn</div>
+
+                        <div class="pagination-controls-wrapper">
+                            <button class="btn-page-arrow" id="btnPrevPage">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <span class="pagination-label">Trang</span>
+                            <div class="page-number-box" id="currentPageBox">1</div>
+                            <button class="btn-page-arrow" id="btnNextPage">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="page-size-selector">
+                            <select id="pageSizeSelect" class="fi-input fi-select" style="width:auto;">
+                                <option value="5">5 bản ghi / trang</option>
+                                <option value="10" selected>10 bản ghi / trang</option>
+                                <option value="20">20 bản ghi / trang</option>
+                                <option value="50">50 bản ghi / trang</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
-</body>
 
+    <!-- MODAL THÊM / SỬA HÓA ĐƠN -->
+    <div class="modal-overlay" id="invoiceModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 600px; width: 95%;">
+            <span class="close" id="modalClose" style="position: absolute; top: 20px; right: 25px; cursor: pointer; font-size: 28px; color: #64748b;">&times;</span>
+            <h2 id="modalTitle" class="gradient-text" style="font-size: 22px; margin-top: 0; margin-bottom: 25px; font-weight: 800;">Thêm Hóa Đơn</h2>
+
+            <form id="invoiceForm">
+                <input type="hidden" id="invId">
+
+                <div class="modal-body-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tên người nhận <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="glass-input" id="invCustomerName" placeholder="Nhập tên..." required style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Số điện thoại <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="glass-input" id="invCustomerPhone" placeholder="Nhập SĐT..." required style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Loại hóa đơn</label>
+                        <select class="glass-input" id="invType" style="width: 100%; box-sizing: border-box;">
+                            <option value="Tại quầy">Tại quầy</option>
+                            <option value="Trực tuyến">Trực tuyến</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Trạng thái</label>
+                        <select class="glass-input" id="invStatus" style="width: 100%; box-sizing: border-box;">
+                            <option value="1">Hoàn thành</option>
+                            <option value="2">Sắp diễn ra</option>
+                            <option value="0">Hủy</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Tổng tiền thanh toán (VNĐ)</label>
+                        <input type="number" class="glass-input" id="invTotal" value="0" style="width: 100%; box-sizing: border-box;"/>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">Ghi chú</label>
+                    <textarea class="glass-input" id="invNote" rows="3" placeholder="Ghi chú thêm..." style="width: 100%; resize: none; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-premium-secondary" id="btnCancelInv">Hủy</button>
+                    <button type="submit" class="btn-premium" style="min-width: 120px;">Lưu hóa đơn</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL XEM CHI TIẾT HÓA ĐƠN -->
+    <div class="modal-overlay" id="invoiceDetailModal" style="display: none;">
+        <div class="modal-glass-content" style="max-width: 550px; width: 95%; padding: 30px;">
+            <span class="close" id="detailModalClose" style="position: absolute; top: 20px; right: 25px; cursor: pointer; font-size: 28px; color: #64748b;">&times;</span>
+            <h2 class="gradient-text" style="font-size: 20px; margin-top: 0; margin-bottom: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="receipt"></i> Chi Tiết Hóa Đơn
+            </h2>
+
+            <div id="detailContent" class="invoice-receipt-detail">
+                <!-- Data populated dynamically via JS -->
+            </div>
+
+            <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-premium" id="btnPrintDetail">
+                    <i data-lucide="printer"></i> In Hóa Đơn
+                </button>
+                <button type="button" class="btn-premium-secondary" id="btnCloseDetail">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+
+    <!-- Javascript -->
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error("JS Error: " + message + "\nLine: " + lineno);
+        };
+    </script>
+    <script src="/js/invoice.js?v=5.2" defer></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
 </html>
+
