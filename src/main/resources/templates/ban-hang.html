@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bán hàng | VShoes</title>
     <link rel="stylesheet" href="/css/sidebar.css">
+    <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/ban-hang.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Nhúng Sidebar dùng chung -->
-        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+        <div th:replace="sidebar/sidebar :: sidebar"></div>
 
         <!-- Nội dung chính -->
         <main class="main-content" style="padding: 0; display: flex; flex-direction: column;">
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="header/header :: header"></div>
             
             <!-- Khu vực Bán hàng POS -->
             <div class="pos-container">
@@ -157,4 +162,5 @@
 
     <script src="/js/ban-hang.js"></script>
 </body>
+
 </html>

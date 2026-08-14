@@ -368,7 +368,20 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             }
 
             if (loaiGiamGia != null && !loaiGiamGia.trim().isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("loaiGiamGia"), loaiGiamGia.trim()));
+                String cleanLoai = loaiGiamGia.trim().toLowerCase();
+                if (cleanLoai.contains("ph") || cleanLoai.contains("tram") || cleanLoai.contains("trăm")) {
+                    predicates.add(criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ph%n%tr%m%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ph%n%tram%")
+                    ));
+                } else if (cleanLoai.contains("ti") || cleanLoai.contains("m") || cleanLoai.contains("mat") || cleanLoai.contains("mặt")) {
+                    predicates.add(criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ti%n%m%t%"),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("loaiGiamGia")), "ti%n%m%")
+                    ));
+                } else {
+                    predicates.add(criteriaBuilder.equal(root.get("loaiGiamGia"), loaiGiamGia.trim()));
+                }
             }
 
             if (loaiPhieu != null && !loaiPhieu.trim().isEmpty()) {

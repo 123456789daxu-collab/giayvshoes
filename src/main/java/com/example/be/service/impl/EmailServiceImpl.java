@@ -3,10 +3,16 @@ package com.example.be.service.impl;
 import com.example.be.entity.KhachHang;
 import com.example.be.entity.PhieuGiamGia;
 import com.example.be.service.EmailService;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -15,144 +21,113 @@ public class EmailServiceImpl implements EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
+    @Autowired
+    private TemplateEngine templateEngine;
+
     @Override
     public void sendVoucherNotification(KhachHang customer, PhieuGiamGia voucher) {
-        if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
-            return;
-        }
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                if (mailSender == null) {
-                    System.out.println("JavaMailSender is not configured. Simulation email sent to " 
-                        + customer.getEmail() + " for voucher " + voucher.getMaVoucher());
-                    return;
-                }
-                
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(customer.getEmail());
-                message.setSubject("[VShoes] Bạn nhận được mã giảm giá cá nhân mới!");
-                
-                String valueText = "Tiền mặt".equalsIgnoreCase(voucher.getLoaiGiamGia()) 
-                    ? String.format("%,.0f VNĐ", voucher.getGiaTriGiam().doubleValue())
-                    : voucher.getGiaTriGiam() + "%";
-                    
-                String body = String.format(
-                    "Xin chào %s,\n\n" +
-                    "VShoes xin gửi tặng bạn mã giảm giá cá nhân mới:\n" +
-                    "- Mã giảm giá: %s\n" +
-                    "- Tên chương trình: %s\n" +
-                    "- Giá trị ưu đãi: %s\n" +
-                    "- Đơn hàng tối thiểu: %,.0f VNĐ\n" +
-                    "- Thời hạn sử dụng: Từ %s đến %s\n\n" +
-                    "Hãy nhanh tay truy cập VShoes để sử dụng ưu đãi này nhé!\n" +
-                    "Trân trọng,\n" +
-                    "Đội ngũ VShoes.",
-                    customer.getHoTen(),
-                    voucher.getMaVoucher(),
-                    voucher.getTenVoucher(),
-                    valueText,
-                    voucher.getDonToiThieu().doubleValue(),
-                    voucher.getNgayBatDau().toString().replace("T", " "),
-                    voucher.getNgayKetThuc().toString().replace("T", " ")
-                );
-                
-                message.setText(body);
-                mailSender.send(message);
-                System.out.println("Email successfully sent to " + customer.getEmail());
-            } catch (Exception e) {
-                System.err.println("Failed to send email to " + customer.getEmail() + ": " + e.getMessage());
-            }
-        });
+        sendHtmlEmail(
+            customer.getEmail(), 
+            "[VShoes] Bạn nhận được mã giảm giá cá nhân mới!", 
+            "CREATE", 
+            customer, 
+            voucher
+        );
     }
 
     @Override
     public void sendVoucherUpdateNotification(KhachHang customer, PhieuGiamGia voucher) {
-        if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
-            return;
-        }
-
-        CompletableFuture.runAsync(() -> {
-            try {
-                if (mailSender == null) {
-                    System.out.println("JavaMailSender is not configured. Simulation UPDATE email sent to " 
-                        + customer.getEmail() + " for voucher " + voucher.getMaVoucher());
-                    return;
-                }
-                
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(customer.getEmail());
-                message.setSubject("[VShoes] Mã giảm giá cá nhân của bạn đã được cập nhật!");
-                
-                String valueText = "Tiền mặt".equalsIgnoreCase(voucher.getLoaiGiamGia()) 
-                    ? String.format("%,.0f VNĐ", voucher.getGiaTriGiam().doubleValue())
-                    : voucher.getGiaTriGiam() + "%";
-                    
-                String body = String.format(
-                    "Xin chào %s,\n\n" +
-                    "VShoes xin thông báo mã giảm giá cá nhân của bạn đã được cập nhật thông tin mới:\n" +
-                    "- Mã giảm giá: %s\n" +
-                    "- Tên chương trình: %s\n" +
-                    "- Giá trị ưu đãi: %s\n" +
-                    "- Đơn hàng tối thiểu: %,.0f VNĐ\n" +
-                    "- Thời hạn sử dụng: Từ %s đến %s\n\n" +
-                    "Hãy nhanh tay truy cập VShoes để kiểm tra và sử dụng ưu đãi nhé!\n" +
-                    "Trân trọng,\n" +
-                    "Đội ngũ VShoes.",
-                    customer.getHoTen(),
-                    voucher.getMaVoucher(),
-                    voucher.getTenVoucher(),
-                    valueText,
-                    voucher.getDonToiThieu().doubleValue(),
-                    voucher.getNgayBatDau().toString().replace("T", " "),
-                    voucher.getNgayKetThuc().toString().replace("T", " ")
-                );
-                
-                message.setText(body);
-                mailSender.send(message);
-                System.out.println("Update Email successfully sent to " + customer.getEmail());
-            } catch (Exception e) {
-                System.err.println("Failed to send update email to " + customer.getEmail() + ": " + e.getMessage());
-            }
-        });
+        sendHtmlEmail(
+            customer.getEmail(), 
+            "[VShoes] Mã giảm giá cá nhân của bạn đã được cập nhật!", 
+            "UPDATE", 
+            customer, 
+            voucher
+        );
     }
 
     @Override
     public void sendVoucherCancelNotification(KhachHang customer, PhieuGiamGia voucher) {
-        if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+        sendHtmlEmail(
+            customer.getEmail(), 
+            "[VShoes] Mã giảm giá cá nhân của bạn đã tạm ngừng áp dụng!", 
+            "CANCEL", 
+            customer, 
+            voucher
+        );
+    }
+
+    private void sendHtmlEmail(String toEmail, String subject, String action, KhachHang customer, PhieuGiamGia voucher) {
+        if (toEmail == null || toEmail.trim().isEmpty()) {
             return;
         }
 
         CompletableFuture.runAsync(() -> {
             try {
                 if (mailSender == null) {
-                    System.out.println("JavaMailSender is not configured. Simulation CANCEL email sent to " 
-                        + customer.getEmail() + " for voucher " + voucher.getMaVoucher());
+                    System.out.println("JavaMailSender is not configured. Simulation HTML email sent to " 
+                        + toEmail + " for voucher " + voucher.getMaVoucher() + " (Action: " + action + ")");
                     return;
                 }
+
+                DecimalFormat df = new DecimalFormat("#,###");
                 
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setTo(customer.getEmail());
-                message.setSubject("[VShoes] Mã giảm giá cá nhân của bạn đã tạm ngừng áp dụng!");
+                String formattedGiaTriGiam = "";
+                if (voucher.getGiaTriGiam() != null) {
+                    if ("Tiền mặt".equalsIgnoreCase(voucher.getLoaiGiamGia())) {
+                        formattedGiaTriGiam = df.format(voucher.getGiaTriGiam()) + " VNĐ";
+                    } else {
+                        formattedGiaTriGiam = String.format("%.0f%%", voucher.getGiaTriGiam().doubleValue());
+                        if (voucher.getGiaTriGiam().doubleValue() % 1 != 0) {
+                            formattedGiaTriGiam = voucher.getGiaTriGiam().toString() + "%";
+                        }
+                    }
+                }
+
+                String formattedGiamToiDa = "0 VNĐ";
+                if (voucher.getGiamToiDa() != null) {
+                    formattedGiamToiDa = df.format(voucher.getGiamToiDa()) + " VNĐ";
+                }
+
+                String formattedDonToiThieu = "0 VNĐ";
+                if (voucher.getDonToiThieu() != null) {
+                    formattedDonToiThieu = df.format(voucher.getDonToiThieu()) + " VNĐ";
+                }
+
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                String formattedNgayKetThuc = voucher.getNgayKetThuc() != null 
+                    ? voucher.getNgayKetThuc().format(dateFormatter) 
+                    : "";
+                String formattedNgayBatDau = voucher.getNgayBatDau() != null 
+                    ? voucher.getNgayBatDau().format(dateFormatter) 
+                    : "";
+
+                Context context = new Context();
+                context.setVariable("customerName", customer.getHoTen());
+                context.setVariable("voucherCode", voucher.getMaVoucher());
+                context.setVariable("voucherName", voucher.getTenVoucher());
+                context.setVariable("loaiGiamGia", voucher.getLoaiGiamGia());
+                context.setVariable("formattedGiaTriGiam", formattedGiaTriGiam);
+                context.setVariable("formattedGiamToiDa", formattedGiamToiDa);
+                context.setVariable("formattedDonToiThieu", formattedDonToiThieu);
+                context.setVariable("formattedNgayBatDau", formattedNgayBatDau);
+                context.setVariable("formattedNgayKetThuc", formattedNgayKetThuc);
+                context.setVariable("action", action);
+
+                String htmlContent = templateEngine.process("email-voucher", context);
+
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
                 
-                String body = String.format(
-                    "Xin chào %s,\n\n" +
-                    "VShoes xin thông báo mã giảm giá cá nhân sau của bạn đã tạm ngừng áp dụng/ngừng hoạt động trong hệ thống:\n" +
-                    "- Mã giảm giá: %s\n" +
-                    "- Tên chương trình: %s\n\n" +
-                    "Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ bộ phận hỗ trợ khách hàng của VShoes.\n" +
-                    "Trân trọng,\n" +
-                    "Đội ngũ VShoes.",
-                    customer.getHoTen(),
-                    voucher.getMaVoucher(),
-                    voucher.getTenVoucher()
-                );
-                
-                message.setText(body);
+                helper.setTo(toEmail);
+                helper.setSubject(subject);
+                helper.setText(htmlContent, true);
+
                 mailSender.send(message);
-                System.out.println("Cancel Email successfully sent to " + customer.getEmail());
+                System.out.println("HTML Email successfully sent to " + toEmail + " (Action: " + action + ")");
             } catch (Exception e) {
-                System.err.println("Failed to send cancel email to " + customer.getEmail() + ": " + e.getMessage());
+                System.err.println("Failed to send HTML email to " + toEmail + " (Action: " + action + "): " + e.getMessage());
+                e.printStackTrace();
             }
         });
     }

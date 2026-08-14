@@ -355,3 +355,126 @@ body {
 .badge-danger { background-color: #fee2e2; color: #b91c1c; }
 .badge-info { background-color: #e0f2fe; color: #0369a1; }
 
+/* SYSTEM TOAST NOTIFICATIONS */
+#toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+    width: calc(100% - 48px);
+    pointer-events: none;
+}
+
+.custom-toast {
+    display: flex;
+    align-items: flex-start;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 14px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.toast-icon.success {
+    background-color: #22c55e;
+    color: #ffffff;
+}
+
+.toast-icon.error {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.toast-icon.warning {
+    background-color: #f59e0b;
+    color: #ffffff;
+}
+
+.toast-icon.info {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.toast-content {
+    flex: 1;
+    padding-right: 20px;
+}
+
+.toast-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.toast-message {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.toast-close-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.toast-close-btn:hover {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+
