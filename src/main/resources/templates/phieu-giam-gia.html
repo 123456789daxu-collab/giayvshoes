@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head>
@@ -40,8 +40,8 @@
                     <div class="filter-section-card">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <p class="filter-section-title mb-0">Bộ lọc tìm kiếm</p>
-                            <button class="fi-reset-btn" onclick="resetVoucherFilters()" title="Làm mới bộ lọc" style="width: 32px; height: 32px;">
-                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                            <button class="fi-reset-btn" onclick="resetVoucherFilters()" title="Làm mới bộ lọc" style="width: 38px; height: 38px;">
+                                <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
                             </button>
                         </div>
 
@@ -154,7 +154,7 @@
                 <div id="form-panel" class="tab-panel">
 
                     <button class="back-link" onclick="backToListPanel()">
-                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
                         Quay lại danh sách
                     </button>
 
@@ -219,13 +219,13 @@
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus"
                                             onclick="adjustNumberInput('voucher-discount-val', -10)"><i
-                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                                data-lucide="minus" style="width: 18px; height: 18px;"></i></button>
                                         <input type="text" id="voucher-discount-val"
                                             class="input-control number-input-control currency-input" required min="1"
                                             placeholder="Nhập giá trị..." oninput="handleCurrencyInput(this)">
                                         <button type="button" class="number-input-btn plus"
                                             onclick="adjustNumberInput('voucher-discount-val', 10)"><i
-                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                                data-lucide="plus" style="width: 18px; height: 18px;"></i></button>
                                     </div>
                                 </div>
 
@@ -234,13 +234,13 @@
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus"
                                             onclick="adjustNumberInput('voucher-max-discount', -10000)"><i
-                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                                data-lucide="minus" style="width: 18px; height: 18px;"></i></button>
                                         <input type="text" id="voucher-max-discount"
                                             class="input-control number-input-control currency-input" min="0"
                                             placeholder="Nhập mức giảm tối đa..." oninput="handleCurrencyInput(this)">
                                         <button type="button" class="number-input-btn plus"
                                             onclick="adjustNumberInput('voucher-max-discount', 10000)"><i
-                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                                data-lucide="plus" style="width: 18px; height: 18px;"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -253,13 +253,13 @@
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus"
                                             onclick="adjustNumberInput('voucher-min-order', -20000)"><i
-                                                data-lucide="minus" style="width: 14px; height: 14px;"></i></button>
+                                                data-lucide="minus" style="width: 18px; height: 18px;"></i></button>
                                         <input type="text" id="voucher-min-order"
                                             class="input-control number-input-control currency-input" required min="0"
                                             placeholder="Nhập hạn mức hóa đơn tối thiểu..." oninput="handleCurrencyInput(this)">
                                         <button type="button" class="number-input-btn plus"
                                             onclick="adjustNumberInput('voucher-min-order', 20000)"><i
-                                                data-lucide="plus" style="width: 14px; height: 14px;"></i></button>
+                                                data-lucide="plus" style="width: 18px; height: 18px;"></i></button>
                                     </div>
                                 </div>
 
@@ -268,13 +268,13 @@
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus" id="btn-qty-minus"
                                             onclick="adjustNumberInput('voucher-quantity', -1)"><i data-lucide="minus"
-                                                style="width: 14px; height: 14px;"></i></button>
+                                                style="width: 18px; height: 18px;"></i></button>
                                         <input type="number" id="voucher-quantity"
                                             class="input-control number-input-control" min="1"
                                             placeholder="Nhập số lượng phát hành...">
                                         <button type="button" class="number-input-btn plus" id="btn-qty-plus"
                                             onclick="adjustNumberInput('voucher-quantity', 1)"><i data-lucide="plus"
-                                                style="width: 14px; height: 14px;"></i></button>
+                                                style="width: 18px; height: 18px;"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -485,7 +485,7 @@
                     <tr>
                         <td colspan="10" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <i data-lucide="inbox" style="width: 38px; height: 38px; color: #cbd5e1;"></i>
                                 <span>Không tìm thấy phiếu giảm giá nào.</span>
                             </div>
                         </td>
@@ -557,7 +557,7 @@
                     <td style="text-align: center;">
                         <div class="btn-actions-cell" style="justify-content: center;">
                             <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditVoucherForm(${voucher.id})">
-                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                                <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                             </button>
                             ${switchHtml}
                         </div>
@@ -660,7 +660,7 @@
             // Nút lùi
             const prev = document.createElement("button");
             prev.className = `page-btn ${vCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>`;
             prev.onclick = () => { if (vCurrentPage > 0) { vCurrentPage--; loadVouchersTable(); } };
             nav.appendChild(prev);
 
@@ -676,7 +676,7 @@
             // Nút tiến
             const next = document.createElement("button");
             next.className = `page-btn ${vCurrentPage >= vTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>`;
             next.onclick = () => { if (vCurrentPage < vTotalPages - 1) { vCurrentPage++; loadVouchersTable(); } };
             nav.appendChild(next);
         }
@@ -1237,7 +1237,7 @@
             const prev = document.createElement("button");
             prev.type = "button";
             prev.className = `page-btn ${custCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i>`;
             prev.onclick = () => { if (custCurrentPage > 0) { custCurrentPage--; loadCustomersTable(); } };
             nav.appendChild(prev);
 
@@ -1253,7 +1253,7 @@
             const next = document.createElement("button");
             next.type = "button";
             next.className = `page-btn ${custCurrentPage >= custTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i>`;
             next.onclick = () => { if (custCurrentPage < custTotalPages - 1) { custCurrentPage++; loadCustomersTable(); } };
             nav.appendChild(next);
 
@@ -1278,3 +1278,4 @@
 </body>
 
 </html>
+

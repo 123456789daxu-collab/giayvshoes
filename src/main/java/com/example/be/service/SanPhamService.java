@@ -12,6 +12,7 @@ public interface SanPhamService {
     SanPham save(SanPham sanPham);
     void deleteById(Long id);
     boolean existsByTenSanPham(String tenSanPham);
+    SanPham findByTenSanPham(String tenSanPham);
     boolean existsByMaSanPham(String maSanPham);
 
     List<SanPham> getAll();

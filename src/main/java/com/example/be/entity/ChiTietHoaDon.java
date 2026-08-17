@@ -38,6 +38,9 @@ public class ChiTietHoaDon {
     @Column(name = "thanh_tien")
     private BigDecimal thanhTien;
 
+    @Column(name = "don_gia_goc")
+    private BigDecimal donGiaGoc;
+
     @Transient
     private LocalDateTime ngayTao;
 

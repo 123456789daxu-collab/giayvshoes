@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -81,7 +81,7 @@
         .pagination-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; border-top: 1px solid #f1f5f9; margin-top: 8px; }
         .pagination-info { font-size: 0.78rem; color: #64748b; }
         .pagination { margin: 0; gap: 4px; }
-        .page-link { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px !important; border: 1px solid #e2e8f0; color: #475569; font-size: 0.8rem; font-weight: 500; padding: 0; text-decoration: none; transition: all .15s; }
+        .page-link { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px !important; border: 1px solid #e2e8f0; color: #475569; font-size: 0.8rem; font-weight: 500; padding: 0; text-decoration: none; transition: all .15s; }
         .page-link:hover { background: #f8fafc; border-color: #cbd5e1; }
         .page-item.active .page-link { background: #0ea5e9; border-color: #0ea5e9; color: white; }
         .page-item.disabled .page-link { color: #cbd5e1; pointer-events: none; }
@@ -207,7 +207,7 @@
                                 <td class="text-muted py-3" th:text="${sp.soLuong != null ? sp.soLuong : 0}"></td>
                                 <td class="py-3">
                                     <span th:if="${sp.trangThai == 1}" class="px-3 py-1 fw-medium" style="background-color: #e6f4ea; color: #1e8e3e; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #ceead6;">Kinh doanh</span>
-                                    <span th:if="${sp.trangThai != 1}" class="px-3 py-1 fw-medium" style="background-color: #fce8e6; color: #d93025; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #fad2cf;">Ngừng KD</span>
+                                    <span th:if="${sp.trangThai != 1}" class="px-3 py-1 fw-medium" style="background-color: #fce8e6; color: #d93025; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #fad2cf;">Ngừng kinh doanh</span>
                                 </td>
                                 <td class="text-center align-middle py-3">
                                     <a class="btn btn-light text-info me-2 px-3 py-2" 
@@ -222,12 +222,7 @@
                                         th:onclick="'confirmToggleStatus(' + ${sp.id} + ', ' + ${sp.trangThai} + ')'">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
-                                    <button class="btn btn-light text-danger px-3 py-2" 
-                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #fef2f2; border: none;"
-                                        title="Xóa" 
-                                        th:onclick="'confirmDelete(' + ${sp.id} + ')'">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(listSanPham)}">
@@ -498,3 +493,4 @@
 </script>
 </body>
 </html>
+

@@ -27,5 +27,6 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
                          Pageable pageable);
     
     boolean existsByTenSanPham(String tenSanPham);
+    SanPham findByTenSanPham(String tenSanPham);
     boolean existsByMaSanPham(String maSanPham);
 }

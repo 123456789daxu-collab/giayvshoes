@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -118,7 +118,7 @@
                                                         <input type="checkbox" class="btn-check color-checkbox" th:id="'color_' + ${ms.id}" th:value="${ms.id}" th:data-name="${ms.tenMauSac}" autocomplete="off">
                                                         <label class="btn pill-label mb-1 d-inline-flex align-items-center gap-2" th:for="'color_' + ${ms.id}">
                                                             <span th:if="${ms.maMauSac != null && ms.maMauSac.startsWith('#')}" 
-                                                                  th:style="'display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid #cbd5e1; background-color: ' + ${ms.maMauSac}"></span>
+                                                                  th:style="'display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #cbd5e1; background-color: ' + ${ms.maMauSac}"></span>
                                                             <span th:text="${ms.tenMauSac}"></span>
                                                         </label>
                                                     </th:block>
@@ -324,8 +324,8 @@
                 if (name.length > 0) {
                     $.get('/san-pham/api/check-name?name=' + encodeURIComponent(name), function(data) {
                         if (data.exists) {
-                            $('#tenSanPham').css('border-color', '#ef4444');
-                            $('#tenSanPhamError').show();
+                            $('#tenSanPham').css('border-color', '#f59e0b');
+                            $('#tenSanPhamError').html('<i class="bi bi-info-circle me-1"></i>Tên sản phẩm đã tồn tại! Nếu khớp phân loại, biến thể sẽ được thêm vào sản phẩm cũ.').removeClass('text-danger').css('color', '#f59e0b').show();
                         } else {
                             $('#tenSanPham').css('border-color', '#10b981');
                             $('#tenSanPhamError').hide();
@@ -337,30 +337,10 @@
                 }
             });
 
-            // Validate Giá nhập phải nhỏ hơn giá bán và check trùng tên
+            // Validate Giá nhập phải nhỏ hơn giá bán
             document.getElementById('productForm').addEventListener('submit', function(e) {
-                // Check name duplicate synchronously before submit
-                const tenSanPham = document.getElementById('tenSanPham').value.trim();
-                let nameExists = false;
-                if (tenSanPham.length > 0) {
-                    $.ajax({
-                        url: '/san-pham/api/check-name?name=' + encodeURIComponent(tenSanPham),
-                        type: 'GET',
-                        async: false,
-                        success: function(data) {
-                            nameExists = data.exists;
-                        }
-                    });
-                }
-                
-                if (nameExists) {
-                    e.preventDefault();
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Tên sản phẩm đã tồn tại!', showConfirmButton: false, timer: 3000 });
-                    $('#tenSanPham').css('border-color', '#ef4444');
-                    $('#tenSanPhamError').show();
-                    $('#tenSanPham').focus();
-                    return false;
-                }
+                // Không chặn submit khi trùng tên nữa, để backend kiểm tra phân loại
+
 
                 const importPrices = document.getElementsByName('variantImportPrices');
                 const prices = document.getElementsByName('variantPrices');
@@ -387,6 +367,24 @@
                         return false;
                     }
                 }
+
+                // If validation passes, show confirmation modal
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Xác nhận lưu sản phẩm?',
+                    text: 'Bạn có chắc chắn muốn lưu sản phẩm cùng các biến thể này?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0f2d4a',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit the form
+                        HTMLFormElement.prototype.submit.call(document.getElementById('productForm'));
+                    }
+                });
             });
 
             // Khởi tạo Select2 với giao diện đẹp
@@ -739,7 +737,7 @@
                         const html = `
                             <input type="checkbox" class="btn-check color-checkbox" id="color_${data.id}" value="${data.id}" data-name="${data.ten}" autocomplete="off" checked>
                             <label class="btn pill-label mb-1 d-inline-flex align-items-center gap-2" for="color_${data.id}">
-                                <span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid #cbd5e1; background-color: ${data.ma || '#ccc'}"></span>
+                                <span style="display: inline-block; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #cbd5e1; background-color: ${data.ma || '#ccc'}"></span>
                                 <span>${data.ten}</span>
                             </label>
                         `;
@@ -1045,3 +1043,4 @@
     </script>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head>
@@ -45,8 +45,8 @@
                             <button type="button" class="status-btn" onclick="toggleStatusFilter(this, '0')">Ngừng hoạt
                                 động</button>
                         </div>
-                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc" style="width: 32px; height: 32px;">
-                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc" style="width: 38px; height: 38px;">
+                            <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
                         </button>
                     </div>
                 </div>
@@ -134,13 +134,13 @@
                     </div>
                     <div class="pagination-nav">
                         <button class="page-btn disabled" id="prev-page-btn" onclick="changePage(-1)">
-                            <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                            <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
                         </button>
                         <div id="page-numbers-container" style="display: flex; gap: 6px;">
                             <button class="page-btn active">1</button>
                         </div>
                         <button class="page-btn disabled" id="next-page-btn" onclick="changePage(1)">
-                            <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                            <i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>
                         </button>
                     </div>
                     <div class="page-size-selector">
@@ -157,7 +157,7 @@
                 <!-- PANEL 2: THÊM MỚI / CHỈNH SỬA KHÁCH HÀNG (FORM PANEL) -->
                 <div id="form-panel" class="tab-panel">
                     <button class="back-link" onclick="closeCustomerModal()">
-                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
                         Quay lại danh sách
                     </button>
                     
@@ -298,7 +298,7 @@
                     <div class="address-panel-header">
                         <span class="panel-subtitle">Sổ địa chỉ liên hệ</span>
                         <button class="btn-primary-action btn-sm" onclick="openAddAddressSubModal()">
-                            <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
                             Thêm địa chỉ mới
                         </button>
                     </div>
@@ -456,7 +456,7 @@
                     <tr>
                         <td colspan="9" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <i data-lucide="inbox" style="width: 38px; height: 38px; color: #cbd5e1;"></i>
                                 <span>Không tìm thấy khách hàng nào khớp với bộ lọc.</span>
                             </div>
                         </td>
@@ -552,10 +552,10 @@
                     <td style="text-align: center;">
                         <div class="btn-actions-cell">
                             <button class="action-icon-btn view" title="Xem chi tiết" onclick="openDetailModal(${customer.id})">
-                                <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
                             </button>
                             <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCustomerModal(${customer.id})">
-                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                                <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                             </button>
                             <label class="switch-control" title="Bật/Tắt trạng thái">
                                 <input type="checkbox" ${checkedAttr} onchange="toggleCustomerStatus(${customer.id}, this.checked)">
@@ -1299,3 +1299,4 @@
 </body>
 
 </html>
+

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chi tiết sản phẩm giày chạy bộ nam chính hãng tại VHOES.">
+    <title>Chi Tiết Sản Phẩm | VHOES - Giày Chạy Bộ</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/trang-chu.css?v=99">
+    <link rel="stylesheet" href="/css/san-pham.css?v=99">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* ===== PRODUCT DETAIL LAYOUT ===== */
+        .product-detail-container {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 50px;
+            align-items: start;
+        }
+
+        /* Image gallery */
+        .gallery-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .main-image-container {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e8edf3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 420px;
+            overflow: hidden;
+            position: relative;
+        }
+        .main-image-container img {
+            width: 100%;
+            max-height: 420px;
+            object-fit: contain;
+            padding: 20px;
+            transition: transform 0.4s ease;
+        }
+        .main-image-container img:hover {
+            transform: scale(1.04);
+        }
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .thumbnail-item {
+            border: 2px solid #e8edf3;
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 86px;
+            transition: all 0.2s;
+        }
+        .thumbnail-item.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,173,239,0.12);
+        }
+        .thumbnail-item:hover {
+            border-color: var(--primary);
+        }
+        .thumbnail-item img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        /* Right column details */
+        .info-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding-top: 8px;
+        }
+        .brand-badge {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .product-title {
+            font-size: 30px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 4px 0 0;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+        .price-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .price-current {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ef4444;
+        }
+        .price-original {
+            font-size: 15px;
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+        .discount-badge {
+            background: var(--primary);
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+        .product-desc {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #e8edf3;
+        }
+
+        /* Options */
+        .option-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .option-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .option-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-option {
+            background: white;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #334155;
+            min-width: 44px;
+            text-align: center;
+        }
+        .btn-option.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 173, 239, 0.06);
+            box-shadow: 0 0 0 3px rgba(0,173,239,0.1);
+        }
+        .btn-option:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Quantity selector */
+        .qty-selector {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+            width: fit-content;
+        }
+        .qty-btn {
+            background: transparent;
+            border: none;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 700;
+            color: #334155;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qty-btn:hover {
+            background: #e2e8f0;
+        }
+        .qty-input {
+            width: 44px;
+            height: 40px;
+            border: none;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            background: white;
+            outline: none;
+        }
+
+        /* Action buttons */
+        .action-buttons-group {
+            display: flex;
+            gap: 14px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .add-cart-btn {
+            flex: 1;
+            background: #f0f9ff;
+            color: #0284c7;
+            border: 2px solid #00adef;
+            border-radius: 50px;
+            padding: 15px 18px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.25s;
+            box-shadow: 0 4px 14px rgba(0, 173, 239, 0.15);
+            letter-spacing: 0.2px;
+        }
+        .add-cart-btn:hover {
+            background: #e0f2fe;
+            border-color: #0284c7;
+            color: #0369a1;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 173, 239, 0.25);
+        }
+        .add-cart-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0, 173, 239, 0.15);
+        }
+        .add-cart-btn:disabled {
+            background: #f1f5f9 !important;
+            color: #94a3b8 !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        .buy-now-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #00adef 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 18px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px rgba(0, 173, 239, 0.35);
+            transition: all 0.25s;
+            letter-spacing: 0.2px;
+        }
+        .buy-now-btn:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(0, 173, 239, 0.45);
+        }
+        .buy-now-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 14px rgba(0, 173, 239, 0.3);
+        }
+        .buy-now-btn:disabled {
+            background: #94a3b8 !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        @media (max-width: 480px) {
+            .action-buttons-group {
+                flex-direction: column;
+            }
+        }
+
+        .stock-indicator {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stock-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #059669;
+            flex-shrink: 0;
+        }
+        .stock-dot.low { background: #d97706; }
+        .stock-dot.out { background: #ef4444; }
+
+        /* Product Navigation Bar */
+        #prevProductLink:hover .nav-arrow-btn,
+        #nextProductLink:hover .nav-arrow-btn {
+            background: var(--primary);
+            color: white;
+        }
+        #prevProductLink:hover .nav-arrow-btn svg,
+        #nextProductLink:hover .nav-arrow-btn svg {
+            stroke: white;
+        }
+        #prevProductLink.disabled-nav,
+        #nextProductLink.disabled-nav {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .product-detail-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+    </style>
+</head>
+
+
+
+<body>
+
+<!-- ===== MARQUEE BANNER ===== -->
+<div class="marquee-banner" role="marquee">
+    <div class="marquee-track">
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>⚡ GIẢM 15% cho thành viên mới khi đăng ký</span>
+        <span>🛡️ BẢO HÀNH chính hãng 12 tháng toàn sản phẩm</span>
+        <span>🔄 ĐỔI TRẢ dễ dàng trong vòng 30 ngày</span>
+        <span>📦 GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+        <!-- duplicate for seamless scroll -->
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>⚡ GIẢM 15% cho thành viên mới khi đăng ký</span>
+        <span>🛡️ BẢO HÀNH chính hãng 12 tháng toàn sản phẩm</span>
+        <span>🔄 ĐỔI TRẢ dễ dàng trong vòng 30 ngày</span>
+        <span>📦 GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+    </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header" role="banner">
+    <div class="container">
+
+        <!-- Top bar -->
+        <div class="header-top">
+            <div class="header-top-left">
+                <a href="tel:19006789">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Hotline: 1900 6789
+                </a>
+                <a href="mailto:vshoes@gmail.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><polyline points="1,4 12,13 23,4"/></svg>
+                    vshoes@gmail.com
+                </a>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Hệ thống cửa hàng
+                </a>
+            </div>
+            <div class="header-top-right" id="headerAuthSection">
+                <a href="/client/tra-cuu">Theo dõi đơn hàng</a>
+                <a href="/client/dang-nhap" id="loginLink">Đăng nhập</a>
+                <a href="/client/dang-ky" class="btn-register" id="registerLink">Đăng ký</a>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="header-main">
+            <a href="/trang-chu" class="header-logo">
+                <div class="logo-img-wrap">
+                    <img src="/images/logo.png" alt="VHOES Logo"
+                         onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex'">
+                    <div id="logoFallback" style="display:none;width:48px;height:48px;background:linear-gradient(135deg,#7c3aed,#2563eb);border-radius:10px;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:900;">S</div>
+                </div>
+                <div class="logo-text-wrap">
+                    <div class="brand-name">VHOES</div>
+                    <div class="brand-tagline">Giày chạy bộ</div>
+                </div>
+            </a>
+
+            <form class="header-search" id="searchForm" role="search" onsubmit="event.preventDefault();">
+                <div class="search-input-wrap">
+                    <input type="search" id="searchKeyword"
+                           placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                    <button type="submit" class="search-btn" aria-label="Tìm kiếm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </form>
+
+            <div class="header-actions">
+                <a href="/client/cart" class="action-btn" id="cartBtn" aria-label="Giỏ hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span id="cartCountBadgeGlobal" class="cart-count" style="display:none;">0</span>
+                    <span>Giỏ hàng</span>
+                </a>
+                <a href="#" class="action-btn" aria-label="Tài khoản">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Tài khoản</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/trang-chu" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Trang Chủ
+                </a>
+                                <a href="/client/san-pham" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
+                    Sản Phẩm
+                </a>
+                <a href="/client/tin-tuc" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Tin Tức
+                </a>
+                <a href="/client/gioi-thieu" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Giới Thiệu
+                </a>
+                <a href="/client/lien-he" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Liên Hệ
+                </a>
+                <!-- Flash sale -->
+                <a href="/client/flash-sale" class="nav-item" style="margin-left:auto;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Flash Sale
+                </a>
+                <!-- Admin link -->
+                <a href="/hoa-don" class="nav-item nav-item-admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Quản Lý
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main style="background: #f8fafc; padding-top: 30px; padding-bottom: 60px;">
+    <div class="container">
+        <!-- Breadcrumb / Back button -->
+        <div style="margin-bottom: 16px;">
+            <a href="/client/san-pham" style="display: inline-flex; align-items: center; gap: 8px; color: var(--gray-600); font-weight: 700; font-size: 14px; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--gray-600)'">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Quay lại danh sách sản phẩm
+            </a>
+        </div>
+
+        <!-- ===== PRODUCT NAVIGATION BAR ===== -->
+        <div id="productNavBar" style="display:none; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: white; border-radius: 14px; border: 1px solid var(--border); padding: 10px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); gap: 12px;">
+
+                <!-- Prev -->
+                <a id="prevProductLink" href="#" style="display: flex; align-items: center; gap: 10px; text-decoration: none; flex: 1; min-width: 0; transition: opacity 0.2s;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s;" class="nav-arrow-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
+                    </div>
+                    <div style="min-width:0;">
+                        <div style="font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px;">Sản phẩm trước</div>
+                        <div id="prevProductName" style="font-size: 13px; font-weight: 700; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">—</div>
+                    </div>
+                </a>
+
+                <!-- Counter -->
+                <div style="text-align: center; flex-shrink: 0; padding: 0 12px; border-left: 1px solid var(--border); border-right: 1px solid var(--border);">
+                    <div style="font-size: 11px; color: var(--gray-400); font-weight: 500;">Đang xem</div>
+                    <div id="productNavCounter" style="font-size: 15px; font-weight: 800; color: var(--primary);">— / —</div>
+                </div>
+
+                <!-- Next -->
+                <a id="nextProductLink" href="#" style="display: flex; align-items: center; gap: 10px; text-decoration: none; flex: 1; min-width: 0; justify-content: flex-end; transition: opacity 0.2s;">
+                    <div style="min-width:0; text-align: right;">
+                        <div style="font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.5px;">Sản phẩm tiếp</div>
+                        <div id="nextProductName" style="font-size: 13px; font-weight: 700; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">—</div>
+                    </div>
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s;" class="nav-arrow-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Main Product Section -->
+        <div style="background: white; border-radius: 20px; border: 1px solid #e8edf3; padding: 40px; box-shadow: 0 2px 16px rgba(0,0,0,0.05); margin-bottom: 50px;">
+            <div class="product-detail-container" style="max-width: 100%; margin: 0; padding: 0;">
+                <!-- Left: Images -->
+                <div class="gallery-wrap">
+                    <div class="main-image-container">
+                        <img id="mainProductImage" src="/images/shoe1.png" alt="Giày chạy bộ">
+                    </div>
+                    <div class="thumbnail-grid" id="thumbnailGrid">
+                        <!-- thumbnails dynamic -->
+                    </div>
+                </div>
+
+                <!-- Right: Information -->
+                <div class="info-col">
+                    <div>
+                        <div class="brand-badge">VHOES COLLECTION</div>
+                        <h1 class="product-title" id="productTitle">Sản phẩm</h1>
+                        <div class="stock-indicator" id="stockIndicator" style="margin-top: 10px;">
+                            <span class="stock-dot"></span>
+                            <span id="stockText">Đang tải tồn kho...</span>
+                        </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="price-row" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                        <span class="price-original" id="priceOriginal" style="font-size: 15px; text-decoration: line-through; color: #94a3b8; font-weight: 500; display: none;">0 ₫</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span class="price-current" id="priceCurrent" style="font-size: 28px; font-weight: 900; color: #ef4444;">0 ₫</span>
+                            <span class="discount-badge" id="discountBadge" style="background: #ef4444; color: white; font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 20px; display: none;">-0%</span>
+                        </div>
+                    </div>
+
+                    <p class="product-desc" id="productDescription">
+                        Đang tải mô tả sản phẩm...
+                    </p>
+
+                    <!-- Colors -->
+                    <div class="option-section">
+                        <div class="option-title">Màu Sắc</div>
+                        <div class="option-buttons" id="colorButtons"></div>
+                    </div>
+
+                    <!-- Sizes -->
+                    <div class="option-section">
+                        <div class="option-title">Kích Thước</div>
+                        <div class="option-buttons" id="sizeButtons"></div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="option-section">
+                        <div class="option-title">Số Lượng</div>
+                        <div class="qty-selector">
+                            <button class="qty-btn" id="btnQtyMinus">−</button>
+                            <input type="text" class="qty-input" id="qtyInput" value="1">
+                            <button class="qty-btn" id="btnQtyPlus">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons: Add to cart & Buy now -->
+                    <div class="action-buttons-group">
+                        <button class="add-cart-btn" id="btnAddToCart">
+                            <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+                            Thêm vào giỏ hàng
+                        </button>
+                        <button class="buy-now-btn" id="btnBuyNow">
+                            <i data-lucide="zap" style="width: 18px; height: 18px;"></i>
+                            Mua hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        <!-- Customer Reviews Section -->
+        <div style="background: white; border-radius: 20px; border: 1px solid #e8edf3; padding: 40px; box-shadow: 0 2px 16px rgba(0,0,0,0.05); margin-bottom: 50px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e8edf3; padding-bottom: 18px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h2 style="font-size: 22px; font-weight: 900; color: #0f172a; text-transform: uppercase; margin: 0;">Đánh giá từ khách hàng</h2>
+                    <span id="reviewCountBadge" style="background: rgba(0,173,239,0.1); color: #00adef; font-size: 13px; font-weight: 800; padding: 4px 12px; border-radius: 20px;">0 đánh giá</span>
+                </div>
+            </div>
+
+            <!-- Rating Summary Dashboard -->
+            <div style="display: grid; grid-template-columns: 240px 1fr; gap: 40px; align-items: center; background: #f8fafc; border-radius: 16px; padding: 24px 30px; margin-bottom: 30px; border: 1px solid #e8edf3;">
+                <!-- Left Score -->
+                <div style="text-align: center; border-right: 1px solid #e2e8f0; padding-right: 30px;">
+                    <div style="font-size: 48px; font-weight: 900; color: #0f172a; line-height: 1;" id="avgRatingScore">4.9</div>
+                    <div style="color: #f59e0b; font-size: 20px; margin: 8px 0 4px;" id="avgRatingStars">★★★★★</div>
+                    <div style="font-size: 13px; font-weight: 600; color: #64748b;" id="avgRatingSub">Dựa trên <strong id="totalReviewsCountText" style="color:#0f172a;">0</strong> đánh giá</div>
+                </div>
+
+                <!-- Right Rating Breakdown Bars -->
+                <div style="display: flex; flex-direction: column; gap: 8px;" id="ratingBreakdownBars">
+                    <!-- Dynamic breakdown -->
+                </div>
+            </div>
+
+            <!-- Reviews List Container -->
+            <div id="reviewsList" style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- Dynamic reviews cards -->
+            </div>
+        </div>
+
+        <!-- Related Products Section (solves the empty space/sides feeling) -->
+        <div style="margin-top: 50px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 30px;">
+                <h2 style="font-size: 22px; font-weight: 800; color: var(--gray-900); text-transform: uppercase; margin: 0;">Sản phẩm liên quan</h2>
+                <a href="/client/san-pham" style="color: var(--primary); font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                    Xem tất cả <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                </a>
+            </div>
+            <div class="products-grid" id="relatedProductsGrid">
+                <!-- Dynamically loaded related products -->
+                <div style="grid-column: span 4; text-align: center; color: var(--gray-400); padding: 20px;">Đang tải sản phẩm liên quan...</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container" style="position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px;"></div>
+
+<!-- JS -->
+<script src="/js/client/auth-header.js"></script>
+<script src="/js/client/product-detail.js?v=3.2"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+    });
+</script>
+</body>
+</html>
+
+
+
+

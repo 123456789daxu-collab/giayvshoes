@@ -1,5 +1,6 @@
 <!-- File fragment Sidebar dùng chung cho toàn bộ các trang -->
 <div th:fragment="sidebar" class="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
     
     <!-- 1. KHU VỰC LOGO VSHOES -->
     <div class="sidebar-brand">
@@ -52,6 +53,47 @@
             </ul>
         </div>
 
+        <!-- Quản lý thuộc tính (Menu Cha - Dropdown) -->
+        <div class="submenu-container">
+            <a href="#" class="menu-item" id="toggle-submenu-thuoctinh">
+                <i data-lucide="layers" class="menu-icon"></i>
+                <span>Quản lý thuộc tính</span>
+                <i data-lucide="chevron-down" class="arrow-icon"></i>
+            </a>
+            <ul class="submenu" id="submenu-thuoctinh">
+                <li>
+                    <a href="/thuong-hieu" class="submenu-item">Thương hiệu</a>
+                </li>
+                <li>
+                    <a href="/chat-lieu" class="submenu-item">Chất liệu</a>
+                </li>
+                <li>
+                    <a href="/de-giay" class="submenu-item">Loại giày</a>
+                </li>
+                <li>
+                    <a href="/the-loai" class="submenu-item">Danh mục</a>
+                </li>
+                <li>
+                    <a href="/mau-sac" class="submenu-item">Màu sắc</a>
+                </li>
+                <li>
+                    <a href="/kich-thuoc" class="submenu-item">Kích thước</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Quản lý đánh giá -->
+        <a href="/danh-gia" class="menu-item">
+            <i data-lucide="star" class="menu-icon"></i>
+            <span>Quản lý đánh giá</span>
+        </a>
+
+        <!-- Hỗ trợ trực tuyến -->
+        <a href="/chat" class="menu-item">
+            <i data-lucide="headphones" class="menu-icon"></i>
+            <span>Hỗ trợ trực tuyến</span>
+        </a>
+
         <!-- Phiếu giảm giá -->
         <a href="/phieu-giam-gia" class="menu-item">
             <i data-lucide="ticket" class="menu-icon"></i>
@@ -101,8 +143,16 @@
     <script>
         // Khi trang web đã load xong HTML
         document.addEventListener("DOMContentLoaded", function() {
-            // Khởi tạo các Icon của thư viện Lucide
-            lucide.createIcons();
+            // Khởi tạo các Icon của thư viện Lucide một cách an toàn
+            if (typeof lucide !== 'undefined') {
+                try {
+                    lucide.createIcons();
+                } catch (e) {
+                    console.error("Lỗi khi khởi tạo Lucide icons:", e);
+                }
+            } else {
+                console.warn("Thư viện Lucide chưa được tải.");
+            }
 
             // Lấy đường dẫn URL hiện tại của trang web (ví dụ: "/trang-chu" hoặc "/tai-khoan/khach-hang")
             const currentPath = window.location.pathname;

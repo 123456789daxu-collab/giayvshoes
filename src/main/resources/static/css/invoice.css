@@ -1,3 +1,4 @@
+@import url('/css/global-typography.css');
 /* invoice.css v4.0 - Clean Light Design matching reference screenshot */
 
 /* ============================================================
@@ -221,6 +222,11 @@
     box-shadow: 0 2px 6px rgba(124, 58, 237, 0.4);
 }
 
+@import url('/css/global-typography.css');
+
+/* ============================================================
+   INVOICE (HÓA ĐƠN) MANAGEMENT - CLEAN MODERN UI STYLES
+   ============================================================ */
 /* ============================================================
    FILTER VALIDATION MESSAGES
    ============================================================ */

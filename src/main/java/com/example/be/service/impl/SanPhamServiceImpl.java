@@ -41,6 +41,11 @@ public class SanPhamServiceImpl implements SanPhamService {
     }
 
     @Override
+    public SanPham findByTenSanPham(String tenSanPham) {
+        return sanPhamRepository.findByTenSanPham(tenSanPham);
+    }
+
+    @Override
     public boolean existsByMaSanPham(String maSanPham) {
         return sanPhamRepository.existsByMaSanPham(maSanPham);
     }

@@ -27,9 +27,11 @@ public class HoaDonDTO {
     private String ghiChu;
     private BigDecimal tienGiam;
     private BigDecimal phiShip;
+    private Integer soLanSuaThongTin;
     // Thông tin phiếu giảm giá
     private String tenVoucher;
     private String maVoucher;
     private BigDecimal giaTriGiam;
     private String loaiGiamGia;
+    private java.util.List<java.util.Map<String, Object>> chiTietList;
 }

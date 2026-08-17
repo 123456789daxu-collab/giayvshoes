@@ -1,0 +1,646 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch ca làm | VShoes</title>
+    
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/store.css?v=99">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f4f6f8; margin: 0; }
+        
+        .main-content { padding: 30px; }
+
+        /* Card styling */
+        .white-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        /* Filter elements */
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 12px;
+            color: #94a3b8;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .input-with-icon.icon-right i {
+            left: auto;
+            right: 12px;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 10px 12px;
+            padding-left: 36px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            color: #334155;
+            box-sizing: border-box;
+        }
+        
+        .input-with-icon.icon-right .custom-input {
+            padding-left: 12px;
+            padding-right: 36px;
+        }
+        
+        .filter-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        /* Radio Buttons */
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            height: 40px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .radio-label input[type="radio"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            margin: 0;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .radio-label input[type="radio"]:checked {
+            border-color: #10b981;
+        }
+
+        .radio-label input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 6px;
+            height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+        }
+
+        /* Circle Buttons */
+        .action-btn-gradient {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
+            box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2);
+            transition: opacity 0.2s;
+        }
+        .action-btn-gradient:hover {
+            opacity: 0.9;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            color: #475569;
+            font-weight: 600;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fafbfc;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .shift-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .shift-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e0f2fe;
+            color: #0ea5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shift-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .shift-name { font-weight: 700; color: #1e293b; }
+        .shift-code { font-size: 12px; color: #94a3b8; }
+
+        .time-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-block;
+        }
+
+        .badge-start { background: #dcfce7; color: #16a34a; }
+        .badge-end { background: #fee2e2; color: #dc2626; }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider { background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); }
+        input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <main class="main-content">
+            
+            <!-- Filter Section -->
+            <div class="white-card">
+                <div class="card-header">
+                    <h2 class="card-title">Bộ lọc tìm kiếm</h2>
+                    <button class="filter-btn"><i data-lucide="filter" style="width: 20px; height: 20px;"></i></button>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Tìm kiếm chung</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="searchCaLam" class="custom-input" placeholder="Nhập tên ca, mã ca...">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Thời gian bắt đầu</label>
+                        <div class="input-with-icon icon-right">
+                            <input type="time" id="searchTimeStart" class="custom-input" placeholder="--:--">
+                            <i data-lucide="clock"></i>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Thời gian kết thúc</label>
+                        <div class="input-with-icon icon-right">
+                            <input type="time" id="searchTimeEnd" class="custom-input" placeholder="--:--">
+                            <i data-lucide="clock"></i>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Trạng thái</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="filterStatus" value="ALL" checked> Tất cả
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="filterStatus" value="1"> Hoạt động
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="filterStatus" value="0"> Ngưng
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="white-card">
+                <div class="card-header">
+                    <h2 class="card-title">Danh sách Ca làm việc</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="action-btn-gradient" id="btnThemCa" title="Thêm ca làm">
+                            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <button class="action-btn-gradient" onclick="loadCaLam()" title="Tải lại">
+                            <i data-lucide="rotate-cw" style="width: 18px; height: 18px;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: center; width: 60px;">STT</th>
+                            <th>Thông tin Ca</th>
+                            <th style="text-align: center;">Giờ bắt đầu</th>
+                            <th style="text-align: center;">Giờ kết thúc</th>
+                            <th style="text-align: center;">Trạng thái</th>
+                            <th style="text-align: center;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="caLamTableBody">
+                        <!-- Data will be loaded via JS -->
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Thêm/Sửa Ca Làm -->
+    <div id="modalCaLam" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px);">
+        <div style="background: white; border-radius: 12px; width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="clock" style="width: 20px; height: 20px; color: #ef4444;"></i>
+                    Thông tin Ca Làm
+                </h3>
+                <button onclick="document.getElementById('modalCaLam').style.display='none'" style="background: none; border: none; cursor: pointer; color: #64748b;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            
+            <form id="formCaLam">
+                <input type="hidden" id="caLamId">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Mã ca *</label>
+                        <input type="text" id="maCa" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background: #f8fafc;" placeholder="VD: CA_SANG">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tên ca *</label>
+                        <input type="text" id="tenCa" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;" placeholder="VD: Ca Sáng">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Bắt đầu *</label>
+                            <input type="time" id="thoiGianBatDau" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
+                        </div>
+                        <div>
+                            <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Kết thúc *</label>
+                            <input type="time" id="thoiGianKetThuc" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Trạng thái</label>
+                        <select id="trangThai" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
+                            <option value="1">Hoạt động</option>
+                            <option value="0">Ngưng</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+                    <button type="button" onclick="document.getElementById('modalCaLam').style.display='none'" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Hủy</button>
+                    <button type="submit" style="padding: 10px 20px; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2);">Lưu Ca Làm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        let allCaLams = [];
+
+        function loadCaLam() {
+            fetch('/api/ca-lam')
+                .then(res => res.json())
+                .then(data => {
+                    allCaLams = data;
+                    renderCaLamTable(data);
+                })
+                .catch(err => {
+                    document.getElementById('caLamTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #ef4444;">Lỗi tải dữ liệu</td></tr>';
+                });
+        }
+
+        function renderCaLamTable(data) {
+            const tbody = document.getElementById('caLamTableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">Chưa có dữ liệu ca làm</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            data.forEach((item, index) => {
+                const startTime = item.thoiGianBatDau ? item.thoiGianBatDau.substring(0, 5) : '--:--';
+                const endTime = item.thoiGianKetThuc ? item.thoiGianKetThuc.substring(0, 5) : '--:--';
+                
+                html += `
+                    <tr>
+                        <td style="text-align: center; color: #64748b; font-weight: 500;">${index + 1}</td>
+                        <td>
+                            <div class="shift-info">
+                                <div class="shift-icon">
+                                    <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+                                </div>
+                                <div class="shift-details">
+                                    <span class="shift-name">${item.tenCa}</span>
+                                    <span class="shift-code">${item.maCa}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="time-badge badge-start">${startTime}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="time-badge badge-end">${endTime}</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <label class="toggle-switch">
+                                <input type="checkbox" ${item.trangThai === 1 ? 'checked' : ''} onchange="toggleCaLamStatus(${item.id}, ${item.trangThai})">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </td>
+                        <td style="text-align: center;">
+                            <div style="display: flex; justify-content: center; gap: 8px;">
+                                <button class="action-btn" onclick="editCaLam(${item.id})" title="Xem/Sửa">
+                                    <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
+                                </button>
+                                <button class="action-btn" onclick="deleteCaLam(${item.id})" style="color: #ef4444; border-color: #fca5a5;" title="Xóa">
+                                    <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function filterCaLam() {
+            const searchVal = document.getElementById('searchCaLam').value.toLowerCase();
+            const timeStart = document.getElementById('searchTimeStart').value;
+            const timeEnd = document.getElementById('searchTimeEnd').value;
+            const statusFilter = document.querySelector('input[name="filterStatus"]:checked').value;
+
+            const filtered = allCaLams.filter(item => {
+                let matchSearch = true;
+                if (searchVal) {
+                    matchSearch = (item.tenCa && item.tenCa.toLowerCase().includes(searchVal)) || 
+                                  (item.maCa && item.maCa.toLowerCase().includes(searchVal));
+                }
+
+                let matchStatus = true;
+                if (statusFilter !== 'ALL') {
+                    matchStatus = item.trangThai === parseInt(statusFilter);
+                }
+
+                let matchStart = true;
+                if (timeStart && item.thoiGianBatDau) {
+                    matchStart = item.thoiGianBatDau.startsWith(timeStart);
+                }
+
+                let matchEnd = true;
+                if (timeEnd && item.thoiGianKetThuc) {
+                    matchEnd = item.thoiGianKetThuc.startsWith(timeEnd);
+                }
+
+                return matchSearch && matchStatus && matchStart && matchEnd;
+            });
+
+            renderCaLamTable(filtered);
+        }
+
+        window.editCaLam = function(id) {
+            const item = allCaLams.find(c => c.id === id);
+            if (item) {
+                document.getElementById('caLamId').value = item.id;
+                document.getElementById('maCa').value = item.maCa;
+                document.getElementById('tenCa').value = item.tenCa;
+                document.getElementById('thoiGianBatDau').value = item.thoiGianBatDau;
+                document.getElementById('thoiGianKetThuc').value = item.thoiGianKetThuc;
+                document.getElementById('trangThai').value = item.trangThai;
+                document.getElementById('modalCaLam').style.display = 'flex';
+            }
+        };
+
+        window.toggleCaLamStatus = function(id, currentStatus) {
+            // Optimistic update for now, ideally call API to update status
+            // As CaLam doesn't have toggle status endpoint out of the box in this setup
+            // I will just re-save it with inverted status
+            const item = allCaLams.find(c => c.id === id);
+            if (item) {
+                item.trangThai = currentStatus === 1 ? 0 : 1;
+                fetch('/api/ca-lam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                }).then(() => loadCaLam());
+            }
+        };
+
+        window.deleteCaLam = function(id) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: "Bạn có chắc chắn muốn xóa ca làm này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Có, Xóa!',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/api/ca-lam/' + id, {
+                        method: 'DELETE'
+                    }).then(res => {
+                        if(res.ok) {
+                            Swal.fire('Đã xóa!', 'Ca làm đã được xóa.', 'success');
+                            loadCaLam();
+                        } else {
+                            Swal.fire('Lỗi', 'Không thể xóa (có thể do ca làm này đã được sử dụng trong lịch làm việc)', 'error');
+                        }
+                    }).catch(err => {
+                        Swal.fire('Lỗi', 'Có lỗi xảy ra khi xóa', 'error');
+                    });
+                }
+            });
+        };
+
+        document.addEventListener("DOMContentLoaded", function() {
+            lucide.createIcons();
+            loadCaLam();
+
+            // Bind filters
+            document.getElementById('searchCaLam').addEventListener('input', filterCaLam);
+            document.getElementById('searchTimeStart').addEventListener('change', filterCaLam);
+            document.getElementById('searchTimeEnd').addEventListener('change', filterCaLam);
+            document.querySelectorAll('input[name="filterStatus"]').forEach(radio => {
+                radio.addEventListener('change', filterCaLam);
+            });
+
+            // Add button
+            document.getElementById('btnThemCa').addEventListener('click', () => {
+                document.getElementById('modalCaLam').style.display = 'flex';
+                document.getElementById('formCaLam').reset();
+                document.getElementById('caLamId').value = '';
+            });
+
+            // Form Submit
+            document.getElementById('formCaLam').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const id = document.getElementById('caLamId').value;
+                const payload = {
+                    maCa: document.getElementById('maCa').value,
+                    tenCa: document.getElementById('tenCa').value,
+                    thoiGianBatDau: document.getElementById('thoiGianBatDau').value,
+                    thoiGianKetThuc: document.getElementById('thoiGianKetThuc').value,
+                    trangThai: parseInt(document.getElementById('trangThai').value)
+                };
+                if (id) {
+                    payload.id = parseInt(id);
+                }
+
+                fetch('/api/ca-lam', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Đã lưu ca làm việc',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    document.getElementById('modalCaLam').style.display = 'none';
+                    this.reset();
+                    loadCaLam();
+                })
+                .catch(err => {
+                    Swal.fire('Lỗi', 'Không thể lưu ca làm việc', 'error');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+

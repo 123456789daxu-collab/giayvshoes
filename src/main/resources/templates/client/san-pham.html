@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VHOES - Danh sách giày chạy bộ nam chính hãng. Lọc theo thương hiệu, kích thước, giá cả.">
+    <title>Sản Phẩm | VHOES - Giày Chạy Bộ</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/trang-chu.css?v=99">
+    <link rel="stylesheet" href="/css/san-pham.css?v=99">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<!-- ===== MARQUEE BANNER ===== -->
+<div class="marquee-banner">
+    <div class="marquee-track">
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>⚡ GIẢM 15% cho thành viên mới khi đăng ký</span>
+        <span>🛡️ BẢO HÀNH chính hãng 12 tháng toàn sản phẩm</span>
+        <span>🔄 ĐỔI TRẢ dễ dàng trong vòng 30 ngày</span>
+        <span>📦 GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>⚡ GIẢM 15% cho thành viên mới khi đăng ký</span>
+        <span>🛡️ BẢO HÀNH chính hãng 12 tháng toàn sản phẩm</span>
+        <span>🔄 ĐỔI TRẢ dễ dàng trong vòng 30 ngày</span>
+        <span>📦 GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+    </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="header-top">
+            <div class="header-top-left">
+                <a href="tel:19006789">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Hotline: 1900 6789
+                </a>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Hệ thống cửa hàng
+                </a>
+            </div>
+            <div class="header-top-right" id="headerAuthSection">
+                <a href="/client/tra-cuu">Theo dõi đơn hàng</a>
+                <a href="/client/dang-nhap" id="loginLink">Đăng nhập</a>
+                <a href="/client/dang-ky" class="btn-register" id="registerLink">Đăng ký</a>
+            </div>
+        </div>
+        <div class="header-main">
+            <a href="/trang-chu" class="header-logo">
+                <div class="logo-img-wrap">
+                    <img src="/images/logo.png" alt="VHOES" onerror="this.style.display='none'">
+                </div>
+                <div class="logo-text-wrap">
+                    <div class="brand-name">VHOES</div>
+                    <div class="brand-tagline">Giày chạy bộ</div>
+                </div>
+            </a>
+            <form class="header-search" id="searchForm" role="search">
+                <div class="search-input-wrap">
+                    <input type="search" id="searchKeyword" placeholder="Tìm kiếm giày chạy bộ..." autocomplete="off">
+                    <button type="submit" class="search-btn" aria-label="Tìm kiếm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </form>
+            <div class="header-actions">
+                <a href="/client/cart" class="action-btn" id="cartBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span id="cartCountBadge" class="cart-count" style="display:none;">0</span>
+                    <span>Giỏ hàng</span>
+                </a>
+                <a href="#" class="action-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Tài khoản</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    <nav class="site-nav" role="navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/trang-chu" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Trang Chủ
+                </a>
+                <a href="/client/san-pham" class="nav-item active">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
+                    Sản Phẩm
+                </a>
+                <a href="/client/tin-tuc" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Tin Tức
+                </a>
+                <a href="/client/gioi-thieu" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Giới Thiệu
+                </a>
+                <a href="/client/lien-he" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Liên Hệ
+                </a>
+                <a href="/client/flash-sale" class="nav-item" style="margin-left:auto;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Flash Sale
+                </a>
+                <a href="/ban-hang" class="nav-item nav-item-admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Quản Lý Bán Hàng
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- ===== BREADCRUMB ===== -->
+<div class="page-breadcrumb">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/trang-chu">Trang chủ</a>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Sản phẩm</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== PRODUCTS PAGE ===== -->
+<div class="products-page">
+    <div class="container">
+        <div class="products-layout">
+
+            <!-- ============ SIDEBAR FILTER ============ -->
+            <aside class="filter-sidebar" aria-label="Bộ lọc sản phẩm">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                        Bộ lọc &amp; Sắp xếp
+                    </div>
+                    <button class="btn-reset-filter" id="btnResetFilter">Xóa lọc</button>
+                </div>
+
+                <!-- Sắp xếp -->
+                <div class="filter-group">
+                    <div class="filter-group-title">Sắp xếp theo</div>
+                    <div class="sort-options">
+                        <button class="sort-option" data-sort="price-asc" onclick="setSort(this)">
+                            Giá (thấp - cao)
+                            <svg class="sort-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                        <button class="sort-option active" data-sort="newest" onclick="setSort(this)">
+                            Mới nhất trước
+                            <svg class="sort-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                        <button class="sort-option" data-sort="popular" onclick="setSort(this)">
+                            Bán chạy nhất
+                            <svg class="sort-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                        <button class="sort-option" data-sort="price-desc" onclick="setSort(this)">
+                            Giá (cao - thấp)
+                            <svg class="sort-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Thương hiệu -->
+                <div class="filter-group">
+                    <div class="filter-group-title">Thương hiệu</div>
+                    <div class="brand-options" id="brandOptions">
+                        <button class="brand-option" data-brand="Nike" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🟠</span> Nike
+                        </button>
+                        <button class="brand-option" data-brand="Adidas" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🔵</span> Adidas
+                        </button>
+                        <button class="brand-option" data-brand="Puma" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🔴</span> Puma
+                        </button>
+                        <button class="brand-option" data-brand="ASICS" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🔷</span> ASICS
+                        </button>
+                        <button class="brand-option" data-brand="New Balance" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🟢</span> New Balance
+                        </button>
+                        <button class="brand-option" data-brand="Brooks" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🟣</span> Brooks
+                        </button>
+                        <button class="brand-option" data-brand="Saucony" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🟡</span> Saucony
+                        </button>
+                        <button class="brand-option" data-brand="HOKA" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">⚫</span> HOKA
+                        </button>
+                        <button class="brand-option" data-brand="Mizuno" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">🔵</span> Mizuno
+                        </button>
+                        <button class="brand-option" data-brand="Vshoes" onclick="toggleBrand(this)">
+                            <span class="brand-logo-icon">⭐</span> VShoes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kích thước -->
+                <div class="filter-group">
+                    <div class="filter-group-title">Kích thước</div>
+                    <div class="size-options" id="sizeOptions">
+                        <button class="size-option" onclick="toggleSize(this)">38</button>
+                        <button class="size-option" onclick="toggleSize(this)">39</button>
+                        <button class="size-option" onclick="toggleSize(this)">40</button>
+                        <button class="size-option" onclick="toggleSize(this)">41</button>
+                        <button class="size-option" onclick="toggleSize(this)">42</button>
+                        <button class="size-option" onclick="toggleSize(this)">43</button>
+                        <button class="size-option" onclick="toggleSize(this)">44</button>
+                        <button class="size-option" onclick="toggleSize(this)">45</button>
+                    </div>
+                </div>
+
+                <!-- Giá -->
+                <div class="filter-group">
+                    <div class="filter-group-title">Khoảng giá</div>
+                    <div class="price-range-display">
+                        <span style="font-size:12px;color:var(--gray-500)">Dưới:</span>
+                        <span class="price-range-val" id="priceRangeVal">10.000.000 ₫</span>
+                    </div>
+                    <input type="range" class="price-slider" id="priceSlider"
+                           min="200000" max="10000000" step="100000" value="10000000"
+                           oninput="updatePriceRange(this.value)">
+                    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--gray-400)">
+                        <span>200K</span><span>10.000K</span>
+                    </div>
+                </div>
+            </aside>
+            <!-- END SIDEBAR -->
+
+            <!-- ============ MAIN CONTENT ============ -->
+            <div class="products-main">
+
+                <!-- Toolbar -->
+                <div class="products-toolbar">
+                    <div class="toolbar-left">
+                        <p class="results-count">Hiển thị <strong id="resultCount">0</strong> sản phẩm</p>
+                    </div>
+                    <form class="toolbar-search" id="toolbarSearchForm" onsubmit="return false;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" id="toolbarSearch" placeholder="Tìm sản phẩm...">
+                    </form>
+                    <div class="toolbar-right">
+                        <div class="view-toggle">
+                            <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Lưới">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                            </button>
+                            <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="Danh sách">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="product-list-grid" id="productListGrid">
+                    <!-- Loading skeletons -->
+                    <div class="skeleton-card"><div class="skeleton" style="height:220px;border-radius:0;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:16px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton" style="height:220px;border-radius:0;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:16px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton" style="height:220px;border-radius:0;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:16px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton" style="height:220px;border-radius:0;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:16px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton" style="height:220px;border-radius:0;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:16px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+                    <div class="skeleton-card"><div class="skeleton" style="height:220px;border-radius:0;"></div><div style="padding:14px;display:flex;flex-direction:column;gap:8px;"><div class="skeleton" style="height:12px;width:40%;"></div><div class="skeleton" style="height:16px;"></div><div class="skeleton" style="height:14px;width:60%;"></div></div></div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-wrap" id="paginationWrap" style="display:none;">
+                    <p class="page-info" id="pageInfo">Hiển thị 1-9 trong 24 sản phẩm</p>
+                    <div class="page-controls">
+                        <button class="page-btn" id="prevPageBtn" onclick="changePage(-1)" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <div id="pageNumbers" style="display: flex; align-items: center; gap: 6px;"></div>
+                        <button class="page-btn" id="nextPageBtn" onclick="changePage(1)">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- END MAIN -->
+        </div>
+    </div>
+</div>
+
+<!-- ===== CART SIDEBAR ===== -->
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-sidebar" id="cartSidebar">
+    <div class="cart-sidebar-header">
+        <div class="cart-sidebar-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Giỏ hàng của bạn
+        </div>
+        <button class="cart-close" id="cartClose">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+    <div class="cart-items-list" id="cartItemsContainer">
+        <div class="cart-empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <p>Giỏ hàng trống</p>
+        </div>
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total-row">
+            <span class="cart-total-label">Tổng thanh toán:</span>
+            <span class="cart-total-val" id="cartTotalAmount">0 ₫</span>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Tiến hành thanh toán
+        </button>
+    </div>
+</aside>
+
+<!-- Product Modal -->
+<div class="product-modal-overlay" id="productModalOverlay"
+     onclick="if(event.target===this) closeProductModal()">
+    <div class="product-modal" id="productModalContent"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+<!-- Scroll top -->
+<button class="scroll-top" id="scrollTopBtn">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="/js/client/auth-header.js"></script>
+<script src="/js/trang-chu.js?v=2.3"></script>
+<script src="/js/san-pham.js?v=3.0"></script>
+<!-- ===== AI CHAT WIDGET (BOTTOM LEFT) ===== -->
+<div th:replace="~{client-chat-widget :: chat-widget}"></div>
+
+</body>
+</html>

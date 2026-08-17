@@ -1,0 +1,910 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Lịch Làm Việc | VShoes</title>
+    
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/store.css?v=99">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    
+    <!-- Choices.js CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f4f6f8; margin: 0; }
+        
+        .box-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .box-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .filter-group label span {
+            color: #ef4444;
+        }
+
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            width: 250px;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            transition: opacity 0.2s;
+        }
+        
+        .btn:hover { opacity: 0.9; }
+
+        .btn-red {
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-red-outline {
+            background: white;
+            color: #4f46e5;
+            border: 1px solid #4f46e5;
+        }
+        
+        .btn-blue {
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Calendar customization to match the image */
+        .fc-toolbar-title { font-size: 18px !important; font-weight: 700 !important; color: #1e293b; }
+        .fc-button-primary {
+            background-color: white !important;
+            color: #475569 !important;
+            border: 1px solid #cbd5e1 !important;
+            text-transform: capitalize !important;
+        }
+        .fc-button-primary:not(:disabled).fc-button-active, .fc-button-primary:not(:disabled):active {
+            background-color: #1e293b !important;
+            color: white !important;
+            border-color: #1e293b !important;
+        }
+        .fc-header-toolbar {
+            flex-wrap: nowrap !important;
+            gap: 15px;
+            overflow-x: auto;
+        }
+        .fc-toolbar-chunk {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            gap: 8px;
+        }
+        .fc-toolbar-title {
+            margin: 0 !important;
+            white-space: nowrap !important;
+        }
+        .fc-col-header-cell {
+            background-color: #f8fafc;
+            padding: 10px 0 !important;
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .fc-daygrid-day-number { color: #475569; font-weight: 500; }
+        .fc-event {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            text-align: center;
+        }
+        .event-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #1e40af;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin: 0 auto;
+            font-size: 14px;
+        }
+        .event-title {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 4px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .view-toggles { display: flex; gap: 8px; }
+        .view-toggles .btn-view-bang, .view-toggles .btn-view-lich {
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .view-toggles .btn-view-bang.active {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .view-toggles .btn-view-lich.active {
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Thêm nút + khi hover vào ô lịch */
+        .fc-daygrid-day-frame { position: relative; cursor: pointer; transition: background 0.2s; }
+        .fc-daygrid-day-frame:hover { background-color: rgba(241, 245, 249, 0.5); }
+        .fc-daygrid-day-frame::after {
+            content: '+';
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1.5px dashed #ef4444;
+            color: #ef4444;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 300;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .fc-daygrid-day-frame:hover::after {
+            display: flex;
+        }
+
+        /* Bo góc bảng lịch FullCalendar */
+        .fc-theme-standard .fc-scrollgrid {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Custom Day View Styles */
+        #customDayView {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            margin-top: 10px;
+        }
+        .cdv-header {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .cdv-shift-col {
+            width: 200px;
+            flex-shrink: 0;
+            padding: 12px;
+            font-weight: 600;
+            color: #475569;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+        .cdv-days-col {
+            flex-grow: 1;
+            display: flex;
+        }
+        .cdv-day-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-weight: 600;
+            color: #2563eb;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+        }
+        .cdv-day-tab:hover { background: #f1f5f9; }
+        .cdv-day-tab.active {
+            color: #1e293b;
+            background: #fff;
+        }
+        .cdv-date-row {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fff;
+        }
+        .cdv-date-display {
+            flex-grow: 1;
+            text-align: center;
+            padding: 12px;
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 14px;
+        }
+        .cdv-shift-row {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fff;
+            min-height: 100px;
+        }
+        .cdv-shift-row:last-child { border-bottom: none; }
+        .cdv-shift-info {
+            width: 200px;
+            flex-shrink: 0;
+            padding: 16px;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .cdv-shift-name { font-weight: 600; color: #1e293b; font-size: 14px; }
+        .cdv-shift-time { font-size: 13px; color: #64748b; margin-top: 4px; }
+        .cdv-shift-content {
+            flex-grow: 1;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .cdv-add-btn {
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            font-style: italic;
+            width: 100%;
+            text-align: center;
+        }
+        .cdv-add-btn:hover { color: #2563eb; text-decoration: underline; }
+        .cdv-event-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #ef4444;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .cdv-event-add {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #9a3412;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 9999;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; border-radius: 12px; width: 500px;
+            padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 { margin: 0; font-size: 20px; color: #1e293b; }
+        .close-btn {
+            background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b;
+        }
+        
+        /* Choices js overrides */
+        .choices__inner {
+            border-radius: 8px !important;
+            background: #fff !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        .choices__list--multiple .choices__item {
+            background-color: #38bdf8 !important;
+            border: 1px solid #0ea5e9 !important;
+            border-radius: 20px !important;
+            color: white !important;
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <main class="main-content">
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 20px; color: #1e293b; font-weight: 700;">Quản lý lịch làm việc</h2>
+            </div>
+
+            <!-- Top Filter Box -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <div class="box-title">
+                    <i data-lucide="sliders-horizontal" style="width: 18px; height: 18px;"></i> Tùy chọn
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Nhân viên <span>*</span></label>
+                        <input type="text" id="searchNhanVien" class="glass-input" placeholder="Tìm kiếm nhân viên..." style="width: 250px;">
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="btnXuatExcelLich" style="padding: 8px 14px; background: white; color: #0f2d4a; border: 1px solid #0f2d4a; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#0f2d4a'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#0f2d4a'">
+                            <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i> Xuất Excel
+                        </button>
+                        <button id="btnThemLich" class="btn-premium hover-lift">
+                            <i data-lucide="plus" style="width: 20px; height: 20px;"></i> Chia nhân viên
+                        </button>
+                        
+                        <!-- Requested Integration Buttons -->
+                        <div style="width: 2px; background: #e2e8f0; margin: 0 5px;"></div>
+                        
+                        <a href="/giao-ca?view=history" style="text-decoration: none;">
+                            <button class="btn-premium hover-lift" style="background: linear-gradient(to right, #14466b, #009fe3); color: white; border: none; border-radius: 8px;">
+                                <i data-lucide="history" style="width: 20px; height: 20px;"></i> Lịch sử hoạt động
+                            </button>
+                        </a>
+                        
+                        <a href="/ca-lam" style="text-decoration: none;">
+                            <button class="btn-premium hover-lift">
+                                <i data-lucide="clock" style="width: 20px; height: 20px;"></i> Ca làm
+                            </button>
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Box -->
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div class="box-title" id="calendarTitleText" style="margin-bottom: 0;">
+                        <i data-lucide="calendar-days" style="width: 18px; height: 18px;"></i> Lịch Làm Việc Tuần
+                    </div>
+                    <div class="view-toggles">
+                        <button id="btnViewBang" class="btn-view-bang"><i data-lucide="table" style="width: 18px; height: 18px;"></i> Bảng</button>
+                        <button id="btnViewLich" class="btn-view-lich active"><i data-lucide="calendar" style="width: 18px; height: 18px;"></i> Lịch</button>
+                    </div>
+                </div>
+                
+                <!-- FullCalendar Container -->
+                <div id='calendar'></div>
+                <!-- Custom Day View -->
+                <div id='customDayView' style="display: none;"></div>
+            </div>
+
+            <!-- Quick Add Modal -->
+            <div id="quickAddModal" class="modal-overlay">
+                <div class="modal-content glass-card">
+                    <div class="modal-header">
+                        <h3>Thêm Mới Lịch</h3>
+                        <button type="button" class="close-btn" onclick="closeQuickAddModal()">&times;</button>
+                    </div>
+                    <form id="quickAddForm">
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label style="display:block; margin-bottom: 8px; font-weight:600; font-size:14px; color:#475569;">Nhân viên <span style="color:#ef4444;">*</span></label>
+                            <select id="modalSelectNhanVien" multiple required></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label style="display:block; margin-bottom: 8px; font-weight:600; font-size:14px; color:#475569;">Ca làm việc <span style="color:#ef4444;">*</span></label>
+                            <select id="modalSelectCaLam" multiple required></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label style="display:block; margin-bottom: 8px; font-weight:600; font-size:14px; color:#475569;">Ngày làm <span style="color:#ef4444;">*</span></label>
+                            <input type="date" id="modalInputNgay" class="glass-input" style="width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;" required>
+                        </div>
+                        <div style="text-align: right;">
+                            <button type="button" class="btn-premium-secondary hover-lift" onclick="closeQuickAddModal()">Hủy</button>
+                            <button type="submit" class="btn-premium hover-lift" style="margin-left: 10px;">Thêm mới</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/vi.js'></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            lucide.createIcons();
+
+            var calendarEl = document.getElementById('calendar');
+            let globalShifts = [];
+            
+            let choicesNhanVien = new Choices('#modalSelectNhanVien', {
+                removeItemButton: true,
+                placeholderValue: 'Tìm và chọn nhiều nhân viên...',
+                noChoicesText: 'Không có dữ liệu',
+                itemSelectText: ''
+            });
+            let choicesCaLam = new Choices('#modalSelectCaLam', {
+                removeItemButton: true,
+                placeholderValue: 'Tìm và chọn ca làm việc...',
+                noChoicesText: 'Không có dữ liệu',
+                itemSelectText: ''
+            });
+
+            window.openQuickAddModal = function(dateStr, caLamId = null) {
+                document.getElementById('quickAddModal').style.display = 'flex';
+                document.getElementById('modalInputNgay').value = dateStr;
+                choicesNhanVien.removeActiveItems();
+                choicesCaLam.removeActiveItems();
+                if (caLamId) {
+                    choicesCaLam.setChoiceByValue(caLamId.toString());
+                }
+            };
+            
+            window.closeQuickAddModal = function() {
+                document.getElementById('quickAddModal').style.display = 'none';
+            };
+
+            window.deleteLichLamViec = function(id) {
+                Swal.fire({
+                    title: 'Xác nhận xóa?',
+                    text: "Bạn có chắc chắn muốn xóa lịch làm việc này không?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch('/api/lich-lam-viec/' + id, { method: 'DELETE' })
+                            .then(res => {
+                                if(res.ok) {
+                                    Swal.fire({
+                                        icon: 'success', title: 'Đã xóa!', text: 'Lịch làm việc đã được xóa.',
+                                        showConfirmButton: false, timer: 1500
+                                    });
+                                    calendar.refetchEvents();
+                                } else {
+                                    Swal.fire('Lỗi', 'Không thể xóa lịch làm việc', 'error');
+                                }
+                            }).catch(err => {
+                                Swal.fire('Lỗi', 'Lỗi kết nối khi xóa', 'error');
+                            });
+                    }
+                });
+            };
+
+            document.getElementById('quickAddForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const nvIds = choicesNhanVien.getValue(true);
+                const caIds = choicesCaLam.getValue(true);
+                const ngay = document.getElementById('modalInputNgay').value;
+
+                if (!nvIds.length || !caIds.length || !ngay) {
+                    Swal.fire('Cảnh báo', 'Vui lòng chọn nhân viên và ca làm', 'warning');
+                    return;
+                }
+
+                const promises = [];
+                nvIds.forEach(nvId => {
+                    caIds.forEach(caId => {
+                        promises.push(fetch('/api/lich-lam-viec', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                nhanVien: { id: nvId },
+                                caLam: { id: caId },
+                                ngayLamViec: ngay,
+                                ghiChu: ''
+                            })
+                        }));
+                    });
+                });
+
+                Promise.all(promises).then(responses => {
+                    Swal.fire({
+                        icon: 'success', title: 'Thành công!', text: 'Đã thêm lịch làm việc.',
+                        showConfirmButton: false, timer: 1500
+                    });
+                    closeQuickAddModal();
+                    calendar.refetchEvents();
+                }).catch(err => {
+                    Swal.fire('Lỗi', 'Không thể lưu lịch làm việc', 'error');
+                });
+            });
+
+            // Hàm render custom day view
+            window.renderCustomDayView = function(date) {
+                const customView = document.getElementById('customDayView');
+                if (!customView) return;
+                
+                const day = date.getDay(); 
+                const diffToMon = day === 0 ? -6 : 1 - day; 
+                const startOfWeek = new Date(date);
+                startOfWeek.setDate(date.getDate() + diffToMon);
+                
+                let daysHtml = '';
+                const dayNames = ['Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'CN'];
+                
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(startOfWeek);
+                    d.setDate(startOfWeek.getDate() + i);
+                    const isActive = d.toDateString() === date.toDateString() ? 'active' : '';
+                    const dStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                    daysHtml += `<div class="cdv-day-tab ${isActive}" onclick="calendar.gotoDate('${dStr}')">${dayNames[i]}</div>`;
+                }
+                
+                const dayOfWeekStr = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()];
+                const dateStr = `${dayOfWeekStr} ${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                
+                const localDateStr = date.getFullYear() + '-' + String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
+                
+                const eventsToday = calendar.getEvents().filter(e => {
+                    return e.startStr && e.startStr.split('T')[0] === localDateStr;
+                });
+
+                let shiftsHtml = '';
+                globalShifts.forEach(shift => {
+                    const shiftEvents = eventsToday.filter(e => e.extendedProps && e.extendedProps.shiftId == shift.id);
+                    
+                    let contentHtml = '';
+                    if (shiftEvents.length === 0) {
+                        contentHtml = `<div class="cdv-add-btn" onclick="openQuickAddModal('${localDateStr}', '${shift.id}')">+ Bấm vào đây để thêm nhân viên vào ca này</div>`;
+                    } else {
+                        contentHtml += `<div class="cdv-event-add" onclick="openQuickAddModal('${localDateStr}', '${shift.id}')" title="Thêm nhân viên">+</div>`;
+                        shiftEvents.forEach(e => {
+                            contentHtml += `
+                                <div class="cdv-event-card" style="position: relative; padding-right: 30px;">
+                                    <div class="event-circle" style="width: 24px; height: 24px; font-size: 12px; margin: 0;">${e.extendedProps.initials}</div>
+                                    <div style="font-size: 13px; font-weight: 500;">
+                                        <div style="margin-bottom: 2px;">${e.extendedProps.tenNV}</div>
+                                        <div style="font-size: 11px; color: #64748b;">${e.extendedProps.maNhanVien || ''}</div>
+                                    </div>
+                                    <div onclick="deleteLichLamViec(${e.id})" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ef4444; padding: 4px;" title="Xóa lịch làm việc">
+                                        <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    shiftsHtml += `
+                        <div class="cdv-shift-row">
+                            <div class="cdv-shift-info">
+                                <div class="cdv-shift-name">${shift.tenCa}</div>
+                                <div class="cdv-shift-time">${shift.thoiGianBatDau.substring(0,5)} - ${shift.thoiGianKetThuc.substring(0,5)}</div>
+                            </div>
+                            <div class="cdv-shift-content">
+                                ${contentHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if (globalShifts.length === 0) {
+                    shiftsHtml = `<div style="padding: 20px; text-align: center; color: #64748b;">Đang tải ca làm...</div>`;
+                }
+
+                customView.innerHTML = `
+                    <div class="cdv-header">
+                        <div class="cdv-shift-col">CA LÀM VIỆC</div>
+                        <div class="cdv-days-col">
+                            ${daysHtml}
+                        </div>
+                    </div>
+                    <div class="cdv-date-row">
+                        <div class="cdv-shift-col"></div>
+                        <div class="cdv-date-display">${dateStr}</div>
+                    </div>
+                    ${shiftsHtml}
+                `;
+                
+                // Render icons newly added into DOM
+                setTimeout(() => { lucide.createIcons(); }, 10);
+            };
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'vi',
+                initialView: 'dayGridWeek', // Matches the image showing a week view but in grid format
+                headerToolbar: {
+                    left: 'prev title next today',
+                    center: '',
+                    right: 'dayGridDay,dayGridWeek,dayGridMonth'
+                },
+                buttonText: {
+                    today: 'Hôm nay',
+                    month: 'Tháng',
+                    week: 'Tuần',
+                    day: 'Ngày',
+                    list: 'Danh sách'
+                },
+                views: {
+                    dayGridWeek: {
+                        titleFormat: function(date) {
+                            var currentMonth = date.date.month;
+                            var startOfMonth = new Date(date.date.year, currentMonth, 1);
+                            var weekNum = Math.ceil((date.date.day + startOfMonth.getDay()) / 7);
+                            return `Tuần ${weekNum} Năm ${date.date.year}`;
+                        }
+                    },
+                    dayGridDay: {
+                        titleFormat: function(date) {
+                            return `Tháng ${date.date.month + 1} Năm ${date.date.year}`;
+                        }
+                    },
+                    dayGridMonth: {
+                        titleFormat: function(date) {
+                            return `Tháng ${date.date.month + 1} Năm ${date.date.year}`;
+                        }
+                    }
+                },
+                datesSet: function(info) {
+                    if (info.view.type === 'dayGridDay') {
+                        document.querySelector('.fc-view-harness').style.display = 'none';
+                        document.getElementById('customDayView').style.display = 'block';
+                        
+                        document.getElementById('calendarTitleText').innerHTML = `<i data-lucide="calendar-days" style="width: 18px; height: 18px;"></i> Lịch Làm Việc Ngày`;
+                        lucide.createIcons();
+                        
+                        window.renderCustomDayView(info.view.calendar.getDate());
+                    } else {
+                        document.querySelector('.fc-view-harness').style.display = '';
+                        document.getElementById('customDayView').style.display = 'none';
+                        
+                        let titleText = 'Lịch Làm Việc Tháng';
+                        if(info.view.type === 'dayGridWeek') titleText = 'Lịch Làm Việc Tuần';
+                        document.getElementById('calendarTitleText').innerHTML = `<i data-lucide="calendar-days" style="width: 18px; height: 18px;"></i> ${titleText}`;
+                        lucide.createIcons();
+                        
+                        // Force FullCalendar to recalculate its grid width after display is restored
+                        setTimeout(() => { info.view.calendar.updateSize(); }, 50);
+                    }
+                },
+                dayHeaderFormat: { weekday: 'short', omitCommas: true },
+                height: 'auto',
+                firstDay: 1, // Monday first
+                
+                // Sự kiện click vào 1 ô ngày bất kỳ trên lịch
+                dateClick: function(info) {
+                    openQuickAddModal(info.dateStr);
+                },
+                
+                eventClick: function(info) {
+                    deleteLichLamViec(info.event.id);
+                },
+                
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    fetch('/api/lich-lam-viec')
+                        .then(res => res.json())
+                        .then(data => {
+                            var events = data.map(item => {
+                                var tenNV = item.nhanVien ? item.nhanVien.hoTen : 'Unknown';
+                                var maNhanVien = item.nhanVien ? item.nhanVien.maNhanVien : '';
+                                var tenCa = item.caLam ? item.caLam.tenCa : 'Ca';
+                                var title = tenCa + ' - ' + tenNV;
+                                var initials = tenNV.split(' ').pop().charAt(0).toUpperCase();
+                                
+                                return {
+                                    id: item.id,
+                                    title: title,
+                                    start: item.ngayLamViec,
+                                    extendedProps: { 
+                                        initials: initials,
+                                        tenNV: tenNV,
+                                        maNhanVien: maNhanVien,
+                                        shiftId: item.caLam ? item.caLam.id : null
+                                    }
+                                };
+                            });
+                            
+                            // Filter by search input
+                            var filterText = document.getElementById('searchNhanVien').value.toLowerCase();
+                            if (filterText) {
+                                events = events.filter(e => e.title.toLowerCase().includes(filterText));
+                            }
+                            
+                            successCallback(events);
+                            
+                            if (calendar.view.type === 'dayGridDay') {
+                                window.renderCustomDayView(calendar.getDate());
+                            }
+                        })
+                        .catch(err => failureCallback(err));
+                },
+                eventContent: function(arg) {
+                    var initials = arg.event.extendedProps.initials || arg.event.title.charAt(0).toUpperCase();
+                    var customHtml = `
+                        <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding-top: 10px;">
+                            <div class="event-circle">${initials}</div>
+                            <div class="event-title" title="${arg.event.title}">${arg.event.title}</div>
+                        </div>
+                    `;
+                    return { html: customHtml };
+                }
+            });
+            
+            // Auto-fill search box from URL Parameter if navigating from Employee screen
+            const urlParams = new URLSearchParams(window.location.search);
+            const nvParam = urlParams.get('nhanVien');
+            if (nvParam) {
+                document.getElementById('searchNhanVien').value = nvParam;
+            }
+            
+            calendar.render();
+            
+            // Re-render lucide icons inside calendar if needed
+            setTimeout(() => { lucide.createIcons(); }, 500);
+
+            // Fetch Shifts for Custom Day View
+            fetch('/api/ca-lam')
+                .then(res => res.json())
+                .then(data => {
+                    globalShifts = data.filter(ca => ca.trangThai === 1);
+                    globalShifts.sort((a,b) => a.thoiGianBatDau.localeCompare(b.thoiGianBatDau));
+                    
+                    const caOptions = globalShifts.map(ca => ({
+                        value: ca.id.toString(),
+                        label: ca.tenCa + ' (' + ca.thoiGianBatDau.substring(0,5) + ' - ' + ca.thoiGianKetThuc.substring(0,5) + ')'
+                    }));
+                    choicesCaLam.setChoices(caOptions, 'value', 'label', true);
+                    
+                    if (calendar && calendar.view && calendar.view.type === 'dayGridDay') {
+                        window.renderCustomDayView(calendar.getDate());
+                    }
+                });
+                
+            // Fetch Nhan Vien cho Modal
+            fetch('/api/nhan-vien')
+                .then(res => res.json())
+                .then(data => {
+                    const nvOptions = data.map(nv => ({
+                        value: nv.id.toString(),
+                        label: nv.maNhanVien + ' - ' + nv.hoTen
+                    }));
+                    choicesNhanVien.setChoices(nvOptions, 'value', 'label', true);
+                });
+
+            // Search filter event
+            document.getElementById('searchNhanVien').addEventListener('input', function() {
+                calendar.refetchEvents();
+            });
+
+            // Mở modal thêm lịch nhanh
+            document.getElementById('btnThemLich').addEventListener('click', () => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                openQuickAddModal(todayStr);
+            });
+
+            // View Toggles Logic
+            document.getElementById('btnViewBang').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('btnViewLich').classList.remove('active');
+                calendar.changeView('listWeek'); // Show table view
+            });
+
+            document.getElementById('btnViewLich').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('btnViewBang').classList.remove('active');
+                calendar.changeView('dayGridWeek'); // Show calendar grid view
+            });
+
+            // Excel Export Logic
+            document.getElementById('btnXuatExcelLich').addEventListener('click', function() {
+                var events = calendar.getEvents();
+                if (events.length === 0) {
+                    Swal.fire('Thông báo', 'Không có dữ liệu lịch làm việc để xuất', 'info');
+                    return;
+                }
+                
+                let csvContent = "\uFEFF"; // BOM for UTF-8
+                csvContent += "Tên ca - Nhân viên,Ngày làm việc\n";
+                
+                events.forEach(function(e) {
+                    var title = `"${e.title.replace(/"/g, '""')}"`;
+                    // e.startStr is ISO format YYYY-MM-DD
+                    var start = e.startStr || ""; 
+                    csvContent += `${title},${start}\n`;
+                });
+                
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Lich_Lam_Viec_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+</html>
+
+

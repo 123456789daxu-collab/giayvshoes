@@ -283,7 +283,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                     .tenMauSac(spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "")
                     .tenKichCo(spct.getCoGiay() != null ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "")
                     .giaBan(spct.getGiaBan())
-                    .phanTramGiam(chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId()))
+                    .phanTramGiam(chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now()))
                     .build()
         );
     }
@@ -312,7 +312,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                     .giaBan(ct.getGiaBan())
                     .hinhAnh(ct.getHinhAnh())
                     .soLuong(ct.getSoLuongTon())
-                    .phanTramGiam(chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(ct.getId()))
+                    .phanTramGiam(chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(ct.getId(), java.time.LocalDateTime.now()))
                     .build()
                 ).collect(Collectors.toList());
 

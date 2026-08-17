@@ -1,0 +1,831 @@
+@import url('/css/global-typography.css');
+
+/* ============================================================
+   CSS QUẢN LÝ ĐÁNH GIÁ (ADMIN) - VSHOES PREMIUM SYSTEM
+   ĐỒNG BỘ MÀU LOGO (CYAN #00ADEF & NAVY #0F2D4A)
+   THIẾT KẾ MỀM MẠI, RỘNG RÃI, CAO CẤP & ÊM MẮT
+   ============================================================ */
+
+:root {
+    --primary-blue: #00adef;
+    --primary-dark: #0f2d4a;
+    --primary-hover: #0284c7;
+    --primary-grad: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
+    --primary-grad-hover: linear-gradient(135deg, #0a1f33 0%, #0284c7 100%);
+    --star-gold: #f59e0b;
+    --text-main: #0f172a;
+    --text-body: #334155;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --border-soft: rgba(226, 232, 240, 0.9);
+    --border-focus: #00adef;
+    --bg-canvas: #f8fafc;
+    --bg-card: #ffffff;
+    --card-radius: 20px;
+    --card-shadow: 0 4px 25px -4px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.02);
+    --card-shadow-hover: 0 10px 32px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+}
+
+.dg-container {
+    padding: 16px 24px 60px;
+    max-width: 1460px;
+    margin: 0 auto;
+}
+
+/* ============================================================
+   1. HEADER SECTION (TIÊU ĐỀ & THANH ĐIỀU KHIỂN RỘNG RÃI)
+   ============================================================ */
+.dg-header-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.dg-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.dg-page-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0;
+    letter-spacing: -0.4px;
+}
+
+.dg-page-subtitle {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.dg-header-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* Dropdown chế độ xem */
+.dg-select-mode-wrap {
+    position: relative;
+}
+
+.dg-select-mode {
+    appearance: none;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300adef' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+    padding: 11px 42px 11px 18px;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.dg-select-mode:hover, .dg-select-mode:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(0, 173, 239, 0.15);
+}
+
+/* Ô tìm kiếm có icon */
+.dg-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.dg-search-icon {
+    position: absolute;
+    left: 14px;
+    color: #94a3b8;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dg-search-input {
+    width: 320px;
+    padding: 11px 18px 11px 42px;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 12px;
+    font-size: 13.5px;
+    color: var(--text-main);
+    outline: none;
+    background: #ffffff;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.dg-search-input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(0, 173, 239, 0.15);
+}
+
+.dg-search-input::placeholder {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+/* ============================================================
+   2. VIEW 1: MAIN TABLE CARD (BẢNG RỘNG RÃI, CAO CẤP)
+   ============================================================ */
+.dg-main-card {
+    background: var(--bg-card);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.dg-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dg-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.dg-table thead th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 18px 26px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dg-table tbody tr {
+    transition: background 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dg-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.dg-table tbody td {
+    padding: 18px 26px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: var(--text-body);
+}
+
+.dg-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Product cell */
+.dg-prod-cell {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.dg-prod-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.dg-prod-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dg-prod-title {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.35;
+}
+
+.dg-prod-code {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0284c7;
+    background: #e0f2fe;
+    padding: 2px 8px;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+/* Số đánh giá pill */
+.dg-count-pill {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dg-count-pill.has-review {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.dg-count-pill.no-review {
+    background: #f8fafc;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+}
+
+/* Điểm TB badge */
+.dg-score-badge {
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dg-score-badge.has-score {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+    box-shadow: 0 1px 4px rgba(217, 119, 6, 0.1);
+}
+
+.dg-score-badge.no-score {
+    background: #f8fafc;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+}
+
+/* Mới nhất */
+.dg-time-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.dg-time-ico {
+    width: 14px;
+    height: 14px;
+    color: #94a3b8;
+}
+
+/* Nút Thao tác */
+.dg-btn-action-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 10px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #0284c7;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dg-btn-action-view:hover {
+    background: var(--primary-grad);
+    border-color: #00adef;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 173, 239, 0.3);
+}
+
+/* ============================================================
+   3. PHÂN TRANG (PAGINATION)
+   ============================================================ */
+.dg-pagination-wrap {
+    padding: 18px 26px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.dg-page-btn {
+    padding: 7px 15px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dg-page-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.dg-page-btn.active {
+    background: var(--primary-grad);
+    border-color: #00adef;
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(0, 173, 239, 0.25);
+}
+
+.dg-page-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   4. VIEW 2: DETAIL VIEW (XEM CHI TIẾT ĐỒNG BỘ & RỘNG RÃI)
+   ============================================================ */
+.dg-back-btn-wrap {
+    margin-bottom: 20px;
+}
+
+.dg-back-btn {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    color: #334155;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.dg-back-btn:hover {
+    background: #f0f9ff;
+    border-color: #00adef;
+    color: #0284c7;
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(0, 173, 239, 0.15);
+}
+
+.dg-detail-card {
+    background: var(--bg-card);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--card-shadow);
+    padding: 24px 30px;
+    margin-bottom: 18px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dg-detail-card:hover {
+    box-shadow: var(--card-shadow-hover);
+    border-color: #e2e8f0;
+}
+
+/* Card 1: Product Banner (Rộng rãi, to rõ) */
+.dg-banner-prod {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.dg-banner-img {
+    width: 68px;
+    height: 68px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.dg-banner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.dg-banner-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+}
+
+.dg-banner-code {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0284c7;
+    background: #e0f2fe;
+    padding: 3px 10px;
+    border-radius: 8px;
+    width: fit-content;
+}
+
+/* Card 2: Rating Score & Pill Filters (To rõ, mềm mại) */
+.dg-rating-pill-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.dg-score-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.dg-score-num-big {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--star-gold);
+    line-height: 1;
+    letter-spacing: -0.5px;
+}
+
+.dg-score-stars-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dg-score-stars-render {
+    color: var(--star-gold);
+    font-size: 17px;
+    letter-spacing: 3px;
+}
+
+.dg-score-subtitle {
+    font-size: 13.5px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.dg-pill-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dg-star-pill {
+    padding: 9px 22px;
+    border-radius: 9999px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+}
+
+.dg-star-pill:hover {
+    background: #f0f9ff;
+    border-color: #bae6fd;
+    color: #0284c7;
+    transform: translateY(-1px);
+}
+
+.dg-star-pill.active {
+    background: var(--primary-grad);
+    color: #ffffff;
+    border-color: #00adef;
+    box-shadow: 0 4px 16px rgba(0, 173, 239, 0.35);
+    transform: translateY(-1px);
+}
+
+/* Card 3: Filters & Analysis Bar */
+.dg-filter-action-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.dg-filter-inputs-group {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.dg-filter-input-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dg-filter-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dg-date-input, .dg-select-input {
+    padding: 10px 16px;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 12px;
+    font-size: 13.5px;
+    color: #1e293b;
+    font-weight: 500;
+    outline: none;
+    background: #f8fafc;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+}
+
+.dg-date-input:focus, .dg-select-input:focus {
+    background: #ffffff;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(0, 173, 239, 0.15);
+}
+
+.dg-btn-analyze {
+    background: var(--primary-grad);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 26px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(0, 173, 239, 0.28);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dg-btn-analyze:hover {
+    background: var(--primary-grad-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 173, 239, 0.4);
+}
+
+/* Card 4+: Review Item Card */
+.dg-review-detail-card {
+    background: var(--bg-card);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--card-shadow);
+    padding: 26px 32px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dg-review-detail-card:hover {
+    box-shadow: var(--card-shadow-hover);
+    border-color: #e2e8f0;
+}
+
+.dg-review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dg-review-user-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.dg-review-avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #0284c7;
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+    box-shadow: 0 3px 10px rgba(0, 173, 239, 0.18);
+}
+
+.dg-review-author-name {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.dg-review-timestamp {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+.dg-btn-del-text {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    color: #ef4444;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+}
+
+.dg-btn-del-text:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+    transform: translateY(-1px);
+}
+
+.dg-review-stars-render {
+    color: var(--star-gold);
+    font-size: 16px;
+    letter-spacing: 3px;
+}
+
+.dg-review-text-content {
+    font-size: 15px;
+    color: var(--text-body);
+    line-height: 1.65;
+    margin-top: -2px;
+}
+
+.dg-review-images-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.dg-review-img-thumb {
+    width: 78px;
+    height: 78px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dg-review-img-thumb:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Reply Input & Send Button */
+.dg-reply-form-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.dg-reply-textarea {
+    width: 100%;
+    padding: 14px 20px;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 14px;
+    font-size: 14px;
+    color: #1e293b;
+    outline: none;
+    background: #f8fafc;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    resize: vertical;
+    min-height: 68px;
+}
+
+.dg-reply-textarea:focus {
+    background: #ffffff;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(0, 173, 239, 0.15);
+}
+
+.dg-reply-textarea::placeholder {
+    color: #94a3b8;
+    font-size: 13.5px;
+}
+
+.dg-btn-send-reply {
+    background: var(--primary-grad);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 173, 239, 0.28);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dg-btn-send-reply:hover {
+    background: var(--primary-grad-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 173, 239, 0.4);
+}
+
+/* Existing Shop Reply Bubble */
+.dg-existing-reply-box {
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border: 1.5px solid #bbf7d0;
+    border-radius: 16px;
+    padding: 18px 24px;
+    margin-top: 6px;
+}
+
+.dg-existing-reply-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #15803d;
+    margin-bottom: 6px;
+}
+
+.dg-existing-reply-text {
+    font-size: 14.5px;
+    color: #1e293b;
+    line-height: 1.6;
+}
+
+/* Lightbox Modal */
+.dg-lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.dg-lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.dg-lightbox-content img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.dg-lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 32px;
+    cursor: pointer;
+}

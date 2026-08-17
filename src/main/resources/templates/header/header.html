@@ -1,0 +1,51 @@
+<!-- File fragment Header dùng chung cho các trang -->
+<div th:fragment="header" class="top-header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <div class="header-right">
+        <!-- Nút thông báo -->
+        <button class="icon-btn">
+            <i data-lucide="bell"></i>
+        </button>
+        
+        <!-- Đường gạch dọc -->
+        <div class="header-divider"></div>
+        
+        <!-- Khu vực thông tin người dùng -->
+        <div class="user-profile" id="userProfileDropdown">
+            <div class="avatar">
+                <i data-lucide="user"></i>
+            </div>
+            <!-- Nếu đã đăng nhập, hiển thị họ tên của nhân viên đó -->
+            <span class="user-name" sec:authorize="isAuthenticated()" sec:authentication="principal.nhanVien.hoTen">Tên người dùng</span>
+            <span class="user-name" sec:authorize="!isAuthenticated()">Chưa đăng nhập</span>
+            <i data-lucide="chevron-down" class="dropdown-icon"></i>
+            
+            <!-- Menu xổ xuống -->
+            <div class="dropdown-menu">
+                <a href="/logout" class="dropdown-item text-danger">
+                    <i data-lucide="log-out"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script xử lý đóng mở dropdown -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userProfile = document.getElementById('userProfileDropdown');
+            if (userProfile) {
+                userProfile.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.classList.toggle('open');
+                });
+
+                // Đóng dropdown khi click ra ngoài
+                document.addEventListener('click', function(e) {
+                    if (!userProfile.contains(e.target)) {
+                        userProfile.classList.remove('open');
+                    }
+                });
+            }
+        });
+    </script>
+</div>

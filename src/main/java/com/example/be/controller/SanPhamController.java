@@ -41,6 +41,9 @@ public class SanPhamController {
     @Autowired
     private com.example.be.repository.CoGiayRepository coGiayRepository;
 
+    @Autowired
+    private com.example.be.repository.ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
+
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable Long id, 
                        @RequestParam(defaultValue = "0") int page,
@@ -52,8 +55,25 @@ public class SanPhamController {
         }
         Page<com.example.be.entity.SanPhamChiTiet> pageData = sanPhamChiTietRepository.findBySanPhamId(id, PageRequest.of(page, size));
         
+        java.util.Map<Long, Integer> phanTramGiamMap = new java.util.HashMap<>();
+        java.util.Map<Long, java.math.BigDecimal> giaSauGiamMap = new java.util.HashMap<>();
+        for (com.example.be.entity.SanPhamChiTiet spct : pageData.getContent()) {
+            Integer phanTramGiam = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+            if (phanTramGiam != null && phanTramGiam > 0) {
+                phanTramGiamMap.put(spct.getId(), phanTramGiam);
+                if (spct.getGiaBan() != null) {
+                    java.math.BigDecimal multiplier = java.math.BigDecimal.valueOf(100 - phanTramGiam)
+                            .divide(java.math.BigDecimal.valueOf(100), 10, java.math.RoundingMode.HALF_UP);
+                    java.math.BigDecimal giaSauGiam = spct.getGiaBan().multiply(multiplier).setScale(0, java.math.RoundingMode.HALF_UP);
+                    giaSauGiamMap.put(spct.getId(), giaSauGiam);
+                }
+            }
+        }
+        
         model.addAttribute("sanPham", sanPham);
         model.addAttribute("pageData", pageData);
+        model.addAttribute("phanTramGiamMap", phanTramGiamMap);
+        model.addAttribute("giaSauGiamMap", giaSauGiamMap);
         model.addAttribute("listThuongHieu", thuongHieuRepository.findAll());
         model.addAttribute("listChatLieu", chatLieuRepository.findAll());
         model.addAttribute("listLoaiGiay", loaiGiayRepository.findAll());
@@ -115,6 +135,24 @@ public class SanPhamController {
         return "redirect:/san-pham";
     }
 
+    @GetMapping("/toggle-status-variant/{id}")
+    public String toggleStatusVariant(@PathVariable Long id, 
+                                      @org.springframework.web.bind.annotation.RequestHeader(value = "Referer", required = false) String referer,
+                                      RedirectAttributes redirectAttributes) {
+        com.example.be.entity.SanPhamChiTiet variant = sanPhamChiTietRepository.findById(id).orElse(null);
+        if (variant != null) {
+            variant.setTrangThai(variant.getTrangThai() != null && variant.getTrangThai() == 1 ? 0 : 1);
+            sanPhamChiTietRepository.save(variant);
+            syncTotalQuantity(variant.getSanPham().getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Thay đổi trạng thái thành công!");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
+            return "redirect:/san-pham/edit/" + variant.getSanPham().getId();
+        }
+        return "redirect:/san-pham";
+    }
+
     @GetMapping("/delete-variant/{id}")
     public String deleteVariant(@PathVariable Long id, 
                                 @org.springframework.web.bind.annotation.RequestHeader(value = "Referer", required = false) String referer,
@@ -150,7 +188,24 @@ public class SanPhamController {
             pageData = sanPhamChiTietRepository.findAll(pageable);
         }
         
+        java.util.Map<Long, Integer> phanTramGiamMap = new java.util.HashMap<>();
+        java.util.Map<Long, java.math.BigDecimal> giaSauGiamMap = new java.util.HashMap<>();
+        for (com.example.be.entity.SanPhamChiTiet spct : pageData.getContent()) {
+            Integer phanTramGiam = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+            if (phanTramGiam != null && phanTramGiam > 0) {
+                phanTramGiamMap.put(spct.getId(), phanTramGiam);
+                if (spct.getGiaBan() != null) {
+                    java.math.BigDecimal multiplier = java.math.BigDecimal.valueOf(100 - phanTramGiam)
+                            .divide(java.math.BigDecimal.valueOf(100), 10, java.math.RoundingMode.HALF_UP);
+                    java.math.BigDecimal giaSauGiam = spct.getGiaBan().multiply(multiplier).setScale(0, java.math.RoundingMode.HALF_UP);
+                    giaSauGiamMap.put(spct.getId(), giaSauGiam);
+                }
+            }
+        }
+        
         model.addAttribute("pageData", pageData);
+        model.addAttribute("phanTramGiamMap", phanTramGiamMap);
+        model.addAttribute("giaSauGiamMap", giaSauGiamMap);
         model.addAttribute("keyword", keyword);
         model.addAttribute("listThuongHieu", thuongHieuRepository.findAll());
         model.addAttribute("listChatLieu", chatLieuRepository.findAll());
@@ -329,12 +384,12 @@ public class SanPhamController {
 
     @GetMapping("/create")
     public String createPage(Model model) {
-        model.addAttribute("listThuongHieu", thuongHieuRepository.findAll());
-        model.addAttribute("listChatLieu", chatLieuRepository.findAll());
-        model.addAttribute("listLoaiGiay", loaiGiayRepository.findAll());
-        model.addAttribute("listDanhMuc", danhMucRepository.findAll());
-        model.addAttribute("listMauSac", mauSacRepository.findAll());
-        model.addAttribute("listCoGiay", coGiayRepository.findAll());
+        model.addAttribute("listThuongHieu", thuongHieuRepository.findAll().stream().filter(x -> Boolean.TRUE.equals(x.getTrangThai())).collect(java.util.stream.Collectors.toList()));
+        model.addAttribute("listChatLieu", chatLieuRepository.findAll().stream().filter(x -> Boolean.TRUE.equals(x.getTrangThai())).collect(java.util.stream.Collectors.toList()));
+        model.addAttribute("listLoaiGiay", loaiGiayRepository.findAll().stream().filter(x -> Boolean.TRUE.equals(x.getTrangThai())).collect(java.util.stream.Collectors.toList()));
+        model.addAttribute("listDanhMuc", danhMucRepository.findAll().stream().filter(x -> Boolean.TRUE.equals(x.getTrangThai())).collect(java.util.stream.Collectors.toList()));
+        model.addAttribute("listMauSac", mauSacRepository.findAll().stream().filter(x -> Boolean.TRUE.equals(x.getTrangThai())).collect(java.util.stream.Collectors.toList()));
+        model.addAttribute("listCoGiay", coGiayRepository.findAll().stream().filter(x -> Boolean.TRUE.equals(x.getTrangThai())).collect(java.util.stream.Collectors.toList()));
         return "add-san-pham";
     }
 
@@ -353,12 +408,25 @@ public class SanPhamController {
             return "redirect:/san-pham/create";
         }
 
+        SanPham existingSp = null;
         if (sanPhamService.existsByTenSanPham(sanPham.getTenSanPham())) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên sản phẩm đã tồn tại trong hệ thống. Vui lòng chọn tên khác!");
-            return "redirect:/san-pham/create";
+            existingSp = sanPhamService.findByTenSanPham(sanPham.getTenSanPham());
+            boolean match = false;
+            if (existingSp != null) {
+                if (existingSp.getThuongHieu() != null && sanPham.getThuongHieu() != null && existingSp.getThuongHieu().getId().equals(sanPham.getThuongHieu().getId()) &&
+                    existingSp.getDanhMuc() != null && sanPham.getDanhMuc() != null && existingSp.getDanhMuc().getId().equals(sanPham.getDanhMuc().getId()) &&
+                    existingSp.getLoaiGiay() != null && sanPham.getLoaiGiay() != null && existingSp.getLoaiGiay().getId().equals(sanPham.getLoaiGiay().getId()) &&
+                    existingSp.getChatLieu() != null && sanPham.getChatLieu() != null && existingSp.getChatLieu().getId().equals(sanPham.getChatLieu().getId())) {
+                    match = true;
+                }
+            }
+            if (!match) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Tên sản phẩm đã tồn tại nhưng có phân loại khác. Vui lòng chọn tên khác hoặc chọn đúng phân loại!");
+                return "redirect:/san-pham/create";
+            }
         }
 
-        if (sanPham.getMaSanPham() != null && !sanPham.getMaSanPham().trim().isEmpty()) {
+        if (sanPham.getMaSanPham() != null && !sanPham.getMaSanPham().trim().isEmpty() && existingSp == null) {
             if (sanPhamService.existsByMaSanPham(sanPham.getMaSanPham().trim())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Mã sản phẩm đã tồn tại trong hệ thống. Vui lòng nhập mã khác hoặc để trống để tự động tạo!");
                 return "redirect:/san-pham/create";
@@ -388,14 +456,19 @@ public class SanPhamController {
         }
 
         try {
-            if (sanPham.getMaSanPham() == null || sanPham.getMaSanPham().trim().isEmpty()) {
-                sanPham.setMaSanPham("SP" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            SanPham savedSp;
+            if (existingSp != null) {
+                savedSp = existingSp;
+            } else {
+                if (sanPham.getMaSanPham() == null || sanPham.getMaSanPham().trim().isEmpty()) {
+                    sanPham.setMaSanPham("SP" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+                }
+                sanPham.setNgayTao(java.time.LocalDateTime.now());
+                if (sanPham.getSoLuong() == null) sanPham.setSoLuong(0);
+                if (sanPham.getGiaBan() == null) sanPham.setGiaBan(java.math.BigDecimal.ZERO);
+                if (sanPham.getGiaNhap() == null) sanPham.setGiaNhap(java.math.BigDecimal.ZERO);
+                savedSp = sanPhamService.save(sanPham);
             }
-            sanPham.setNgayTao(java.time.LocalDateTime.now());
-            if (sanPham.getSoLuong() == null) sanPham.setSoLuong(0);
-            if (sanPham.getGiaBan() == null) sanPham.setGiaBan(java.math.BigDecimal.ZERO);
-            if (sanPham.getGiaNhap() == null) sanPham.setGiaNhap(java.math.BigDecimal.ZERO);
-            SanPham savedSp = sanPhamService.save(sanPham);
 
             if (variantSizes != null && variantColors != null) {
                 for (int i = 0; i < variantSizes.size(); i++) {
@@ -441,7 +514,12 @@ public class SanPhamController {
                 }
                 syncTotalQuantity(savedSp.getId());
             }
-            redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
+            
+            if (existingSp != null) {
+                redirectAttributes.addFlashAttribute("successMessage", "Đã thêm các biến thể mới vào sản phẩm đã tồn tại thành công!");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
+            }
             return "redirect:/san-pham";
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + ex.getMessage());
@@ -483,8 +561,10 @@ public class SanPhamController {
         try {
             sanPhamService.deleteById(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa sản phẩm thành công");
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa sản phẩm này vì đã có dữ liệu liên quan (các biến thể hoặc hóa đơn). Vui lòng chuyển trạng thái sang Ngừng kinh doanh thay vì xóa.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi khi xóa: " + e.getMessage());
         }
         return "redirect:/san-pham";
     }
@@ -506,6 +586,7 @@ public class SanPhamController {
                 v.setTrangThai(newStatus);
                 sanPhamChiTietRepository.save(v);
             }
+            syncTotalQuantity(id);
             
             String statusText = (newStatus == 1) ? "Kinh doanh" : "Ngừng kinh doanh";
             redirectAttributes.addFlashAttribute("successMessage", "Đã đổi trạng thái sản phẩm sang: " + statusText);
@@ -577,7 +658,7 @@ public class SanPhamController {
             java.math.BigDecimal minGiaBan = null;
             java.math.BigDecimal minGiaNhap = null;
             for (com.example.be.entity.SanPhamChiTiet v : variants) {
-                if (v.getSoLuongTon() != null) {
+                if (v.getSoLuongTon() != null && v.getTrangThai() != null && v.getTrangThai() == 1) {
                     totalQuantity += v.getSoLuongTon();
                 }
                 if (v.getGiaBan() != null) {

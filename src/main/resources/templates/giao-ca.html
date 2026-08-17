@@ -1,0 +1,1115 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giao ca - Lịch sử hoạt động | VShoes</title>
+    
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/store.css?v=99">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f4f6f8; margin: 0; }
+        
+        .main-content { padding: 30px; }
+
+        .page-header { margin-bottom: 24px; }
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            margin: 0 0 6px 0;
+            letter-spacing: 0.5px;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        /* Card styling */
+        .white-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            margin-bottom: 24px;
+        }
+
+        /* Filter elements */
+        .filter-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            width: 16px;
+            height: 16px;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px 14px;
+            padding-left: 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            color: #334155;
+            box-sizing: border-box;
+            background: #ffffff;
+        }
+
+        .custom-input[type="date"] {
+            padding-left: 14px;
+            color: #475569;
+        }
+
+        .btn-reload {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 44px;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+            transition: opacity 0.2s;
+        }
+        
+        .btn-reload:hover { opacity: 0.9; }
+
+        /* Table Styling */
+        .table-container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            overflow: hidden;
+            padding: 10px 24px 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        /* Custom cell formatting */
+        .cell-stacked {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .account-name { font-weight: 600; color: #475569; }
+        .account-sub { font-size: 12px; color: #94a3b8; font-weight: 400; }
+
+        .time-main { font-weight: 600; color: #1e293b; }
+        .time-sub { font-size: 12px; color: #94a3b8; font-weight: 400; }
+
+        .empty-dash { color: #cbd5e1; font-weight: 700; }
+
+        .money-val { font-weight: 600; color: #1e293b; }
+        .diff-val.zero { color: #10b981; }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .badge-ca-admin { background: #fce7f3; color: #db2777; }
+        .badge-ca-sang { background: #f1f5f9; color: #64748b; }
+
+        .badge-status-hoantat { background: #dcfce7; color: #16a34a; }
+        .badge-status-danglam { background: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; }
+
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .btn-add-giao-ca {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+            transition: opacity 0.2s;
+        }
+        .btn-add-giao-ca:hover { opacity: 0.9; }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        body.dark-mode .white-card,
+        body.dark-mode .table-container,
+        body.dark-mode .top-header {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            box-shadow: none !important;
+        }
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode strong {
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode label, body.dark-mode span, body.dark-mode td {
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+            background-color: #0f172a !important;
+            color: #f1f5f9 !important;
+            border-color: #334155 !important;
+        }
+        body.dark-mode .badge-ca-sang {
+            background: #334155 !important;
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode #moCaView > div {
+            background-color: #1e293b !important;
+        }
+        body.dark-mode .app-container > aside { /* basic sidebar override if needed */
+            background-color: #1e293b !important;
+            border-right-color: #334155 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <main class="main-content">
+            <!-- Top Header -->
+            <div th:replace="~{header/header :: header}"></div>
+            
+            <div id="historyView">
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h1 class="page-title">LỊCH SỬ HOẠT ĐỘNG</h1>
+                    <p class="page-subtitle">Theo dõi lịch sử đóng/mở ca và dòng tiền mặt trong két</p>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="glass-card" style="margin-bottom: 24px;">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Tìm kiếm</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="search" style="position: absolute; left: 14px; color: #94a3b8; width: 20px; height: 20px;"></i>
+                            <input type="text" id="searchKeyword" class="glass-input" style="padding-left: 40px; width: 100%;" placeholder="Tìm theo tài khoản / mã ca / mã hóa đơn...">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Từ ngày:</label>
+                        <input type="date" id="dateFrom" class="glass-input" style="width: 100%;">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Đến ngày:</label>
+                        <input type="date" id="dateTo" class="glass-input" style="width: 100%;">
+                    </div>
+
+                    <button class="btn-premium-secondary hover-lift" onclick="loadGiaoCa()" style="height: 44px; width: 100%;">
+                        <i data-lucide="rotate-cw" style="width: 20px; height: 20px;"></i> Tải lại
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="glass-card" style="padding: 0; overflow: hidden; border-radius: 12px;">
+                <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">Danh sách hoạt động</h3>
+                    <button onclick="loadGiaoCa()" style="background: white; border: 1px solid #10b981; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #10b981; transition: all 0.2s; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                        <i data-lucide="refresh-cw" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </div>
+                <div class="custom-table-container" style="box-shadow: none; border: none; border-radius: 0;">
+                    <table class="custom-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: white; color: #64748b; font-size: 13px; text-transform: uppercase;">
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: center; width: 60px;">STT</th>
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: left;">NHÂN VIÊN / CA LÀM VIỆC</th>
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: center;">VÀO CA</th>
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: center;">RA CA</th>
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: right;">DOANH THU CA</th>
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: center;">TRẠNG THÁI</th>
+                                <th style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; text-align: left;">GHI CHÚ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="giaoCaTableBody">
+                            <tr><td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div> <!-- End historyView -->
+
+            <!-- Active Shift Dashboard View -->
+            <div id="activeShiftDashboard" style="display: none; padding-top: 10px;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                    
+                    <!-- LEFT COLUMN -->
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        
+                        <!-- THONG TIN CA LAM VIEC -->
+                        <div class="white-card" style="margin-bottom: 0; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); background: white;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; text-transform: uppercase;">Thông tin ca làm việc</h3>
+                                <span style="background: #dcfce7; color: #16a34a; padding: 6px 12px; border-radius: 99px; font-weight: 600; font-size: 13px;">Đang hoạt động</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 14px;">
+                                <div style="display: flex; align-items: center;">
+                                    <span style="color: #64748b; width: 120px;">Mã ca:</span>
+                                    <strong style="color: #dc2626; font-size: 15px;" id="dashboardMaCa">GC...</strong>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <span style="color: #64748b; width: 120px;">Thời gian vào:</span>
+                                    <strong style="color: #1e293b;" id="dashboardThoiGianVao">...</strong>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <span style="color: #64748b; width: 120px;">Nhân viên ca:</span>
+                                    <strong style="color: #1e293b;" id="dashboardNhanVien">...</strong>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <span style="color: #64748b; width: 120px;">Trạng thái:</span>
+                                    <strong style="color: #1e293b;">Đang làm việc</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TONG HOP DOANH THU -->
+                        <div class="white-card" style="margin-bottom: 0; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); background: white;">
+                            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; text-transform: uppercase; margin-bottom: 24px;">Tổng hợp doanh thu</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: y-20px x-40px; margin-bottom: 24px; font-size: 14px; row-gap: 20px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #64748b;">Tiền đầu ca</span>
+                                    <strong style="color: #1e293b; font-size: 15px;" id="dashTienDauCa">0 đ</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #64748b;">Doanh thu tiền mặt</span>
+                                    <strong style="color: #1e293b; font-size: 15px;" id="dashDoanhThuTienMat">+0 đ</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #64748b;">Doanh thu chuyển khoản</span>
+                                    <strong style="color: #1e293b; font-size: 15px;" id="dashDoanhThuCK">+0 đ</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #64748b;">Tổng thu khác</span>
+                                    <strong style="color: #1e293b; font-size: 15px;">+0 đ</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: #64748b;">Tổng chi trong ca</span>
+                                    <strong style="color: #dc2626; font-size: 15px;">0 đ</strong>
+                                </div>
+                            </div>
+                            
+                            <div style="height: 1px; background: #e2e8f0; margin-bottom: 24px;"></div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; text-align: center;">
+                                <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe;">
+                                    <div style="font-size: 12px; font-weight: 700; color: #3b82f6; margin-bottom: 8px; text-transform: uppercase;">Tiền theo hệ thống</div>
+                                    <div style="font-size: 22px; font-weight: 800; color: #2563eb;" id="dashTienHeThong">0 đ</div>
+                                </div>
+                                <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0;">
+                                    <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-bottom: 8px; text-transform: uppercase;">Tiền thực tế</div>
+                                    <div style="font-size: 22px; font-weight: 800; color: #15803d;" id="dashTienThucTe">0 đ</div>
+                                </div>
+                                <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0;" id="dashChenhLechBox">
+                                    <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-bottom: 8px; text-transform: uppercase;">Chênh lệch</div>
+                                    <div style="font-size: 22px; font-weight: 800; color: #15803d; line-height: 1.2;" id="dashChenhLech">+0 đ</div>
+                                    <div style="font-size: 13px; color: #16a34a; font-weight: 500;" id="dashChenhLechTxt">(Khớp)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CHI TIET GIAO DICH TRONG CA -->
+                        <div class="white-card" style="margin-bottom: 0; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); background: white;">
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="margin: 0 0 12px 0; font-size: 15px; font-weight: 700; color: #1e293b; text-transform: uppercase;">Chi tiết giao dịch trong ca</h3>
+                                <span style="background: #dc2626; color: white; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; display: inline-block;">Doanh thu ca làm việc</span>
+                            </div>
+                            <div class="table-container" style="padding: 0; box-shadow: none; border-radius: 8px;">
+                                <table class="custom-table" style="width: 100%; font-size: 14px;">
+                                    <thead style="background: #f8fafc;">
+                                        <tr>
+                                            <th style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Thời gian</th>
+                                            <th style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Mã hóa đơn</th>
+                                            <th style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 600;">Loại doanh thu</th>
+                                            <th style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: right; color: #64748b; font-weight: 600;">Số tiền</th>
+                                            <th style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: center; color: #64748b; font-weight: 600;">Hình thức</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dashTransactionBody">
+                                        <tr><td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        
+                        <!-- THONG TIN BAN GIAO -->
+                        <div class="white-card" style="margin-bottom: 0; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); background: white;">
+                            <h3 style="margin: 0 0 24px 0; font-size: 15px; font-weight: 700; color: #1e293b; text-transform: uppercase;">Thông tin bàn giao</h3>
+                            <form id="formGiaoCaDashboard">
+                                <div style="margin-bottom: 24px;">
+                                    <label style="font-size: 13px; font-weight: 600; color: #64748b; display: block; margin-bottom: 8px; text-transform: uppercase;">Số tiền bàn giao thực tế</label>
+                                    <div style="position: relative;">
+                                        <input type="number" id="dashTienBanGiao" required min="0" style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 22px; font-weight: 700; color: #2563eb;" placeholder="0">
+                                        <span style="position: absolute; right: 60px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 600; font-size: 18px;">đ</span>
+                                        <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fee2e2; padding: 10px; border-radius: 8px; display: flex; cursor: pointer;">
+                                            <i data-lucide="calculator" style="color: #dc2626; width: 20px; height: 20px;"></i>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 13px; color: #94a3b8; margin-top: 8px; font-style: italic;" id="dashTxtBangChu">(Bằng chữ: Không đồng)</div>
+                                </div>
+                                <div style="margin-bottom: 24px;">
+                                    <label style="font-size: 13px; font-weight: 600; color: #64748b; display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn nhân viên nhận ca <span style="color: #dc2626;">*</span></label>
+                                    <select id="dashNhanVienNhan" style="width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; background: white; font-size: 14px; font-weight: 500; color: #1e293b;">
+                                        <option value="">-- Chọn nhân viên nhận ca --</option>
+                                    </select>
+                                </div>
+                                <div style="margin-bottom: 24px;">
+                                    <label style="font-size: 13px; font-weight: 600; color: #64748b; display: block; margin-bottom: 8px; text-transform: uppercase;">Ghi chú bàn giao</label>
+                                    <div style="position: relative;">
+                                        <textarea id="dashGhiChu" rows="4" style="width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 14px; resize: none;" placeholder="Nhập ghi chú bàn giao..."></textarea>
+                                        <span style="position: absolute; bottom: 10px; right: 10px; font-size: 12px; color: #94a3b8;">0/200</span>
+                                    </div>
+                                </div>
+                                <button type="submit" style="width: 100%; padding: 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 15px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2); transition: background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">Gửi yêu cầu bàn giao</button>
+                            </form>
+                        </div>
+
+                        <!-- XAC NHAN BAN GIAO -->
+                        <div class="white-card" style="margin-bottom: 0; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); background: white;">
+                            <h3 style="margin: 0 0 24px 0; font-size: 15px; font-weight: 700; color: #1e293b; text-transform: uppercase;">Xác nhận bàn giao</h3>
+                            
+                            <div style="margin-bottom: 24px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase;">Nhân viên giao ca</span>
+                                    <span style="background: #fef3c7; color: #d97706; padding: 4px 10px; border-radius: 99px; font-weight: 600; font-size: 12px;">Đang hoạt động</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 20px;">
+                                    <div style="width: 40px; height: 40px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="user" style="width: 20px; height: 20px; color: #94a3b8;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; color: #1e293b; font-size: 15px;" id="dashNVGiao">...</div>
+                                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;" id="dashNVVao">Vào ca: ...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="height: 1px; background: #e2e8f0; margin-bottom: 24px;"></div>
+                            
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <span style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase;">Nhân viên nhận ca</span>
+                                    <span style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 99px; font-weight: 600; font-size: 12px;">Chờ xác nhận</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 20px;">
+                                    <div style="width: 40px; height: 40px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <i data-lucide="user-plus" style="width: 18px; height: 18px; color: #94a3b8;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; color: #94a3b8; font-size: 15px;" id="dashDisplayNVNhan">Chưa nhận</div>
+                                        <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Nhận ca: --</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mở Ca View (Full Screen centered) -->
+            <div id="moCaView" style="display: none; height: calc(100vh - 150px); align-items: center; justify-content: center;">
+                <div style="background: white; border-radius: 16px; width: 100%; max-width: 550px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h3 style="margin: 0; font-size: 20px; color: #1e293b; font-weight: 700; text-transform: uppercase;">Mở Ca Làm Việc - Ca Mới (<span id="txtNgayMoCa"></span>)</h3>
+                        <div style="margin-top: 10px; font-weight: 600; color: #475569; font-size: 14px;">Thu ngân: <span id="txtThuNganMoCa" style="color: #1e293b;">...</span></div>
+                        <div style="margin-top: 15px; color: #ef4444; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i> Cảnh báo: Vui lòng kiểm tra lại tiền mặt trong két
+                        </div>
+                    </div>
+                    <div id="formMoCa">
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="display: none;">
+                                <label style="font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn Thu ngân</label>
+                                <select id="nhanVienMoCa" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; background: #f8fafc; font-size: 15px; font-weight: 600;">
+                                    <option value="">-- Chọn nhân viên --</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px; text-transform: uppercase;">Nhập số tiền mặt có trong két *</label>
+                                <div style="position: relative;">
+                                    <input type="number" id="tienBanDauMoCa" required min="0" style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 24px; font-weight: 700; color: #1e293b;" value="0">
+                                    <span style="position: absolute; right: 55px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 600; font-size: 18px;">đ</span>
+                                    <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fee2e2; padding: 8px; border-radius: 8px; display: flex;">
+                                        <i data-lucide="calculator" style="color: #ef4444; width: 20px; height: 20px;"></i>
+                                    </div>
+                                </div>
+                                <div style="font-size: 13px; color: #94a3b8; margin-top: 10px; font-style: italic;" id="txtBangChuMoCa">(Bằng chữ: Không đồng)</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px; text-transform: uppercase;">Ghi chú mở ca</label>
+                                <textarea id="ghiChuMoCa" rows="3" style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 14px; color: #1e293b;" placeholder="Nhập ghi chú mở ca..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button type="button" id="btnSubmitMoCa" style="width: 100%; padding: 16px; background: linear-gradient(to right, #14466b, #009fe3); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0, 159, 227, 0.3); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Bắt đầu ca làm việc</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal Bàn Giao Ca -->
+    <div id="giaoCaModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(4px);">
+        <div style="background: white; border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="wallet" style="width: 20px; height: 20px; color: #4f46e5;"></i>
+                    Chốt và Bàn Giao Ca
+                </h3>
+                <button onclick="document.getElementById('giaoCaModal').style.display='none'" style="background: none; border: none; cursor: pointer; color: #64748b;">
+                    <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+            
+            <form id="formGiaoCa">
+                <input type="hidden" id="idGiaoCaDangMo">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tiền mặt ban đầu trong két</label>
+                        <input type="text" id="tienBanDauDisplay" readonly style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background: #e2e8f0; font-weight: 600; color: #475569;">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tổng tiền mặt bàn giao (Két tiền) *</label>
+                        <input type="number" id="tienBanGiao" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; font-weight: 700; color: #1e293b; font-size: 16px;" placeholder="Nhập số tiền...">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tiền phát sinh (Thâm hụt / Dư ra)</label>
+                        <input type="number" id="tienPhatSinh" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;" placeholder="Nhập số tiền phát sinh (nếu có)">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Ghi chú</label>
+                        <textarea id="ghiChu" rows="3" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;" placeholder="Lý do phát sinh hoặc dặn dò ca sau..."></textarea>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+                    <button type="button" onclick="document.getElementById('giaoCaModal').style.display='none'" style="padding: 10px 16px; background: #f1f5f9; color: #475569; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Hủy</button>
+                    <button type="submit" style="padding: 10px 20px; background: linear-gradient(135deg, #6366f1, #3b82f6); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);">Chốt Giao Ca</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        let allGiaoCa = [];
+
+        function formatTimeDate(dateString) {
+            if (!dateString) return null;
+            const d = new Date(dateString);
+            const time = d.toTimeString().substring(0, 8); // HH:mm:ss
+            const date = d.toLocaleDateString('vi-VN'); // DD/MM/YYYY
+            return { time, date };
+        }
+
+        function formatCurrency(amount) {
+            if (amount === null || amount === undefined) return "0 đ";
+            return amount.toLocaleString('vi-VN') + " đ";
+        }
+
+        let activeShift = null;
+
+        function bindDashboard(data, transactions) {
+            document.getElementById('dashboardMaCa').innerText = data.maGiaoCa || "N/A";
+            const td = formatTimeDate(data.thoiGianNhanCa);
+            const timeStr = td ? `${td.time} ${td.date}` : "N/A";
+            document.getElementById('dashboardThoiGianVao').innerText = timeStr;
+            const nvHoTen = data.nhanVienNhan ? data.nhanVienNhan.hoTen : "N/A";
+            document.getElementById('dashboardNhanVien').innerText = nvHoTen;
+            
+            document.getElementById('dashNVGiao').innerText = nvHoTen;
+            document.getElementById('dashNVVao').innerText = "Vào ca: " + timeStr;
+
+            const tienBanDau = data.tienBanDau || 0;
+            const tienBanGiao = data.tienBanGiao || 0; // Accumulated total cash
+            const doanhThuMat = tienBanGiao > 0 ? (tienBanGiao - tienBanDau) : 0;
+            const tienHeThong = tienBanDau + doanhThuMat;
+
+            const doanhThuCK = 0; // Mock
+
+            document.getElementById('dashTienDauCa').innerText = formatCurrency(tienBanDau);
+            document.getElementById('dashDoanhThuTienMat').innerText = "+" + formatCurrency(doanhThuMat);
+            document.getElementById('dashDoanhThuCK').innerText = "+" + formatCurrency(doanhThuCK);
+            
+            document.getElementById('dashTienHeThong').innerText = formatCurrency(tienHeThong);
+            
+            let tbody = '';
+            if (transactions && transactions.length > 0) {
+                transactions.forEach(tx => {
+                    const txtime = formatTimeDate(tx.ngayThanhToan || tx.ngayTao);
+                    const txtimestr = txtime ? `${txtime.time} ${txtime.date}` : "";
+                    const amnt = tx.tongTienThanhToan || 0;
+                    tbody += `<tr>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9;">${txtimestr}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #1e293b;">${tx.maHoaDon}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #64748b;">Doanh thu bán hàng</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; text-align: right; font-weight: 600; color: #1e293b;">${formatCurrency(amnt)}</td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #f1f5f9; text-align: center;"><span style="background: #f0fdf4; color: #16a34a; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">Tiền mặt</span></td>
+                    </tr>`;
+                });
+            } else {
+                tbody = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #94a3b8;">Chưa có hóa đơn nào trong ca này</td></tr>';
+            }
+            document.getElementById('dashTransactionBody').innerHTML = tbody;
+
+            const inputTienThucTe = document.getElementById('dashTienBanGiao');
+            const elThucTe = document.getElementById('dashTienThucTe');
+            const elChenhLech = document.getElementById('dashChenhLech');
+            const elChenhLechTxt = document.getElementById('dashChenhLechTxt');
+
+            const calcDiff = () => {
+                const thucTe = parseInt(inputTienThucTe.value) || 0;
+                elThucTe.innerText = formatCurrency(thucTe);
+                const diff = thucTe - tienHeThong;
+                
+                if (diff === 0) {
+                    elChenhLech.innerText = "+0 đ";
+                    elChenhLech.style.color = "#15803d";
+                    elChenhLechTxt.innerText = "(Khớp)";
+                    elChenhLechTxt.style.color = "#16a34a";
+                } else if (diff > 0) {
+                    elChenhLech.innerText = "+" + formatCurrency(diff);
+                    elChenhLech.style.color = "#15803d";
+                    elChenhLechTxt.innerText = "(Thừa)";
+                    elChenhLechTxt.style.color = "#16a34a";
+                } else {
+                    elChenhLech.innerText = formatCurrency(diff);
+                    elChenhLech.style.color = "#dc2626";
+                    elChenhLechTxt.innerText = "(Thiếu)";
+                    elChenhLechTxt.style.color = "#ef4444";
+                }
+            };
+            
+            if(inputTienThucTe._calcDiffHandler) {
+                inputTienThucTe.removeEventListener('input', inputTienThucTe._calcDiffHandler);
+            }
+            inputTienThucTe._calcDiffHandler = calcDiff;
+            inputTienThucTe.addEventListener('input', calcDiff);
+            inputTienThucTe.value = tienHeThong;
+            calcDiff();
+
+            const selectNhanVienNhan = document.getElementById('dashNhanVienNhan');
+            if(!selectNhanVienNhan._boundHandler) {
+                selectNhanVienNhan._boundHandler = true;
+                selectNhanVienNhan.addEventListener('change', (e) => {
+                    if(e.target.value) {
+                        const text = e.target.options[e.target.selectedIndex].text;
+                        document.getElementById('dashDisplayNVNhan').innerText = text.split('- ')[1] || text;
+                    } else {
+                        document.getElementById('dashDisplayNVNhan').innerText = "Chưa nhận";
+                    }
+                });
+            }
+            document.getElementById('dashDisplayNVNhan').innerText = "Chưa nhận";
+        }
+
+        let allLichLamViec = [];
+
+        function loadGiaoCa() {
+            Promise.all([
+                fetch('/api/giao-ca').then(res => res.json()),
+                fetch('/api/lich-lam-viec').then(res => res.json())
+            ])
+            .then(([giaoCaData, lichData]) => {
+                allGiaoCa = giaoCaData;
+                allLichLamViec = lichData;
+                renderGiaoCaTable(giaoCaData);
+            })
+            .catch(err => {
+                document.getElementById('giaoCaTableBody').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #ef4444;">Lỗi tải dữ liệu</td></tr>';
+            });
+        }
+
+        function renderGiaoCaTable(data) {
+            const tbody = document.getElementById('giaoCaTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">Chưa có dữ liệu</td></tr>';
+                return;
+            }
+
+            let html = '';
+            data.forEach((item, index) => {
+                const nvName = item.nhanVienNhan ? item.nhanVienNhan.hoTen : "Admin";
+                const nvCode = item.nhanVienNhan ? item.nhanVienNhan.maNhanVien : "ADMIN";
+                const initial = nvName.charAt(0).toUpperCase();
+
+                const timeIn = formatTimeDate(item.thoiGianNhanCa);
+                const dateNhanCa = item.thoiGianNhanCa ? new Date(item.thoiGianNhanCa) : null;
+                const dateStr = dateNhanCa ? dateNhanCa.getFullYear() + "-" + String(dateNhanCa.getMonth() + 1).padStart(2, '0') + "-" + String(dateNhanCa.getDate()).padStart(2, '0') : null;
+                const nhanVienId = item.nhanVienNhan ? item.nhanVienNhan.id : null;
+                
+                const matchedLich = allLichLamViec.find(l => 
+                    l.nhanVien && l.nhanVien.id === nhanVienId && l.ngayLamViec === dateStr
+                );
+                
+                let shiftName = "";
+                let lateMinutes = 0;
+                let earlyMinutes = 0;
+
+                if (matchedLich && matchedLich.caLam) {
+                    shiftName = matchedLich.caLam.tenCa;
+                    const tStartStr = matchedLich.caLam.thoiGianBatDau; // "19:00:00"
+                    const tEndStr = matchedLich.caLam.thoiGianKetThuc;
+                    
+                    if (tStartStr && item.thoiGianNhanCa) {
+                        const shiftStartDate = new Date(`${dateStr}T${tStartStr}`);
+                        const diffMs = dateNhanCa - shiftStartDate;
+                        if (diffMs > 0) lateMinutes = Math.floor(diffMs / 60000);
+                    }
+                    
+                    if (tEndStr && item.thoiGianGiaoCa) {
+                        const dateGiaoCa = new Date(item.thoiGianGiaoCa);
+                        const shiftEndDate = new Date(`${dateStr}T${tEndStr}`);
+                        const diffMs = shiftEndDate - dateGiaoCa;
+                        if (diffMs > 0) earlyMinutes = Math.floor(diffMs / 60000);
+                    }
+                }
+
+                let lateHtml = lateMinutes > 0 ? `<div style="background: #fee2e2; color: #ef4444; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-top: 4px; white-space: nowrap;">Đi muộn ${lateMinutes} phút</div>` : '';
+                let earlyHtml = earlyMinutes > 0 ? `<div style="background: #fef9c3; color: #eab308; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-top: 4px; white-space: nowrap;">Ra sớm ${earlyMinutes} phút</div>` : '';
+
+                const inHtml = timeIn ? `
+                    <div style="display: flex; align-items: flex-start; justify-content: center; gap: 6px;">
+                        <i data-lucide="log-in" style="width: 18px; height: 18px; color: #10b981; margin-top: 3px;"></i>
+                        <div style="text-align: center;">
+                            <div style="font-weight: 600; color: #1e293b;">${timeIn.time.substring(0,5)}</div>
+                            <div style="font-size: 13px; color: #64748b;">${timeIn.date}</div>
+                            ${lateHtml}
+                        </div>
+                    </div>` : "-";
+
+                const timeOut = formatTimeDate(item.thoiGianGiaoCa);
+                const outHtml = timeOut ? `
+                    <div style="display: flex; align-items: flex-start; justify-content: center; gap: 6px;">
+                        <i data-lucide="log-out" style="width: 18px; height: 18px; color: #f59e0b; margin-top: 3px;"></i>
+                        <div style="text-align: center;">
+                            <div style="font-weight: 600; color: #1e293b;">${timeOut.time.substring(0,5)}</div>
+                            <div style="font-size: 13px; color: #64748b;">${timeOut.date}</div>
+                            ${earlyHtml}
+                        </div>
+                    </div>` : "-";
+
+                const doanhThuMat = (item.tienBanGiao || 0) > 0 ? ((item.tienBanGiao || 0) - (item.tienBanDau || 0)) : 0;
+                const doanhThuCK = 0;
+                const total = doanhThuMat + doanhThuCK;
+
+                const statusHtml = item.trangThai === 0 
+                    ? `<span style="background: #ffedd5; color: #ea580c; padding: 6px 12px; border-radius: 99px; font-weight: 600; font-size: 13px; white-space: nowrap;">Đang làm</span>`
+                    : `<span style="background: #dcfce7; color: #16a34a; padding: 6px 12px; border-radius: 99px; font-weight: 600; font-size: 13px; white-space: nowrap;">Đã kết ca</span>`;
+
+                html += `
+                    <tr style="border-bottom: 1px solid #f1f5f9; background: white; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                        <td style="padding: 20px 24px; text-align: center; color: #64748b;">${index + 1}</td>
+                        <td style="padding: 20px 24px;">
+                            <div style="display: flex; align-items: center; gap: 20px;">
+                                <div style="width: 40px; height: 40px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; flex-shrink: 0;">${initial}</div>
+                                <div>
+                                    <div style="font-weight: 600; color: #1e293b; font-size: 14px;">${nvName}</div>
+                                    <div style="font-size: 13px; color: #64748b;">(${nvCode})</div>
+                                    ${shiftName ? `<div style="font-size: 13px; color: #64748b;">${shiftName}</div>` : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 20px 24px; text-align: center;">${inHtml}</td>
+                        <td style="padding: 20px 24px; text-align: center;">${outHtml}</td>
+                        <td style="padding: 20px 24px; text-align: right;">
+                            <div style="font-weight: 700; color: #1e293b; font-size: 14px; margin-bottom: 4px;">${formatCurrency(total)}</div>
+                            <div style="font-size: 13px; color: #16a34a; font-weight: 500;">Tiền mặt: ${formatCurrency(doanhThuMat)}</div>
+                            <div style="font-size: 13px; color: #3b82f6; font-weight: 500;">Chuyển khoản: ${formatCurrency(doanhThuCK)}</div>
+                        </td>
+                        <td style="padding: 20px 24px; text-align: center;">${statusHtml}</td>
+                        <td style="padding: 20px 24px; color: #64748b; font-size: 13px;">${item.ghiChu || ""}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function checkActiveShift() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewMode = urlParams.get('view');
+            
+            if (viewMode === 'history') {
+                document.getElementById('historyView').style.display = 'block';
+                document.getElementById('moCaView').style.display = 'none';
+                document.getElementById('activeShiftDashboard').style.display = 'none';
+                document.getElementById('pageTopTitle').innerText = 'Lịch sử hoạt động';
+                
+                const statusBadge = document.getElementById('topStatusBadge');
+                if (statusBadge) statusBadge.style.display = 'none';
+                
+                return;
+            }
+
+            fetch('/api/giao-ca/active')
+                .then(res => {
+                    if(res.status === 200) {
+                        return res.json();
+                    }
+                    return null;
+                })
+                .then(data => {
+                    if(data) {
+                        activeShift = data;
+                        document.getElementById('historyView').style.display = 'none';
+                        document.getElementById('moCaView').style.display = 'none';
+                        document.getElementById('activeShiftDashboard').style.display = 'block';
+                        document.getElementById('pageTopTitle').innerText = 'Bàn giao ca';
+                        document.getElementById('topStatusText').innerText = 'Giao ca';
+                        
+                        // Fetch transactions
+                        fetch(`/api/giao-ca/${data.id}/hoa-don`)
+                            .then(res => res.json())
+                            .then(txs => {
+                                bindDashboard(data, txs);
+                            })
+                            .catch(err => {
+                                bindDashboard(data, []);
+                            });
+                    } else {
+                        activeShift = null;
+                        document.getElementById('historyView').style.display = 'none';
+                        document.getElementById('activeShiftDashboard').style.display = 'none';
+                        document.getElementById('moCaView').style.display = 'flex';
+                        document.getElementById('txtNgayMoCa').innerText = new Date().toLocaleDateString('vi-VN');
+                        document.getElementById('pageTopTitle').innerText = 'Mở ca làm việc';
+                        document.getElementById('topStatusText').innerText = 'Mở ca';
+                    }
+                })
+                .catch(err => console.log('Error checking active shift', err));
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            lucide.createIcons();
+            checkActiveShift();
+            loadGiaoCa();
+            
+            // Set default dates
+            const today = new Date().toISOString().substring(0, 10);
+            document.getElementById('dateFrom').value = today;
+            document.getElementById('dateTo').value = today;
+
+            // Load employees for select
+            fetch('/api/nhan-vien')
+                .then(res => res.json())
+                .then(data => {
+                    const selectMoCa = document.getElementById('nhanVienMoCa');
+                    const selectDashNhan = document.getElementById('dashNhanVienNhan');
+                    data.forEach(nv => {
+                        const opt = `<option value="${nv.id}">${nv.maNhanVien} - ${nv.hoTen}</option>`;
+                        selectMoCa.innerHTML += opt;
+                        selectDashNhan.innerHTML += opt;
+                    });
+                    
+                    // Auto select current logged-in user for Mo Ca
+                    const currentId = document.getElementById('currentLoggedInUserId').value;
+                    if (data.length > 0) {
+                        let matchedNv = null;
+                        if (currentId) {
+                            matchedNv = data.find(x => x.id == currentId);
+                        }
+                        if (!matchedNv) {
+                            matchedNv = data[0]; // fallback
+                        }
+                        selectMoCa.value = matchedNv.id;
+                        document.getElementById('txtThuNganMoCa').innerText = matchedNv.maNhanVien + " - " + matchedNv.hoTen;
+                    }
+                }).catch(e => console.log('Cannot load nhan vien API'));
+
+            // Dark Mode logic
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+            let isDark = localStorage.getItem('theme') === 'dark';
+            
+            function applyTheme() {
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    themeToggleBtn.style.borderColor = '#eab308'; // yellow for moon
+                    themeToggleBtn.style.color = '#eab308';
+                    themeIcon.setAttribute('data-lucide', 'moon');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeToggleBtn.style.borderColor = '#3b82f6';
+                    themeToggleBtn.style.color = '#3b82f6';
+                    themeIcon.setAttribute('data-lucide', 'sun');
+                }
+                lucide.createIcons();
+            }
+            
+            applyTheme();
+            
+            themeToggleBtn.addEventListener('click', () => {
+                isDark = !isDark;
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                applyTheme();
+            });
+
+            // Show Modal Bàn Giao Ca
+            const btnGiaoCa = document.getElementById('btnGiaoCa');
+            if (btnGiaoCa) {
+                btnGiaoCa.addEventListener('click', () => {
+                    if(!activeShift) return;
+                    document.getElementById('giaoCaModal').style.display = 'flex';
+                    document.getElementById('idGiaoCaDangMo').value = activeShift.id;
+                    document.getElementById('tienBanDauDisplay').value = formatCurrency(activeShift.tienBanDau || 0);
+                });
+            }
+
+            // Handle Submit Mở Ca (Manual Click)
+            document.getElementById('btnSubmitMoCa').addEventListener('click', function(e) {
+                const btn = this;
+                const originalText = btn.innerText;
+                btn.innerText = 'Đang xử lý...';
+                btn.style.opacity = '0.7';
+                btn.disabled = true;
+
+                let tienStr = document.getElementById('tienBanDauMoCa').value;
+                let tien = tienStr ? parseFloat(tienStr) : 0;
+
+                const payload = {
+                    maGiaoCa: 'GC' + Date.now().toString(),
+                    tienBanDau: tien,
+                    tienBanGiao: 0,
+                    ghiChu: document.getElementById('ghiChuMoCa').value,
+                    trangThai: 0 // Đang làm
+                };
+                
+                // Add current time in a safe format, but also let backend handle it if missing
+                try {
+                    payload.thoiGianNhanCa = new Date().toISOString().substring(0, 19);
+                } catch(e) {}
+
+                let nvNhanId = document.getElementById('nhanVienMoCa').value;
+                if (!nvNhanId) {
+                    let currentIdEl = document.getElementById('currentLoggedInUserId');
+                    nvNhanId = currentIdEl ? currentIdEl.value : '';
+                }
+                if (nvNhanId) {
+                    payload.nhanVienNhan = { id: nvNhanId };
+                }
+
+                fetch('/api/giao-ca', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(async res => {
+                    if (!res.ok) {
+                        let text = await res.text();
+                        throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById('tienBanDauMoCa').value = '0';
+                    document.getElementById('ghiChuMoCa').value = '';
+                    checkActiveShift();
+                    loadGiaoCa();
+                    try {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã mở ca làm việc', showConfirmButton: false, timer: 2000 });
+                    } catch(e) {}
+                    btn.innerText = originalText;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                })
+                .catch(err => {
+                    console.error("Lỗi khi mở ca:", err);
+                    alert("Chi tiết lỗi hệ thống: " + err.message);
+                    btn.innerText = originalText;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                });
+            });
+
+            // Handle Submit Bàn Giao Ca from Dashboard
+            document.getElementById('formGiaoCaDashboard').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if(!activeShift) return;
+                
+                const tienThucTe = parseInt(document.getElementById('dashTienBanGiao').value) || 0;
+                const tienBanDau = activeShift.tienBanDau || 0;
+                const tienBanGiao = activeShift.tienBanGiao || 0;
+                const doanhThuMat = tienBanGiao > 0 ? (tienBanGiao - tienBanDau) : 0;
+                const tienHeThong = tienBanDau + doanhThuMat;
+                
+                const diff = tienThucTe - tienHeThong;
+                
+                const nvId = document.getElementById('dashNhanVienNhan').value;
+                const payload = {
+                    thoiGianGiaoCa: new Date().toISOString().slice(0,19),
+                    tienBanDau: activeShift.tienBanDau,
+                    tienBanGiao: tienThucTe,
+                    tienPhatSinh: diff,
+                    ghiChu: document.getElementById('dashGhiChu').value,
+                    trangThai: 1 // Hoàn tất
+                };
+                if (nvId) {
+                    payload.nhanVienNhan = { id: nvId };
+                } else {
+                    payload.nhanVienNhan = null;
+                }
+
+                fetch('/api/giao-ca/' + activeShift.id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Server returned " + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã chốt ca thành công', showConfirmButton: false, timer: 2000 });
+                    this.reset();
+                    checkActiveShift();
+                    loadGiaoCa();
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Lỗi', 'Không thể lưu thông tin giao ca. Kiểm tra lại dữ liệu.', 'error');
+                });
+            });
+
+            // Handle Submit Bàn Giao Ca (Close Shift) modal - legacy
+            document.getElementById('formGiaoCa').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if(!activeShift) return;
+                
+                const payload = {
+                    thoiGianGiaoCa: new Date().toISOString().slice(0,19),
+                    nhanVienNhan: activeShift.nhanVienNhan, // Keep the same user
+                    tienBanDau: activeShift.tienBanDau,
+                    tienBanGiao: document.getElementById('tienBanGiao').value,
+                    tienPhatSinh: document.getElementById('tienPhatSinh').value || 0,
+                    ghiChu: document.getElementById('ghiChu').value,
+                    trangThai: 1 // Hoàn tất
+                };
+
+                fetch('/api/giao-ca/' + activeShift.id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Đã chốt ca', showConfirmButton: false, timer: 2000 });
+                    document.getElementById('giaoCaModal').style.display = 'none';
+                    this.reset();
+                    checkActiveShift();
+                    loadGiaoCa();
+                })
+                .catch(err => {
+                    Swal.fire('Lỗi', 'Không thể lưu thông tin giao ca', 'error');
+                });
+            });
+
+            // Bind filters
+            const filterFn = () => {
+                const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+                const filtered = allGiaoCa.filter(item => {
+                    const acc = item.nhanVienNhan ? item.nhanVienNhan.maNhanVien.toLowerCase() : "admin";
+                    const mc = item.maGiaoCa ? item.maGiaoCa.toLowerCase() : "";
+                    return acc.includes(keyword) || mc.includes(keyword);
+                });
+                renderGiaoCaTable(filtered);
+            };
+            document.getElementById('searchKeyword').addEventListener('input', filterFn);
+        });
+    </script>
+</body>
+</html>
+
+

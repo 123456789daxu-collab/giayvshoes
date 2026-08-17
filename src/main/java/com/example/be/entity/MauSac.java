@@ -23,4 +23,7 @@ public class MauSac {
 
     @Column(name = "trang_thai")
     private Boolean trangThai;
+
+    @Column(name = "ma_hex", length = 7)
+    private String maHex;
 }

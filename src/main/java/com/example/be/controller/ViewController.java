@@ -75,6 +75,11 @@ public class ViewController {
         return "dot-giam-gia";
     }
 
+    @GetMapping("/danh-gia")
+    public String danhGia() {
+        return "danh-gia";
+    }
+
     @GetMapping("/tai-khoan/khach-hang")
     public String taiKhoanKhachHang() {
         return "tai-khoan-khach-hang";
@@ -125,8 +130,8 @@ public class ViewController {
         return "client/san-pham";
     }
 
-    @GetMapping("/client/products/{id}")
-    public String clientProductDetail(@PathVariable Long id) {
+    @GetMapping({"/client/products/{id}", "/client/product-detail/{id}", "/client/product-detail"})
+    public String clientProductDetail() {
         return "client/product-detail";
     }
 

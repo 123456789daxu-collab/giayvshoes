@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Giỏ hàng của bạn tại VHOES.">
+    <title>Giỏ Hàng Của Bạn | VHOES - Giày Chạy Bộ</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/css/trang-chu.css?v=99">
+    <link rel="stylesheet" href="/css/san-pham.css?v=99">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        .cart-page-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 30px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cart-container {
+            max-width: 1200px;
+            margin: 0 auto 100px auto;
+            padding: 0 20px;
+        }
+
+        /* Table */
+        .cart-table-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .cart-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .cart-table th {
+            background: #fdfafb;
+            padding: 18px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cart-table td {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .cart-product-cell {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .cart-product-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            background: var(--gray-50);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            flex-shrink: 0;
+        }
+
+        .cart-product-img img {
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .cart-product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .cart-product-name {
+            font-weight: 700;
+            color: var(--gray-900);
+            font-size: 15px;
+        }
+
+        .cart-product-variant {
+            font-size: 12px;
+            color: var(--gray-400);
+        }
+
+        .cart-product-badge {
+            align-self: flex-start;
+            background: rgba(0, 173, 239, 0.1);
+            color: var(--primary);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .cart-price-main {
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .cart-price-original {
+            font-size: 12px;
+            text-decoration: line-through;
+            color: var(--gray-300);
+            display: block;
+            margin-top: 3px;
+        }
+
+        /* Qty selector */
+        .cart-qty-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            width: 90px;
+            height: 32px;
+        }
+
+        .cart-qty-btn {
+            background: var(--gray-50);
+            border: none;
+            width: 28px;
+            height: 100%;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+
+        .cart-qty-btn:hover {
+            background: var(--gray-200);
+        }
+
+        .cart-qty-input {
+            width: 34px;
+            height: 100%;
+            border: none;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .cart-total-price {
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .cart-action-btn {
+            background: none;
+            border: none;
+            color: var(--gray-500);
+            cursor: pointer;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .cart-action-btn:hover {
+            color: var(--secondary);
+        }
+
+        /* Summary bar */
+        .cart-summary-bar {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .summary-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .summary-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .total-payment-label {
+            font-size: 14px;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+
+        .total-payment-amount {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--secondary);
+        }
+
+        .btn-checkout-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 40px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(0, 173, 239, 0.3);
+        }
+
+        .btn-checkout-submit:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Checkbox styling */
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--secondary);
+            cursor: pointer;
+        }
+
+        .cart-empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .cart-empty-state i {
+            color: var(--gray-300);
+        }
+        .cart-empty-state p {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-500);
+        }
+        .cart-empty-state a {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .cart-empty-state a:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== MARQUEE BANNER ===== -->
+<div class="marquee-banner" role="marquee">
+    <div class="marquee-track">
+        <span>?? MI?N PH V?N CHUY?N don hng t? 500.000?</span>
+        <span>? GI?M 15% cho thnh vin m?i khi dĐăng ký</span>
+        <span>??? B?O HNH chnh hng 12 thng ton sản phẩm</span>
+        <span>?? ?I TR? d? dng trong vng 30 ngy</span>
+        <span>MIỄN PHÍ GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+        <!-- duplicate for seamless scroll -->
+        <span>?? MI?N PH V?N CHUY?N don hng t? 500.000?</span>
+        <span>? GI?M 15% cho thnh vin m?i khi dĐăng ký</span>
+        <span>??? B?O HNH chnh hng 12 thng ton sản phẩm</span>
+        <span>?? ?I TR? d? dng trong vng 30 ngy</span>
+        <span>MIỄN PHÍ GIAO HÀNG toàn quốc trong 2-3 ngày làm việc</span>
+    </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header" role="banner">
+    <div class="container">
+
+        <!-- Top bar -->
+        <div class="header-top">
+            <div class="header-top-left">
+                <a href="tel:19006789">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Hotline: 1900 6789
+                </a>
+                <a href="mailto:vshoes@gmail.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><polyline points="1,4 12,13 23,4"/></svg>
+                    vshoes@gmail.com
+                </a>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Hệ thống cửa hàng
+                </a>
+            </div>
+            <div class="header-top-right" id="headerAuthSection">
+                <a href="/client/tra-cuu">Theo dõi đơn hàng</a>
+                <a href="/client/dang-nhap" id="loginLink">Đăng nhập</a>
+                <a href="/client/dang-ky" class="btn-register" id="registerLink">Đăng ký</a>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="header-main">
+            <a href="/trang-chu" class="header-logo">
+                <div class="logo-img-wrap">
+                    <img src="/images/logo.png" alt="VHOES Logo"
+                         onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex'">
+                    <div id="logoFallback" style="display:none;width:48px;height:48px;background:linear-gradient(135deg,#7c3aed,#2563eb);border-radius:10px;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:900;">S</div>
+                </div>
+                <div class="logo-text-wrap">
+                    <div class="brand-name">VHOES</div>
+                    <div class="brand-tagline">Giày chạy bộ</div>
+                </div>
+            </a>
+
+            <form class="header-search" id="searchForm" role="search" onsubmit="event.preventDefault();">
+                <div class="search-input-wrap">
+                    <input type="search" id="searchKeyword"
+                           placeholder="Tìm kiếm sản phẩm..." autocomplete="off">
+                    <button type="submit" class="search-btn" aria-label="Tìm kiếm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </form>
+
+            <div class="header-actions">
+                <a href="/client/cart" class="action-btn" id="cartBtn" aria-label="Giỏ hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span id="cartCountBadgeGlobal" class="cart-count" style="display:none;">0</span>
+                    <span>Giỏ hàng</span>
+                </a>
+                <a href="#" class="action-btn" aria-label="Tài khoản">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Tài khoản</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/trang-chu" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Trang Chủ
+                </a>
+                                <a href="/client/san-pham" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
+                    Sản Phẩm
+                </a>
+                <a href="/client/tin-tuc" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Tin Tức
+                </a>
+                <a href="/client/gioi-thieu" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Giới Thiệu
+                </a>
+                <a href="/client/lien-he" class="nav-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Liên Hệ
+                </a>
+                <!-- Flash sale -->
+                <a href="/client/flash-sale" class="nav-item" style="margin-left:auto;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Flash Sale
+                </a>
+                <!-- Admin link -->
+                <a href="/hoa-don" class="nav-item nav-item-admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Quản Lý
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main style="background: #f8fafc; padding-top: 30px; padding-bottom: 60px;">
+    <div class="container">
+        <!-- Back button -->
+        <div style="margin-bottom: 20px;">
+            <a href="/client/san-pham" style="display: inline-flex; align-items: center; gap: 8px; color: var(--gray-600); font-weight: 700; font-size: 14px; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--gray-600)'">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Tiếp tục mua sắm (Quay lại danh sách sản phẩm)
+            </a>
+        </div>
+        <div class="cart-container" style="max-width: 100%; margin: 0 auto 50px auto; padding: 0;">
+        <h1 class="cart-page-title">Giỏ hàng của bạn</h1>
+
+        <div id="cartContentWrapper">
+            <!-- Table Card -->
+            <div class="cart-table-card">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" class="custom-checkbox" id="selectAllHeader"></th>
+                            <th style="width: 130px;">Mã CTSP</th>
+                            <th>Sản phẩm</th>
+                            <th style="width: 150px;">Đơn giá</th>
+                            <th style="width: 140px;">Số lượng</th>
+                            <th style="width: 150px;">Số tiền</th>
+                            <th style="width: 100px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartTableBody">
+                        <!-- dynamic items -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Bar -->
+            <div class="cart-summary-bar">
+                <div class="summary-left">
+                    <input type="checkbox" class="custom-checkbox" id="selectAllSummary">
+                    <span>Chọn tất cả (<span id="selectedCount">0</span>)</span>
+                    <button class="cart-action-btn" id="btnDeleteSelected" style="margin-left: 20px;">Xóa</button>
+                </div>
+                <div class="summary-right">
+                    <span class="total-payment-label">
+                        Tổng thanh toán (<span id="totalCheckedCount">0</span> sản phẩm):
+                        <span class="total-payment-amount" id="totalPaymentAmount">0 đ</span>
+                    </span>
+                    <button class="btn-checkout-submit" id="btnCheckoutSubmit">Mua Hàng</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state (hidden by default) -->
+        <div id="cartEmptyState" class="cart-empty-state" style="display: none;">
+            <i data-lucide="shopping-bag" style="width: 72px; height: 72px;"></i>
+            <p>Giỏ hàng của bạn đang trống</p>
+            <a href="/client/san-pham">Tiếp tục mua sắm</a>
+        </div>
+        
+        <!-- Recommended Products Section (fills empty page space) -->
+        <div style="margin-top: 60px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 15px; margin-bottom: 30px;">
+                <h2 style="font-size: 20px; font-weight: 800; color: var(--gray-900); text-transform: uppercase; margin: 0;">Có thể bạn cũng thích</h2>
+                <a href="/client/san-pham" style="color: var(--secondary); font-weight: 700; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                    Xem thêm sản phẩm <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+                </a>
+            </div>
+            <div class="products-grid" id="recommendedProductsGrid">
+                <!-- Dynamically loaded products -->
+                <div style="grid-column: span 4; text-align: center; color: var(--gray-400); padding: 20px;">Đang tải gợi ý sản phẩm...</div>
+            </div>
+        </div>
+    </div>
+    </div>
+</main>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container" style="position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:10px;"></div>
+
+<!-- JS -->
+<script src="/js/client/auth-header.js"></script>
+<script src="/js/client/cart.js?v=3.0"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+    });
+</script>
+</body>
+</html>
+
+
+

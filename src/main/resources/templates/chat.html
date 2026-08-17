@@ -1,0 +1,627 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hỗ trợ khách hàng trực tuyến | VShoes</title>
+    <!-- Nhúng CSS sidebar, header & layout dùng chung -->
+    <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
+    <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
+    <!-- Nhúng CSS riêng của trang Chat -->
+    <link rel="stylesheet" href="/css/chat.css?v=2.0">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Nhúng Sidebar dùng chung -->
+        <div th:replace="~{sidebar/sidebar :: sidebar}"></div>
+
+        <!-- NỘI DUNG CHÍNH -->
+        <main class="main-content">
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
+
+            <div class="chat-app-container">
+                <!-- Tiêu đề trang như mẫu -->
+                <div class="chat-page-header">
+                    <h2 class="chat-page-title">Hỗ trợ khách hàng trực tuyến</h2>
+                    <p class="chat-page-subtitle">Trực tiếp trò chuyện và giải đáp thắc mắc cho khách hàng khi được yêu cầu hỗ trợ.</p>
+                </div>
+
+                <!-- Bàn làm việc Chat 2 cột -->
+                <div class="chat-workspace-card">
+                    <!-- CỘT TRÁI: DANH SÁCH KHÁCH HÀNG -->
+                    <div class="chat-left-panel">
+                        <!-- Ô tìm kiếm -->
+                        <div class="chat-search-box-wrap">
+                            <i data-lucide="search" class="chat-search-ico" style="width: 20px; height: 20px;"></i>
+                            <input type="text" id="chatSearchInput" class="chat-search-input" 
+                                   placeholder="Tìm khách hàng, SĐT..."
+                                   oninput="onSearchInput(this.value)">
+                        </div>
+
+                        <!-- Tabs: Đang hoạt động & Lịch sử chat -->
+                        <div class="chat-tabs-bar">
+                            <button class="chat-tab-btn active" id="tabActiveBtn" onclick="switchTab('active')">Đang hoạt động</button>
+                            <button class="chat-tab-btn" id="tabHistoryBtn" onclick="switchTab('history')">Lịch sử chat</button>
+                        </div>
+
+                        <!-- Danh sách hội thoại -->
+                        <div class="chat-sessions-list" id="chatSessionsList">
+                            <!-- Dynamic render via JS -->
+                        </div>
+                    </div>
+
+                    <!-- CỘT PHẢI: KHUNG CHAT CHI TIẾT -->
+                    <div class="chat-right-panel" id="chatRightPanel">
+                        <!-- Trạng thái chưa chọn khách -->
+                        <div class="chat-empty-center" id="chatEmptyPlaceholder" style="height: 100%;">
+                            <div style="font-size: 44px; margin-bottom: 8px;">💬</div>
+                            <div style="font-size: 16.5px; font-weight: 800; color: #334155; margin-bottom: 4px;">Chọn một khách hàng để hỗ trợ</div>
+                            <div style="font-size: 13.5px; color: #94a3b8; max-width: 320px;">Trực tiếp giải đáp thắc mắc, tư vấn chọn size giày và chăm sóc khách hàng theo thời gian thực.</div>
+                        </div>
+
+                        <!-- Khung chi tiết chat (khi đã chọn 1 phiên) -->
+                        <div id="chatDetailContainer" style="display: none; height: 100%; flex-direction: column;">
+                            <!-- Header khách hàng -->
+                            <div class="chat-detail-header">
+                                <div class="chat-detail-user-wrap">
+                                    <div class="chat-detail-avatar-cyan">
+                                        <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                                    </div>
+                                    <div class="chat-detail-meta">
+                                        <div class="chat-detail-title" id="activeCustomerName">Trần Vũ Tùng Anh</div>
+                                        <div class="chat-detail-sub">
+                                            <span id="activeCustomerPhone">📞 0383854485</span>
+                                            <span>•</span>
+                                            <span id="activeStartTime">🕒 Bắt đầu lúc: 22:27 - 6/7/2026</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <button class="chat-btn-close-session" onclick="closeCurrentSession()">
+                                        <i data-lucide="x-circle" style="width: 20px; height: 20px;"></i>
+                                        <span>Đóng phiên chat</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Dòng chảy tin nhắn (Stream) -->
+                            <div class="chat-stream-body" id="chatStreamBody">
+                                <!-- Messages rendered dynamically -->
+                            </div>
+
+                            <!-- Khung nhập tin nhắn & nút Gửi -->
+                            <div class="chat-footer-composer" id="chatComposerWrap">
+                                <textarea id="adminChatInput" class="chat-composer-textarea" 
+                                          placeholder="Nhập tin nhắn phản hồi cho khách hàng..." 
+                                          rows="1"></textarea>
+                                <button class="chat-btn-send" onclick="sendAdminMessage()">
+                                    <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+                                    <span>Gửi</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SockJS & STOMP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        /* ============================================================
+           ADMIN ONLINE SUPPORT MANAGEMENT SYSTEM
+           ============================================================ */
+        const chatState = {
+            stompClient: null,
+            currentTab: 'active', // 'active' | 'history'
+            searchQuery: '',
+            activeSessionId: null,
+            adminName: 'CSKH VShoes',
+            sessions: {} // Key: sessionId -> { sender, phone, startTime, status, messages: [] }
+        };
+
+        // Dữ liệu mẫu khởi tạo đẹp mắt (Khách hàng vãng lai)
+        function initDemoData() {
+            chatState.sessions = {
+                'CUS_DEMO_02': {
+                    sessionId: 'CUS_DEMO_02',
+                    sender: 'Khách hàng #8492',
+                    phone: 'Chưa cung cấp SĐT',
+                    startTime: '22:38 - 5/7/2026',
+                    lastTime: '22:38 - 5/7/2026',
+                    status: 'NEED_SUPPORT',
+                    messages: [
+                        {
+                            sender: 'Khách hàng #8492',
+                            role: 'CUSTOMER',
+                            time: '22:38 - 5/7/2026',
+                            content: 'Shop ơi mình muốn hỏi về chính sách đổi trả size'
+                        }
+                    ]
+                },
+                'CUS_DEMO_03': {
+                    sessionId: 'CUS_DEMO_03',
+                    sender: 'Khách hàng #3615',
+                    phone: 'Chưa cung cấp SĐT',
+                    startTime: '22:36 - 5/7/2026',
+                    lastTime: '22:36 - 5/7/2026',
+                    status: 'NEED_SUPPORT',
+                    messages: [
+                        {
+                            sender: 'Khách hàng #3615',
+                            role: 'CUSTOMER',
+                            time: '22:36 - 5/7/2026',
+                            content: 'Tôi muốn gặp nhân viên tư vấn trực tiếp'
+                        }
+                    ]
+                },
+                'CUS_DEMO_05': {
+                    sessionId: 'CUS_DEMO_05',
+                    sender: 'Khách hàng #2107',
+                    phone: 'Chưa cung cấp SĐT',
+                    startTime: '21:07 - 4/7/2026',
+                    lastTime: '21:07 - 4/7/2026',
+                    status: 'NEED_SUPPORT',
+                    messages: [
+                        {
+                            sender: 'Khách hàng #2107',
+                            role: 'CUSTOMER',
+                            time: '21:07 - 4/7/2026',
+                            content: 'Sản phẩm nào bán chạy nhất shop'
+                        }
+                    ]
+                }
+            };
+        }
+
+        // Bắt đầu ứng dụng
+        document.addEventListener("DOMContentLoaded", function() {
+            initDemoData();
+            renderSessionsList();
+            connectAdminWS();
+            lucide.createIcons();
+
+            // Mặc định chọn phiên đầu tiên nếu có
+            const firstKey = Object.keys(chatState.sessions)[0];
+            if (firstKey) {
+                selectSession(firstKey);
+            }
+        });
+
+        // Kết nối WebSocket
+        function connectAdminWS() {
+            try {
+                const socket = new SockJS('/ws-chat');
+                chatState.stompClient = Stomp.over(socket);
+                chatState.stompClient.debug = null;
+
+                chatState.stompClient.connect({}, function (frame) {
+                    // Lắng nghe kênh Admin
+                    chatState.stompClient.subscribe('/topic/admin', function (output) {
+                        const msg = JSON.parse(output.body);
+                        handleIncomingMessage(msg);
+                    });
+                }, function (error) {
+                    setTimeout(connectAdminWS, 6000);
+                });
+            } catch (e) {
+                console.warn('WebSocket init warning:', e);
+            }
+        }
+
+        // Xử lý khi có tin nhắn từ khách hoặc Bot
+        function handleIncomingMessage(msg) {
+            const sessionId = msg.sessionId || 'CUS_DEFAULT';
+            let sender = msg.sender || 'Khách hàng';
+            if (sender === 'Khách hàng' || sender.startsWith('Khách_')) {
+                sender = 'Khách hàng #' + sessionId.replace('CUS_', '').replace('USER_', '');
+            }
+            const phone = msg.phone || 'Chưa cung cấp SĐT';
+            const now = new Date();
+            const timeStr = msg.timestamp || (now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' - ' + now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear());
+
+            const isNew = !chatState.sessions[sessionId];
+
+            if (isNew) {
+                // Tạo mới session và đặt lên ĐẦU danh sách
+                const newSession = {
+                    sessionId: sessionId,
+                    sender: sender,
+                    phone: phone,
+                    startTime: timeStr,
+                    lastTime: timeStr,
+                    status: msg.status || 'NEED_SUPPORT',
+                    messages: []
+                };
+                // Đặt session mới lên đầu
+                chatState.sessions = { [sessionId]: newSession, ...chatState.sessions };
+            } else {
+                // Đưa session đã có lên đầu danh sách
+                const currSession = chatState.sessions[sessionId];
+                delete chatState.sessions[sessionId];
+                chatState.sessions = { [sessionId]: currSession, ...chatState.sessions };
+            }
+
+            const session = chatState.sessions[sessionId];
+            session.sender = sender;
+            if (phone && phone !== 'Chưa cung cấp SĐT') session.phone = phone;
+            session.lastTime = timeStr;
+            if (msg.status) session.status = msg.status;
+
+            if (msg.type === 'CHAT' && msg.content) {
+                session.messages.push({
+                    sender: msg.senderRole === 'BOT' ? 'Trợ lý AI' : msg.sender,
+                    role: msg.senderRole || (msg.sender === 'Trợ lý AI' ? 'BOT' : 'CUSTOMER'),
+                    time: timeStr,
+                    content: msg.content
+                });
+            }
+
+            // Tự động chuyển qua tab Đang hoạt động và mở khung chat
+            chatState.currentTab = 'active';
+            const tabActiveBtn = document.getElementById('tabActiveBtn');
+            const tabHistoryBtn = document.getElementById('tabHistoryBtn');
+            if (tabActiveBtn) tabActiveBtn.classList.add('active');
+            if (tabHistoryBtn) tabHistoryBtn.classList.remove('active');
+
+            selectSession(sessionId);
+            renderSessionsList();
+            renderMessagesStream();
+
+            // Thông báo Toast cho nhân viên khi có khách cần hỗ trợ
+            if (msg.status === 'NEED_SUPPORT' && isNew) {
+                if (window.Swal) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `Khách hàng ${sender} vừa gửi yêu cầu hỗ trợ!`,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            }
+        }
+
+        // Chuyển Tab: Đang hoạt động / Lịch sử chat
+        function switchTab(tab) {
+            chatState.currentTab = tab;
+            document.getElementById('tabActiveBtn').classList.toggle('active', tab === 'active');
+            document.getElementById('tabHistoryBtn').classList.toggle('active', tab === 'history');
+            renderSessionsList();
+        }
+
+        // Ô tìm kiếm
+        function onSearchInput(val) {
+            chatState.searchQuery = val.trim().toLowerCase();
+            renderSessionsList();
+        }
+
+        // Render danh sách thẻ hội thoại cột trái
+        function renderSessionsList() {
+            const listEl = document.getElementById('chatSessionsList');
+            if (!listEl) return;
+
+            const allKeys = Object.keys(chatState.sessions);
+            let filteredKeys = allKeys.filter(k => {
+                const s = chatState.sessions[k];
+                // Lọc theo Tab
+                if (chatState.currentTab === 'active' && s.status === 'CLOSED') return false;
+                if (chatState.currentTab === 'history' && s.status !== 'CLOSED') return false;
+
+                // Lọc theo từ khóa tìm kiếm
+                if (chatState.searchQuery) {
+                    const matchName = s.sender.toLowerCase().includes(chatState.searchQuery);
+                    const matchPhone = (s.phone || '').toLowerCase().includes(chatState.searchQuery);
+                    return matchName || matchPhone;
+                }
+                return true;
+            });
+
+            if (filteredKeys.length === 0) {
+                listEl.innerHTML = `
+                    <div class="chat-empty-center" style="padding: 40px 10px;">
+                        <i data-lucide="inbox" style="width: 38px; height: 38px; color: #cbd5e1; margin-bottom: 8px;"></i>
+                        <div style="font-size: 13.5px; font-weight: 700; color: #64748b;">Không có hội thoại nào</div>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            listEl.innerHTML = filteredKeys.map(k => {
+                const s = chatState.sessions[k];
+                const isActive = chatState.activeSessionId === k ? 'active' : '';
+                
+                // Status badge
+                let statusBadge = '';
+                if (s.status === 'NEED_SUPPORT') {
+                    statusBadge = `<span class="chat-card-status-badge need-help">Cần hỗ trợ</span>`;
+                } else if (s.status === 'CHATTING') {
+                    statusBadge = `<span class="chat-card-status-badge chatting">Đang chat</span>`;
+                } else {
+                    statusBadge = `<span class="chat-card-status-badge closed">Đã kết thúc</span>`;
+                }
+
+                const phoneDisplay = s.phone && s.phone !== 'Chưa cung cấp SĐT' 
+                    ? `📞 ${escapeHTML(s.phone)}` 
+                    : `📞 Chưa cung cấp SĐT`;
+
+                return `
+                    <div class="chat-session-card ${isActive}" onclick="selectSession('${k}')">
+                        <div class="chat-user-avatar-circle">
+                            <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+                        </div>
+                        <div class="chat-card-info">
+                            <div class="chat-card-name-row">
+                                <span class="chat-card-name">${escapeHTML(s.sender)}</span>
+                                <span class="chat-card-time">${s.lastTime || s.startTime}</span>
+                            </div>
+                            <div class="chat-card-phone">${phoneDisplay}</div>
+                            <div class="chat-card-bottom-row">
+                                ${statusBadge}
+                                <button class="chat-btn-delete-card" onclick="deleteSession('${k}', event)" title="Xoá đoạn chat này">
+                                    <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Chọn hội thoại
+        function selectSession(sessionId) {
+            chatState.activeSessionId = sessionId;
+            const session = chatState.sessions[sessionId];
+            if (!session) return;
+
+            document.getElementById('chatEmptyPlaceholder').style.display = 'none';
+            const detailContainer = document.getElementById('chatDetailContainer');
+            detailContainer.style.display = 'flex';
+
+            // Cập nhật Header
+            document.getElementById('activeCustomerName').innerText = session.sender;
+            document.getElementById('activeCustomerPhone').innerText = session.phone && session.phone !== 'Chưa cung cấp SĐT'
+                ? `📞 ${session.phone}`
+                : `📞 Chưa cung cấp SĐT`;
+            document.getElementById('activeStartTime').innerText = `🕒 Bắt đầu lúc: ${session.startTime}`;
+
+            // Cập nhật trạng thái composer nếu đã đóng
+            const composer = document.getElementById('chatComposerWrap');
+            if (session.status === 'CLOSED') {
+                composer.style.display = 'none';
+            } else {
+                composer.style.display = 'flex';
+            }
+
+            renderSessionsList();
+            renderMessagesStream();
+
+            setTimeout(() => {
+                const input = document.getElementById('adminChatInput');
+                if (input && session.status !== 'CLOSED') input.focus();
+            }, 100);
+        }
+
+        // Render dòng chảy tin nhắn
+        function renderMessagesStream() {
+            const stream = document.getElementById('chatStreamBody');
+            if (!stream || !chatState.activeSessionId) return;
+
+            const session = chatState.sessions[chatState.activeSessionId];
+            if (!session) return;
+
+            if (session.messages.length === 0) {
+                stream.innerHTML = `
+                    <div class="chat-empty-center" style="margin: auto;">
+                        <div style="font-size: 30px; margin-bottom: 6px;">👋</div>
+                        <div style="font-weight: 700; color: #475569;">Bắt đầu phản hồi khách hàng</div>
+                        <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Nhập tin nhắn bên dưới để trò chuyện trực tiếp.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            stream.innerHTML = session.messages.map(m => {
+                let roleClass = 'customer';
+                let headerMeta = `${escapeHTML(m.sender)} • ${m.time}`;
+                let metaClass = '';
+
+                if (m.role === 'BOT') {
+                    roleClass = 'bot';
+                    metaClass = 'bot-meta';
+                    headerMeta = `🤖 Trợ lý AI • ${m.time}`;
+                } else if (m.role === 'ADMIN') {
+                    roleClass = 'admin';
+                    headerMeta = `${escapeHTML(m.sender)} • ${m.time}`;
+                }
+
+                return `
+                    <div class="chat-msg-entry ${roleClass}">
+                        <div class="chat-msg-header-meta ${metaClass}">
+                            ${headerMeta}
+                        </div>
+                        <div class="chat-msg-bubble">
+                            ${m.content}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        // Gửi tin nhắn từ CSKH
+        function sendAdminMessage() {
+            const input = document.getElementById('adminChatInput');
+            if (!input || !chatState.activeSessionId) return;
+
+            const content = input.value.trim();
+            if (!content) return;
+
+            const session = chatState.sessions[chatState.activeSessionId];
+            if (!session) return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' - ' + now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear();
+
+            const chatMessage = {
+                sender: chatState.adminName,
+                content: content,
+                type: 'CHAT',
+                sessionId: chatState.activeSessionId,
+                senderRole: 'ADMIN',
+                status: 'CHATTING',
+                timestamp: timeStr
+            };
+
+            // Gửi qua WebSocket
+            if (chatState.stompClient && chatState.stompClient.connected) {
+                chatState.stompClient.send("/app/chat.sendToCustomer", {}, JSON.stringify(chatMessage));
+            }
+
+            // Cập nhật trạng thái phiên
+            session.status = 'CHATTING';
+            session.lastTime = timeStr;
+            session.messages.push({
+                sender: chatState.adminName,
+                role: 'ADMIN',
+                time: timeStr,
+                content: content
+            });
+
+            input.value = '';
+            renderSessionsList();
+            renderMessagesStream();
+        }
+
+        // Đóng phiên chat
+        function closeCurrentSession() {
+            if (!chatState.activeSessionId) return;
+
+            const session = chatState.sessions[chatState.activeSessionId];
+            if (!session) return;
+
+            Swal.fire({
+                title: 'Đóng phiên chat?',
+                text: `Bạn có chắc chắn muốn kết thúc phiên hỗ trợ với ${session.sender}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Đồng ý kết thúc',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    session.status = 'CLOSED';
+
+                    const now = new Date();
+                    const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' - ' + now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear();
+
+                    const closeMsg = {
+                        sender: chatState.adminName,
+                        content: 'Phiên hỗ trợ trực tuyến đã kết thúc. Cảm ơn bạn đã liên hệ VShoes!',
+                        type: 'CLOSE_SESSION',
+                        sessionId: chatState.activeSessionId,
+                        status: 'CLOSED',
+                        timestamp: timeStr
+                    };
+
+                    if (chatState.stompClient && chatState.stompClient.connected) {
+                        chatState.stompClient.send("/app/chat.sendToCustomer", {}, JSON.stringify(closeMsg));
+                    }
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Đã đóng phiên chat thành công!',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    document.getElementById('chatComposerWrap').style.display = 'none';
+                    renderSessionsList();
+                    renderMessagesStream();
+                }
+            });
+        }
+
+        // Xoá hội thoại
+        function deleteSession(sessionId, event) {
+            if (event) event.stopPropagation();
+
+            const session = chatState.sessions[sessionId];
+            const name = session ? session.sender : 'hội thoại này';
+
+            Swal.fire({
+                title: 'Xoá đoạn chat?',
+                text: `Bạn có chắc muốn xoá hội thoại của ${name}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Đồng ý xoá',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    delete chatState.sessions[sessionId];
+
+                    if (chatState.activeSessionId === sessionId) {
+                        chatState.activeSessionId = null;
+                        document.getElementById('chatDetailContainer').style.display = 'none';
+                        document.getElementById('chatEmptyPlaceholder').style.display = 'flex';
+                    }
+
+                    renderSessionsList();
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Đã xoá đoạn chat thành công!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            });
+        }
+
+        // Escape HTML
+        function escapeHTML(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        // Phím tắt Enter để gửi
+        document.addEventListener('keydown', function(e) {
+            if (e.target && e.target.id === 'adminChatInput' && e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendAdminMessage();
+            }
+        });
+    </script>
+</body>
+</html>
+

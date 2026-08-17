@@ -21,6 +21,22 @@ const posApp = {
         this.productModal = new bootstrap.Modal(document.getElementById('productModal'));
         this.voucherModal = new bootstrap.Modal(document.getElementById('voucherModal'));
         this.customerModal = new bootstrap.Modal(document.getElementById('customerModal'));
+        if (document.getElementById('editShippingModal')) {
+            this.editShippingModal = new bootstrap.Modal(document.getElementById('editShippingModal'));
+        }
+        this.fetchProvinces();
+    },
+
+    fetchProvinces: async function() {
+        try {
+            const res = await fetch('https://provinces.open-api.vn/api/?depth=1');
+            if (res.ok) {
+                const data = await res.json();
+                const sel = document.getElementById('modalProvince');
+                sel.innerHTML = '<option value="">Chọn Tỉnh/Thành</option>' + 
+                    data.map(p => `<option value="${p.code}">${p.name}</option>`).join('');
+            }
+        } catch(e) { console.error(e); }
     },
 
     fetchVouchers: async function() {
@@ -491,7 +507,21 @@ const posApp = {
                             <button class="btn btn-sm btn-light border shadow-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width: 28px; height: 28px;" onclick="posApp.updateCartItemQty(${item.id}, ${item.soLuong + 1})"><i class="fa-solid fa-plus" style="font-size: 10px;"></i></button>
                         </div>
                     </td>
-                    <td class="fw-bold text-dark py-2">${this.formatCurrency(item.donGia * item.soLuong)}</td>
+                    <td class="py-2 text-center">
+                        ${(item.giaBanGoc && item.giaBanGoc > item.donGia && item.phanTramGiam > 0) ? 
+                            `<span class="badge bg-danger px-2 py-1 shadow-sm" style="font-size: 0.85rem;">-${item.phanTramGiam}%</span>` 
+                            : `<span class="text-muted">-</span>`
+                        }
+                    </td>
+                    <td class="py-2 text-end">
+                        ${(item.giaBanGoc && item.giaBanGoc > item.donGia && item.phanTramGiam > 0) ? 
+                            `<div class="d-flex flex-column align-items-end justify-content-center">
+                                <span class="text-muted text-decoration-line-through" style="font-size: 0.8rem;">${this.formatCurrency(item.giaBanGoc * item.soLuong)}</span>
+                                <span class="fw-bold text-danger" style="font-size: 0.95rem;">${this.formatCurrency(item.donGia * item.soLuong)}</span>
+                            </div>` 
+                            : `<span class="fw-bold text-dark" style="font-size: 0.95rem;">${this.formatCurrency(item.donGia * item.soLuong)}</span>`
+                        }
+                    </td>
                     <td class="pe-4 py-2">
                         <button class="btn btn-sm btn-link text-muted p-0 border-0" onclick="posApp.removeCartItem(${item.id})" title="Xóa">
                             <i class="fa-regular fa-trash-can fs-5"></i>
@@ -659,7 +689,15 @@ const posApp = {
                     <td>${p.mauSac}</td>
                     <td>${p.size || ''}</td>
                     <td>${p.soLuongTon}</td>
-                    <td>${this.formatCurrency(p.giaBan)}</td>
+                    <td class="text-center">
+                        ${(p.giaBanGoc && p.giaBanGoc > p.giaBan) ? 
+                            `<div class="d-flex flex-column align-items-center justify-content-center">
+                                <span class="text-muted text-decoration-line-through mb-1" style="font-size: 0.8rem;">${this.formatCurrency(p.giaBanGoc)}</span>
+                                <span class="fw-bold text-danger">${this.formatCurrency(p.giaBan)}</span>
+                            </div>` 
+                            : `<span class="fw-bold text-dark">${this.formatCurrency(p.giaBan)}</span>`
+                        }
+                    </td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="posApp.confirmAddToCart(${p.id})" ${p.soLuongTon <= 0 ? 'disabled' : ''}>
                             Thêm
@@ -861,6 +899,8 @@ const posApp = {
         if(!order) {
             document.getElementById('summaryTotalAmount').innerText = '0 đ';
             document.getElementById('summaryDiscount').innerText = '-0 đ';
+            const discountRow = document.getElementById('discountRow');
+            if (discountRow) discountRow.style.setProperty('display', 'none', 'important');
             document.getElementById('summaryFinalAmount').innerText = '0 đ';
             document.getElementById('btnCheckout').disabled = true;
             this.setVoucherEmpty();
@@ -901,14 +941,20 @@ const posApp = {
                 let autoToggled = false;
                 if (!tenInput.value.trim() && localCust.hoTen) {
                     tenInput.value = localCust.hoTen;
+                    tenInput.setAttribute('readonly', 'true');
+                    tenInput.style.backgroundColor = '#f8fafc';
                     autoToggled = true;
                 }
                 if (!sdtInput.value.trim() && localCust.sdtNhan) {
                     sdtInput.value = localCust.sdtNhan;
+                    sdtInput.setAttribute('readonly', 'true');
+                    sdtInput.style.backgroundColor = '#f8fafc';
                     autoToggled = true;
                 }
                 if (!diaChiInput.value.trim() && localCust.diaChiGiao) {
                     diaChiInput.value = localCust.diaChiGiao;
+                    diaChiInput.setAttribute('readonly', 'true');
+                    diaChiInput.style.backgroundColor = '#f8fafc';
                     autoToggled = true;
                 }
                 
@@ -924,6 +970,23 @@ const posApp = {
             
             giaoHangToggleContainer.style.setProperty('display', 'flex', 'important');
             if (shippingSectionCard) shippingSectionCard.style.setProperty('display', 'block', 'important');
+            
+            // Clear shipping info if no customer is selected
+            const tenInput = document.getElementById('tenNguoiNhan');
+            const sdtInput = document.getElementById('sdtNhan');
+            const diaChiInput = document.getElementById('diaChiGiao');
+            
+            tenInput.value = '';
+            tenInput.removeAttribute('readonly');
+            tenInput.style.backgroundColor = '#ffffff';
+            
+            sdtInput.value = '';
+            sdtInput.removeAttribute('readonly');
+            sdtInput.style.backgroundColor = '#ffffff';
+            
+            diaChiInput.value = '';
+            diaChiInput.removeAttribute('readonly');
+            diaChiInput.style.backgroundColor = '#ffffff';
         }
 
         // Cập nhật phí ship
@@ -963,6 +1026,14 @@ const posApp = {
 
         document.getElementById('summaryTotalAmount').innerText = this.formatCurrency(order.tongTienHang);
         document.getElementById('summaryDiscount').innerText = "-" + this.formatCurrency(order.tienGiamGia);
+        const discountRow = document.getElementById('discountRow');
+        if (discountRow) {
+            if (order.tienGiamGia && order.tienGiamGia > 0) {
+                discountRow.style.setProperty('display', 'flex', 'important');
+            } else {
+                discountRow.style.setProperty('display', 'none', 'important');
+            }
+        }
         document.getElementById('summaryFinalAmount').innerText = this.formatCurrency(tongThanhToan);
 
         // Handle Voucher Block Styling
@@ -1568,6 +1639,112 @@ const posApp = {
     formatCurrency: function(value) {
         if(!value) return "0 đ";
         return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+    },
+
+    onProvinceChange: async function() {
+        const provSelect = document.getElementById('modalProvince');
+        const distSelect = document.getElementById('modalDistrict');
+        const wardSelect = document.getElementById('modalWard');
+        
+        distSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+        distSelect.disabled = true;
+        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        wardSelect.disabled = true;
+
+        const provCode = provSelect.value;
+        if (provCode) {
+            try {
+                const res = await fetch(`https://provinces.open-api.vn/api/p/${provCode}?depth=2`);
+                if (res.ok) {
+                    const data = await res.json();
+                    distSelect.innerHTML = '<option value="">Chọn Quận/Huyện</option>' + 
+                        data.districts.map(d => `<option value="${d.code}">${d.name}</option>`).join('');
+                    distSelect.disabled = false;
+                }
+            } catch(e) { console.error(e); }
+        }
+        this.updateModalAddress();
+        
+        // Auto update shipping fee
+        const provName = provSelect.value ? provSelect.options[provSelect.selectedIndex].text.toLowerCase() : '';
+        const feeInput = document.getElementById('modalPhiShip');
+        if (provName && (provName.includes('hà nội') || provName === 'hà nội' || provName === 'thành phố hà nội')) {
+            feeInput.value = '0';
+        } else if (provName) {
+            feeInput.value = '30.000';
+        }
+    },
+
+    onDistrictChange: async function() {
+        const distSelect = document.getElementById('modalDistrict');
+        const wardSelect = document.getElementById('modalWard');
+        
+        wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        wardSelect.disabled = true;
+
+        const distCode = distSelect.value;
+        if (distCode) {
+            try {
+                const res = await fetch(`https://provinces.open-api.vn/api/d/${distCode}?depth=2`);
+                if (res.ok) {
+                    const data = await res.json();
+                    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã</option>' + 
+                        data.wards.map(w => `<option value="${w.code}">${w.name}</option>`).join('');
+                    wardSelect.disabled = false;
+                }
+            } catch(e) { console.error(e); }
+        }
+        this.updateModalAddress();
+    },
+
+    onWardChange: function() {
+        this.updateModalAddress();
+    },
+
+    onDetailAddressChange: function() {
+        this.updateModalAddress();
+    },
+
+    updateModalAddress: function() {
+        const provSelect = document.getElementById('modalProvince');
+        const distSelect = document.getElementById('modalDistrict');
+        const wardSelect = document.getElementById('modalWard');
+        const detailInput = document.getElementById('modalDiaChiChiTiet');
+        
+        let parts = [];
+        if (detailInput.value.trim()) parts.push(detailInput.value.trim());
+        if (wardSelect.value) parts.push(wardSelect.options[wardSelect.selectedIndex].text);
+        if (distSelect.value) parts.push(distSelect.options[distSelect.selectedIndex].text);
+        if (provSelect.value) parts.push(provSelect.options[provSelect.selectedIndex].text);
+        
+        document.getElementById('modalDiaChiGiao').value = parts.join(', ');
+    },
+
+    enableEditShipping: function() {
+        document.getElementById('modalTenNguoiNhan').value = document.getElementById('tenNguoiNhan').value;
+        document.getElementById('modalSdtNhan').value = document.getElementById('sdtNhan').value;
+        
+        const currentAddr = document.getElementById('diaChiGiao').value;
+        document.getElementById('modalDiaChiChiTiet').value = currentAddr;
+        document.getElementById('modalDiaChiGiao').value = currentAddr;
+        
+        document.getElementById('modalProvince').value = '';
+        document.getElementById('modalDistrict').innerHTML = '<option value="">Chọn Quận/Huyện</option>';
+        document.getElementById('modalDistrict').disabled = true;
+        document.getElementById('modalWard').innerHTML = '<option value="">Chọn Phường/Xã</option>';
+        document.getElementById('modalWard').disabled = true;
+
+        document.getElementById('modalPhiShip').value = document.getElementById('phiShip').value;
+        if (this.editShippingModal) this.editShippingModal.show();
+    },
+
+    saveShippingEdit: function() {
+        document.getElementById('tenNguoiNhan').value = document.getElementById('modalTenNguoiNhan').value;
+        document.getElementById('sdtNhan').value = document.getElementById('modalSdtNhan').value;
+        document.getElementById('diaChiGiao').value = document.getElementById('modalDiaChiGiao').value;
+        document.getElementById('phiShip').value = document.getElementById('modalPhiShip').value;
+        if (this.editShippingModal) this.editShippingModal.hide();
+        this.updateSummary(this.getCurrentOrder());
     }
 };
 

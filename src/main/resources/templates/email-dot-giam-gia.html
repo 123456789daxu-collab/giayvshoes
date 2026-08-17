@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo đợt giảm giá từ VShoes</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%"
+        style="background-color: #f8fafc; padding: 32px 16px;">
+        <tr>
+            <td align="center">
+                <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                    style="max-width: 580px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 32px 24px;">
+                    <!-- HEADER -->
+                    <tr>
+                        <td align="center" style="padding-bottom: 24px;">
+                            <div
+                                style="font-size: 24px; font-weight: 800; color: #0ea5e9; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <span th:if="${action == 'CREATE'}" style="font-size: 24px;">🎉 Siêu Sale Mới Từ VShoes</span>
+                                <span th:if="${action == 'UPDATE'}" style="font-size: 24px;">🔄 Cập Nhật Siêu Sale Từ VShoes</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- SALUTATION -->
+                    <tr>
+                        <td style="color: #334155; font-size: 16px; line-height: 1.6; padding-bottom: 16px;">
+                            Chào bạn <strong style="color: #0f172a;" th:text="${customerName}">Khách hàng</strong>,
+                        </td>
+                    </tr>
+
+                    <!-- INTRO TEXT -->
+                    <tr>
+                        <td style="color: #475569; font-size: 15px; line-height: 1.6; padding-bottom: 24px;">
+                            <span th:if="${action == 'CREATE'}">VShoes vừa tung ra một đợt siêu giảm giá vô cùng hấp dẫn. Nhanh tay săn ngay những đôi giày cực chất với mức giá không tưởng!</span>
+                            <span th:if="${action == 'UPDATE'}">Chúng tôi xin thông báo đợt siêu sale của VShoes vừa được cập nhật thêm nhiều ưu đãi mới!</span>
+                        </td>
+                    </tr>
+
+                    <!-- CAMPAIGN RED CARD -->
+                    <tr>
+                        <td align="center">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                                style="background-color: #0ea5e9; border-radius: 16px; padding: 32px 24px; text-align: center; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.25);">
+                                <tr>
+                                    <td align="center"
+                                        style="color: rgba(255, 255, 255, 0.85); font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding-bottom: 12px;">
+                                        THÔNG TIN ĐỢT GIẢM GIÁ
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center"
+                                        style="color: #ffffff; font-size: 24px; font-weight: 800; padding-top: 8px; padding-bottom: 8px;"
+                                        th:text="${campaignName}">
+                                        Tên Đợt Giảm Giá
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="color: #ffffff; font-size: 15px; line-height: 1.6;">
+                                        <div>
+                                            Giảm lên tới <span style="font-size: 32px; font-weight: 900; color: #fde047;"
+                                                th:text="${formattedPhanTramGiam}">10%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- TIME NOTICE -->
+                    <tr>
+                        <td style="padding-top: 24px;">
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                                style="background-color: #fff7ed; border-left: 4px solid #f97316; border-radius: 4px; padding: 14px 16px;">
+                                <tr>
+                                    <td style="color: #c2410c; font-size: 14px; line-height: 1.5;">
+                                        <strong>Thời gian áp dụng:</strong> <br/>
+                                        Từ <span style="font-weight: 600;" th:text="${formattedNgayBatDau}"></span> 
+                                        đến <span style="font-weight: 600;" th:text="${formattedNgayKetThuc}"></span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ACTIONS / CTA BUTTON -->
+                    <tr>
+                        <td align="center" style="padding-top: 28px; padding-bottom: 8px;">
+                            <a href="#"
+                                style="background-color: #0ea5e9; color: #ffffff; text-decoration: none; border-radius: 8px; padding: 14px 36px; font-size: 16px; font-weight: 700; display: inline-block; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.25);">
+                                Mua sắm ngay
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER DISCLAIMER -->
+                    <tr>
+                        <td align="center"
+                            style="padding-top: 24px; border-top: 1px solid #f1f5f9; margin-top: 24px; color: #94a3b8; font-size: 12px; line-height: 1.5; text-align: center;">
+                            Email này được gửi tự động từ hệ thống VShoes. Vui lòng không trả lời trực tiếp email này.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
+

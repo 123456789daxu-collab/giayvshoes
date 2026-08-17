@@ -103,10 +103,71 @@ public class BanHangServiceImpl implements BanHangService {
     }
 
     @Override
+    @Transactional
     public List<ChiTietHoaDon> getChiTietHoaDon(Long idHoaDon) {
-        return chiTietHoaDonRepository.findAll().stream()
+        List<ChiTietHoaDon> list = chiTietHoaDonRepository.findAll().stream()
                 .filter(ct -> ct.getHoaDon() != null && ct.getHoaDon().getId().equals(idHoaDon))
                 .toList();
+        
+        boolean changed = false;
+        List<ChiTietHoaDon> resultList = new java.util.ArrayList<>();
+        
+        for (ChiTietHoaDon ct : list) {
+            SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+            if (spct != null) {
+                // Check if product or variant is discontinued
+                if (spct.getTrangThai() == null || spct.getTrangThai() != 1 || 
+                    (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1))) {
+                    
+                    // Refund quantity
+                    int restoreQty = ct.getSoLuong();
+                    spct.setSoLuongTon((spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon()) + restoreQty);
+                    if (spct.getSanPham() != null) {
+                        SanPham sp = spct.getSanPham();
+                        sp.setSoLuong((sp.getSoLuong() == null ? 0 : sp.getSoLuong()) + restoreQty);
+                        sanPhamRepository.save(sp);
+                    }
+                    sanPhamChiTietRepository.save(spct);
+                    
+                    chiTietHoaDonRepository.delete(ct);
+                    changed = true;
+                    continue; // Skip adding to resultList
+                }
+                
+                if (ct.getDonGia() == null) {
+                    Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+                    BigDecimal giaBanThucTe = spct.getGiaBan();
+                    if (discount != null && discount > 0 && discount <= 100) {
+                        BigDecimal giam = giaBanThucTe.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+                        giaBanThucTe = giaBanThucTe.subtract(giam);
+                    }
+                    System.out.println("DEBUG POS: Setting initial donGia to " + giaBanThucTe);
+                    ct.setDonGia(giaBanThucTe);
+                    ct.setDonGiaGoc(spct.getGiaBan());
+                    ct.setThanhTien(giaBanThucTe.multiply(new BigDecimal(ct.getSoLuong())));
+                    chiTietHoaDonRepository.save(ct);
+                    changed = true;
+                } else if (ct.getDonGiaGoc() == null) {
+                    ct.setDonGiaGoc(ct.getDonGia() != null ? ct.getDonGia() : spct.getGiaBan());
+                    chiTietHoaDonRepository.save(ct);
+                    changed = true;
+                }
+                
+                if (ct.getThanhTien() == null || ct.getThanhTien().compareTo(ct.getDonGia().multiply(new BigDecimal(ct.getSoLuong()))) != 0) {
+                    ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(ct.getSoLuong())));
+                    chiTietHoaDonRepository.save(ct);
+                    changed = true;
+                }
+                resultList.add(ct);
+            }
+        }
+        
+        if (changed) {
+            HoaDon hd = hoaDonRepository.findById(idHoaDon).orElse(null);
+            if (hd != null) tinhTongTien(hd);
+        }
+        
+        return resultList;
     }
 
     @Override
@@ -129,32 +190,38 @@ public class BanHangServiceImpl implements BanHangService {
             sanPhamRepository.save(sp);
         }
 
-        // Check if item already exists in cart
-        Optional<ChiTietHoaDon> existing = getChiTietHoaDon(idHoaDon).stream()
-                .filter(ct -> ct.getSanPhamChiTiet() != null && ct.getSanPhamChiTiet().getId().equals(idSanPhamChiTiet))
-                .findFirst();
-
-        // Check active discount campaign
-        Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(idSanPhamChiTiet);
+        // Calculate current price and discount
+        Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(idSanPhamChiTiet, java.time.LocalDateTime.now());
         BigDecimal giaBanThucTe = spct.getGiaBan();
         if (discount != null && discount > 0 && discount <= 100) {
             BigDecimal giam = giaBanThucTe.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
             giaBanThucTe = giaBanThucTe.subtract(giam);
         }
+        
+        final BigDecimal finalGiaBanThucTe = giaBanThucTe;
+        final BigDecimal finalGiaBanGoc = spct.getGiaBan();
+
+        // Check if item already exists in cart with exactly the same prices
+        Optional<ChiTietHoaDon> existing = getChiTietHoaDon(idHoaDon).stream()
+                .filter(ct -> ct.getSanPhamChiTiet() != null && ct.getSanPhamChiTiet().getId().equals(idSanPhamChiTiet))
+                .filter(ct -> ct.getDonGia() != null && ct.getDonGia().compareTo(finalGiaBanThucTe) == 0)
+                .filter(ct -> ct.getDonGiaGoc() != null && ct.getDonGiaGoc().compareTo(finalGiaBanGoc) == 0)
+                .findFirst();
 
         ChiTietHoaDon ct;
         if (existing.isPresent()) {
             ct = existing.get();
             int newQty = ct.getSoLuong() + soLuong;
             ct.setSoLuong(newQty);
-            ct.setDonGia(giaBanThucTe);
-            ct.setThanhTien(giaBanThucTe.multiply(new BigDecimal(ct.getSoLuong())));
+            // Giữ nguyên giá cũ khi cộng dồn số lượng
+            ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(ct.getSoLuong())));
         } else {
             ct = new ChiTietHoaDon();
             ct.setHoaDon(hd);
             ct.setSanPhamChiTiet(spct);
             ct.setSoLuong(soLuong);
             ct.setDonGia(giaBanThucTe);
+            ct.setDonGiaGoc(spct.getGiaBan());
             ct.setThanhTien(giaBanThucTe.multiply(new BigDecimal(soLuong)));
         }
         
@@ -173,6 +240,28 @@ public class BanHangServiceImpl implements BanHangService {
         int delta = soLuong - oldQty;
         
         if (delta > 0) {
+            // Get current price
+            Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+            BigDecimal giaBanThucTe = spct.getGiaBan();
+            if (discount != null && discount > 0 && discount <= 100) {
+                BigDecimal giam = giaBanThucTe.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+                giaBanThucTe = giaBanThucTe.subtract(giam);
+            }
+            
+            // Check if price changed compared to this row's frozen price
+            boolean priceChanged = false;
+            if (ct.getDonGia() != null && giaBanThucTe.compareTo(ct.getDonGia()) != 0) {
+                priceChanged = true;
+            } else if (ct.getDonGiaGoc() != null && spct.getGiaBan().compareTo(ct.getDonGiaGoc()) != 0) {
+                priceChanged = true;
+            }
+            
+            if (priceChanged) {
+                // Do not modify this row's quantity. Create a new row (or merge with another new row)
+                themSanPhamVaoHoaDon(ct.getHoaDon().getId(), spct.getId(), delta);
+                return ct; // Return original unmodified, UI will reload the whole cart anyway
+            }
+            
             if (spct.getSoLuongTon() == null || spct.getSoLuongTon() < delta) {
                 throw new RuntimeException("Số lượng tồn kho không đủ! (Chỉ còn " + (spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon()) + " sản phẩm)");
             }
@@ -183,6 +272,14 @@ public class BanHangServiceImpl implements BanHangService {
                 sanPhamRepository.save(sp);
             }
             sanPhamChiTietRepository.save(spct);
+            
+            // Update this row's quantity using its frozen price
+            ct.setSoLuong(soLuong);
+            ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(soLuong)));
+            ct = chiTietHoaDonRepository.save(ct);
+            tinhTongTien(ct.getHoaDon());
+            return ct;
+            
         } else if (delta < 0) {
             int restoreQty = Math.abs(delta);
             spct.setSoLuongTon((spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon()) + restoreQty);
@@ -194,8 +291,23 @@ public class BanHangServiceImpl implements BanHangService {
             sanPhamChiTietRepository.save(spct);
         }
         
+        // Giữ nguyên giá cũ, chỉ cập nhật số lượng và thành tiền
+        BigDecimal giaBanThucTe = ct.getDonGia();
+        if (giaBanThucTe == null) {
+            Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+            giaBanThucTe = spct.getGiaBan();
+            if (discount != null && discount > 0 && discount <= 100) {
+                BigDecimal giam = giaBanThucTe.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+                giaBanThucTe = giaBanThucTe.subtract(giam);
+            }
+        }
+        
         ct.setSoLuong(soLuong);
-        ct.setThanhTien(ct.getDonGia().multiply(new BigDecimal(soLuong)));
+        ct.setDonGia(giaBanThucTe);
+        if (ct.getDonGiaGoc() == null) {
+            ct.setDonGiaGoc(giaBanThucTe);
+        }
+        ct.setThanhTien(giaBanThucTe.multiply(new BigDecimal(soLuong)));
         ct = chiTietHoaDonRepository.save(ct);
         
         tinhTongTien(ct.getHoaDon());

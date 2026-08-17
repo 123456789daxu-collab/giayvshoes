@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Flash Sale VShoes - Săn giày chạy bộ chính hãng giá sốc, giảm đến 50% trong khung giờ vàng hôm nay.">
+    <title>⚡ Flash Sale Giờ Vàng | VSHOES - Giày Chạy Bộ</title>
+    <link rel="icon" type="image/png" href="/images/logo.png">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/css/trang-chu.css?v=2.4">
+    <link rel="stylesheet" href="/css/flash-sale.css?v=1.0">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<!-- ===== MARQUEE BANNER ===== -->
+<div class="marquee-banner" role="marquee">
+    <div class="marquee-track">
+        <span>⚡ FLASH SALE ĐANG DIỄN RA — GIẢM ĐẾN 50% SỐ LƯỢNG CÓ HẠN!</span>
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>🛡️ BẢO HÀNH CHÍNH HÃNG 12 THÁNG</span>
+        <span>⚡ FLASH SALE ĐANG DIỄN RA — GIẢM ĐẾN 50% SỐ LƯỢNG CÓ HẠN!</span>
+        <span>🎉 MIỄN PHÍ VẬN CHUYỂN đơn hàng từ 500.000₫</span>
+        <span>🛡️ BẢO HÀNH CHÍNH HÃNG 12 THÁNG</span>
+    </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header" role="banner">
+    <div class="container">
+        <!-- Top bar -->
+        <div class="header-top">
+            <div class="header-top-left">
+                <a href="tel:19006789">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Hotline: 1900 6789
+                </a>
+                <a href="mailto:vshoes@gmail.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><polyline points="1,4 12,13 23,4"/></svg>
+                    vshoes@gmail.com
+                </a>
+            </div>
+            <div class="header-top-right" id="headerAuthSection">
+                <a href="/client/tra-cuu">Theo dõi đơn hàng</a>
+                <a href="/client/dang-nhap" id="loginLink">Đăng nhập</a>
+                <a href="/client/dang-ky" class="btn-register" id="registerLink">Đăng ký</a>
+            </div>
+        </div>
+
+        <!-- Main Header -->
+        <div class="header-main">
+            <a href="/trang-chu" class="header-logo">
+                <div class="logo-img-wrap">
+                    <img src="/images/logo.png" alt="VHOES Logo"
+                         onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex'">
+                    <div id="logoFallback" style="display:none;width:48px;height:48px;background:linear-gradient(135deg,#7c3aed,#2563eb);border-radius:10px;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:900;">S</div>
+                </div>
+                <div class="logo-text-wrap">
+                    <div class="brand-name">VHOES</div>
+                    <div class="brand-tagline">Giày chạy bộ</div>
+                </div>
+            </a>
+
+            <form class="header-search" action="/client/san-pham" method="GET" role="search">
+                <div class="search-input-wrap">
+                    <input type="search" name="q" placeholder="Tìm kiếm giày chạy bộ..." autocomplete="off">
+                    <button type="submit" class="search-btn" aria-label="Tìm kiếm">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+                </div>
+            </form>
+
+            <div class="header-actions">
+                <a href="/client/cart" class="action-btn" id="cartBtn" aria-label="Giỏ hàng">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    <span id="cartCountBadge" class="cart-count" style="display:none;">0</span>
+                    <span>Giỏ hàng</span>
+                </a>
+                <a href="/client/tai-khoan" class="action-btn" aria-label="Tài khoản">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Tài khoản</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <div class="container">
+            <div class="nav-inner">
+                <a href="/trang-chu" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Trang Chủ
+                </a>
+                <a href="/client/san-pham" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="3" width="7" height="7"/><rect x="15" y="3" width="7" height="7"/><rect x="15" y="14" width="7" height="7"/><rect x="2" y="14" width="7" height="7"/></svg>
+                    Sản Phẩm
+                </a>
+                <a href="/client/tin-tuc" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Tin Tức
+                </a>
+                <a href="/client/gioi-thieu" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Giới Thiệu
+                </a>
+                <a href="/client/lien-he" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.07 6.07l1.79-1.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Liên Hệ
+                </a>
+                <!-- Flash sale Active -->
+                <a href="/client/flash-sale" class="nav-item active" style="margin-left:auto;" aria-current="page">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Flash Sale
+                </a>
+                <a href="/ban-hang" class="nav-item nav-item-admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Quản Lý Bán Hàng
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- ===== FLASH SALE HERO ===== -->
+<section class="fs-hero">
+    <div class="container">
+        <div class="fs-hero-content">
+            <div class="fs-hero-title-wrap">
+                <div class="fs-badge-live">
+                    <span class="fs-pulse-dot"></span>
+                    GIỜ VÀNG GIẢM GIÁ ĐẶC BIỆT
+                </div>
+                <h1 class="fs-hero-title">⚡ FLASH SALE<br>SIÊU ƯU ĐÃI ĐẾN 50%</h1>
+                <p class="fs-hero-desc">Săn ngay các mẫu giày chạy bộ chính hãng từ Nike, Adidas, Puma với mức giá sốc nhất trong ngày. Số lượng deal có hạn!</p>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="fs-countdown-card">
+                <div class="fs-countdown-label">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Ưu Đãi Kết Thúc Trong
+                </div>
+                <div class="fs-countdown-boxes">
+                    <div class="fs-time-box">
+                        <span class="fs-time-val" id="fsHours">00</span>
+                        <span class="fs-time-unit">Giờ</span>
+                    </div>
+                    <span class="fs-time-sep">:</span>
+                    <div class="fs-time-box">
+                        <span class="fs-time-val" id="fsMinutes">00</span>
+                        <span class="fs-time-unit">Phút</span>
+                    </div>
+                    <span class="fs-time-sep">:</span>
+                    <div class="fs-time-box">
+                        <span class="fs-time-val" id="fsSeconds">00</span>
+                        <span class="fs-time-unit">Giây</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ===== FILTER BAR ===== -->
+<section class="fs-filter-bar">
+    <div class="container">
+        <div class="fs-filter-inner">
+            <div class="fs-filter-pills">
+                <button class="fs-pill-btn active" data-filter="all">⚡ Tất cả deal</button>
+                <button class="fs-pill-btn" data-filter="over30">🔥 Giảm từ 30% trở lên</button>
+                <button class="fs-pill-btn" data-filter="under1m">🏷️ Dưới 1.000.000₫</button>
+                <button class="fs-pill-btn" data-filter="nike">Nike</button>
+                <button class="fs-pill-btn" data-filter="adidas">Adidas</button>
+                <button class="fs-pill-btn" data-filter="puma">Puma</button>
+            </div>
+            <div style="font-size: 13px; color: #64748b; font-weight: 500;">
+                Cam kết 100% sản phẩm chính hãng
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FLASH SALE PRODUCTS ===== -->
+<main class="fs-products-section">
+    <div class="container">
+        <div class="fs-grid" id="fsProductsGrid">
+            <!-- Loading Skeletons -->
+            <div class="fs-empty-box">
+                <div class="fs-empty-icon">⏳</div>
+                <p style="color:#64748b;font-weight:600;">Đang tải danh sách deal Flash Sale...</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="footer-logo">
+                    <img src="/images/logo.png" alt="VHOES Logo" style="height:32px;filter:brightness(0) invert(1);" onerror="this.style.display='none'">
+                    <span style="font-size:18px;font-weight:900;color:white;">VHOES</span>
+                </div>
+                <p class="footer-desc">Hệ thống phân phối giày chạy bộ chính hãng hàng đầu Việt Nam. Đồng hành cùng từng bước chạy của bạn.</p>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Khám Phá</div>
+                <ul class="footer-links">
+                    <li><a href="/client/san-pham">Tất cả sản phẩm</a></li>
+                    <li><a href="/client/flash-sale">⚡ Flash Sale</a></li>
+                    <li><a href="/client/tin-tuc">Tin tức & Xu hướng</a></li>
+                    <li><a href="/client/gioi-thieu">Về chúng tôi</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Hỗ Trợ Khách Hàng</div>
+                <ul class="footer-links">
+                    <li><a href="/client/tra-cuu">Tra cứu đơn hàng</a></li>
+                    <li><a href="/client/lien-he">Chính sách đổi trả 30 ngày</a></li>
+                    <li><a href="/client/lien-he">Hướng dẫn chọn size</a></li>
+                    <li><a href="/client/lien-he">Liên hệ hỗ trợ</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <div class="footer-heading">Tổng Đài Hỗ Trợ</div>
+                <div style="color:white;font-size:20px;font-weight:800;margin-bottom:8px;">1900 6789</div>
+                <div style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.6;">Thứ 2 - Chủ Nhật: 8h00 - 22h00<br>Email: vshoes@gmail.com</div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 VHOES Running Shoes. Tất cả các quyền được bảo lưu.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Scripts -->
+<script src="/js/client/auth-header.js"></script>
+<script src="/js/client/flash-sale.js?v=2.0"></script>
+<div th:replace="~{client-chat-widget :: chat-widget}"></div>
+
+</body>
+</html>

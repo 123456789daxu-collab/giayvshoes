@@ -1,5 +1,5 @@
-/* Nhúng Font chữ Outfit từ Google Fonts để giao diện hiện đại và cao cấp */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('/css/global-typography.css');
+
 
 /* Thiết lập cơ bản cho toàn bộ trang */
 * {
@@ -9,7 +9,15 @@
 }
 
 body, input, button, select, textarea {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
 }
 
 body {
@@ -190,7 +198,7 @@ body {
 
 /* Khi submenu được mở */
 .submenu.open {
-    max-height: 200px; /* Cho phép hiển thị hết chiều cao của các mục con */
+    max-height: 500px; /* Cho phép hiển thị hết chiều cao của các mục con */
 }
 
 /* Xoay mũi tên khi submenu mở */

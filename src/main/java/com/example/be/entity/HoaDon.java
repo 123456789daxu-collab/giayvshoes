@@ -78,6 +78,10 @@ public class HoaDon {
     @Column(name = "trang_thai")
     private Integer trangThai;
 
+    @Column(name = "so_lan_sua_thong_tin")
+    @Builder.Default
+    private Integer soLanSuaThongTin = 0;
+
     @Transient
     private String lyDoHuy; // not in DB
 

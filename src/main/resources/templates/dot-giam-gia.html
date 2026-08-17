@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -88,10 +88,10 @@
                             <span class="card-title-table" style="margin-bottom: 0;">Danh sách đợt giảm giá</span>
                             <div style="display: flex; gap: 8px;">
                                 <button id="btnExportExcel" onclick="exportCampaignsExcel()" style="padding: 8px 14px; background: white; color: #0f2d4a; border: 1px solid #0f2d4a; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#0f2d4a'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#0f2d4a'">
-                                    <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Xuất Excel
+                                    <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i> Xuất Excel
                                 </button>
                                 <button onclick="openAddCampaignForm()" style="padding: 8px 14px; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2); width: auto;">
-                                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Tạo đợt giảm giá
+                                    <i data-lucide="plus" style="width: 20px; height: 20px;"></i> Tạo đợt giảm giá
                                 </button>
                             </div>
                         </div>
@@ -140,7 +140,7 @@
                 <div id="form-panel" class="tab-panel">
                     
                     <button class="back-link" onclick="backToListPanel()">
-                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                        <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
                         Quay lại danh sách
                     </button>
 
@@ -169,7 +169,7 @@
                                         <div style="position: relative;">
                                             <input type="text" id="campaign-code" class="input-control" placeholder="Hệ thống tự sinh" required style="border-radius: 6px; padding-right: 40px;">
                                             <button type="button" onclick="generateRandomCode()" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 2px 5px rgba(0, 173, 239, 0.3);" title="Tạo mã ngẫu nhiên">
-                                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                                <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -204,9 +204,9 @@
                                         <textarea id="campaign-desc" class="input-control" placeholder="Nhập mô tả..." style="border-radius: 6px; min-height: 80px; resize: vertical; padding: 10px 12px;"></textarea>
                                     </div>
 
-                                    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 20px;">
+                                    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 20px; padding-top: 20px;">
                                         <button type="submit" class="btn-primary-action" style="width: 100%; padding: 12px; border-radius: 8px; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; font-weight: 600; color: white; cursor: pointer; transition: transform 0.2s; font-size: 14px; box-shadow: 0 4px 12px rgba(0, 173, 239, 0.2);" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-                                            <i data-lucide="plus-circle" style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle; display: inline-block;"></i> Tạo đợt giảm giá
+                                            <i data-lucide="plus-circle" style="width: 20px; height: 20px; margin-right: 6px; vertical-align: middle; display: inline-block;"></i> Tạo đợt giảm giá
                                         </button>
                                         <button type="button" class="btn-secondary" onclick="backToListPanel()" style="width: 100%; padding: 12px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; font-weight: 600; color: #475569; cursor: pointer; transition: background 0.2s; font-size: 14px;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
                                             Hủy
@@ -225,7 +225,7 @@
                                     <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: flex-end;">
                                         <div style="position: relative; flex: 2;">
                                             <input type="text" id="prod-filter-search" class="input-control" placeholder="Tìm theo tên hoặc mã sản phẩm..." style="padding-left: 36px; border-radius: 6px;">
-                                            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
+                                            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #94a3b8;"></i>
                                         </div>
                                         <div style="flex: 1; display: flex; flex-direction: column;">
                                             <label style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Màu sắc</label>
@@ -241,7 +241,7 @@
                                         </div>
                                         <div style="display: flex; align-items: flex-end;">
                                             <button type="button" onclick="applyProdFilters()" style="padding: 0 20px; height: 38px; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                                <i data-lucide="search" style="width: 16px; height: 16px; margin-right: 6px;"></i> Tìm kiếm
+                                                <i data-lucide="search" style="width: 20px; height: 20px; margin-right: 6px;"></i> Tìm kiếm
                                             </button>
                                         </div>
                                     </div>
@@ -404,7 +404,7 @@
                     <tr>
                         <td colspan="8" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <i data-lucide="inbox" style="width: 38px; height: 38px; color: #cbd5e1;"></i>
                                 <span>Không tìm thấy đợt giảm giá nào.</span>
                             </div>
                         </td>
@@ -440,9 +440,9 @@
                 // Hành động
                 const hanhDongTd = `
                     <td style="text-align: center;">
-                        <div class="btn-actions-cell" style="justify-content: center; gap: 12px;">
+                        <div class="btn-actions-cell" style="justify-content: center; gap: 20px;">
                             <button type="button" class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCampaignForm(${campaign.id})">
-                                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                                <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                             </button>
                         </div>
                     </td>
@@ -522,7 +522,7 @@
             // Nút lùi
             const prev = document.createElement("button");
             prev.className = `page-btn ${cCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>`;
             prev.onclick = () => { if (cCurrentPage > 0) { cCurrentPage--; loadCampaignsTable(); } };
             nav.appendChild(prev);
 
@@ -538,7 +538,7 @@
             // Nút tiến
             const next = document.createElement("button");
             next.className = `page-btn ${cCurrentPage >= cTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>`;
             next.onclick = () => { if (cCurrentPage < cTotalPages - 1) { cCurrentPage++; loadCampaignsTable(); } };
             nav.appendChild(next);
         }
@@ -962,7 +962,7 @@
                 const toggleTd = `
                     <td style="padding: 12px; text-align: center; width: 40px;">
                         <button type="button" class="btn-toggle-variants" onclick="toggleVariantsRow(${sp.id})" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; padding: 0;">
-                            <i data-lucide="plus" id="icon-toggle-${sp.id}" style="width: 14px; height: 14px;"></i>
+                            <i data-lucide="plus" id="icon-toggle-${sp.id}" style="width: 18px; height: 18px;"></i>
                         </button>
                     </td>
                 `;
@@ -1005,7 +1005,7 @@
                         const isChecked = selectedProductDetailIds.has(v.id) ? "checked" : "";
                         let imgUrl = v.hinhAnh;
                         if (imgUrl && imgUrl.includes(",")) imgUrl = imgUrl.split(",")[0];
-                        const hinhAnh = imgUrl ? `<img src="${imgUrl}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">` : `<div style="width: 40px; height: 40px; background: #f1f5f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;"><i data-lucide="image" style="width: 16px; height: 16px; color: #94a3b8;"></i></div>`;
+                        const hinhAnh = imgUrl ? `<img src="${imgUrl}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">` : `<div style="width: 40px; height: 40px; background: #f1f5f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;"><i data-lucide="image" style="width: 20px; height: 20px; color: #94a3b8;"></i></div>`;
                         const safeMauSac = (v.tenMauSac || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         const safeMaSP = (v.maSanPham || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         const safeKichCo = (v.tenKichCo || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1146,7 +1146,7 @@
                     <tr>
                         <td colspan="11" style="text-align: center; color: #94a3b8; padding: 32px 16px;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <i data-lucide="check-circle" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <i data-lucide="check-circle" style="width: 38px; height: 38px; color: #cbd5e1;"></i>
                                 <span>Chưa có sản phẩm/biến thể nào được chọn.</span>
                             </div>
                         </td>
@@ -1168,7 +1168,7 @@
                 
                 const deleteBtn = `
                     <button type="button" class="action-icon-btn" style="color: #ef4444; background: #fee2e2; border-radius: 4px; padding: 4px;" title="Xóa" onclick="removeSelectedVariant(${v.id})">
-                        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
                     </button>
                 `;
                 
@@ -1215,7 +1215,7 @@
             const prev = document.createElement("button");
             prev.type = "button";
             prev.className = `page-btn ${prodCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>`;
+            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i>`;
             prev.onclick = () => { if (prodCurrentPage > 0) { prodCurrentPage--; renderProductGroupTablePage(); } };
             nav.appendChild(prev);
 
@@ -1231,7 +1231,7 @@
             const next = document.createElement("button");
             next.type = "button";
             next.className = `page-btn ${prodCurrentPage >= prodTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>`;
+            next.innerHTML = `<i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i>`;
             next.onclick = () => { if (prodCurrentPage < prodTotalPages - 1) { prodCurrentPage++; renderProductGroupTablePage(); } };
             nav.appendChild(next);
             
@@ -1255,4 +1255,5 @@
     </script>
 </body>
 </html>
+
 
