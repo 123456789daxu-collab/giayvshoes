@@ -408,6 +408,8 @@ public class SanPhamController {
             return "redirect:/san-pham/create";
         }
 
+        sanPham.setTenSanPham(sanPham.getTenSanPham().trim());
+
         SanPham existingSp = null;
         if (sanPhamService.existsByTenSanPham(sanPham.getTenSanPham())) {
             existingSp = sanPhamService.findByTenSanPham(sanPham.getTenSanPham());
@@ -536,7 +538,10 @@ public class SanPhamController {
                 redirectAttributes.addFlashAttribute("errorMessage", "Tên sản phẩm không được để trống!");
                 return "redirect:/san-pham";
             }
-            if (!sanPham.getTenSanPham().trim().equalsIgnoreCase(existing.getTenSanPham().trim()) && sanPhamService.existsByTenSanPham(sanPham.getTenSanPham())) {
+            
+            sanPham.setTenSanPham(sanPham.getTenSanPham().trim());
+
+            if (!sanPham.getTenSanPham().equalsIgnoreCase(existing.getTenSanPham().trim()) && sanPhamService.existsByTenSanPham(sanPham.getTenSanPham())) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Tên sản phẩm đã tồn tại trong hệ thống. Vui lòng chọn tên khác!");
                 return "redirect:/san-pham";
             }
