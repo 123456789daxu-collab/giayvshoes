@@ -488,6 +488,15 @@ const posApp = {
         document.getElementById('cartItemCount').innerText = `${cartItems.length} sản phẩm`;
 
         cartItems.forEach((item, index) => {
+            let priceWarning = '';
+            if (item.giaHienTai !== undefined && item.giaHienTai !== null && item.giaHienTai !== item.donGia) {
+                const isTang = item.giaHienTai > item.donGia;
+                const text = isTang ? 'Giá hiện tại đã tăng' : 'Giá hiện tại đã giảm';
+                priceWarning = `<div class="mt-1 px-2 py-1 rounded text-white" style="background-color: #3b82f6; display: inline-block; font-size: 0.75rem;">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i>${text}:<br>${this.formatCurrency(item.donGia)} <i class="fa-solid fa-arrow-right mx-1"></i> ${this.formatCurrency(item.giaHienTai)}
+                </div>`;
+            }
+
             const tr = `
                 <tr style="font-size: 0.95rem; vertical-align: middle;">
                     <td class="text-muted ps-4 py-2">${index + 1}</td>
@@ -495,7 +504,10 @@ const posApp = {
                     <td class="text-start py-2">
                         <div class="d-flex align-items-center">
                             <img src="${item.hinhAnh || 'https://via.placeholder.com/32'}" class="product-img me-2 shadow-sm" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
-                            <span class="fw-semibold text-dark">${item.tenSanPham}</span>
+                            <div class="d-flex flex-column">
+                                <span class="fw-semibold text-dark">${item.tenSanPham}</span>
+                                ${priceWarning}
+                            </div>
                         </div>
                     </td>
                     <td class="text-muted py-2">${item.mauSac}</td>

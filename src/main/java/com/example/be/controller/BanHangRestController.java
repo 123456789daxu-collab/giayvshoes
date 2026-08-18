@@ -281,6 +281,15 @@ public class BanHangRestController {
             } else {
                 map.put("phanTramGiam", 0);
             }
+
+            // Tính giá hiện tại của sản phẩm để hiển thị cảnh báo nếu giá thay đổi
+            BigDecimal giaHienTai = spct.getGiaBan();
+            Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+            if (discount != null && discount > 0 && discount <= 100) {
+                BigDecimal giam = giaHienTai.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+                giaHienTai = giaHienTai.subtract(giam);
+            }
+            map.put("giaHienTai", giaHienTai);
         }
         return map;
     }
