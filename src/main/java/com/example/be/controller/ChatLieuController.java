@@ -47,7 +47,19 @@ public class ChatLieuController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên chất liệu không được để trống!");
             return "redirect:" + (referer != null ? referer : "/chat-lieu");
         }
-        chatLieu.setTenChatLieu(chatLieu.getTenChatLieu().trim());
+        String tenTrimmed = chatLieu.getTenChatLieu().trim();
+
+        java.util.Optional<ChatLieu> existing = chatLieuRepository.findByTenChatLieuIgnoreCase(tenTrimmed);
+        if (existing.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Chất liệu này đã tồn tại trong hệ thống.");
+            return "redirect:" + (referer != null ? referer : "/chat-lieu");
+        }
+
+        chatLieu.setTenChatLieu(tenTrimmed);
+        if (chatLieu.getMaChatLieu() == null || chatLieu.getMaChatLieu().trim().isEmpty() || "(Tự động sinh)".equals(chatLieu.getMaChatLieu().trim())) {
+            chatLieu.setMaChatLieu("CL" + System.currentTimeMillis());
+        }
+        chatLieu.setTrangThai(true);
         try {
             chatLieuRepository.save(chatLieu);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
@@ -64,8 +76,16 @@ public class ChatLieuController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên chất liệu không được để trống!");
             return "redirect:" + (referer != null ? referer : "/chat-lieu");
         }
+        String tenTrimmed = chatLieu.getTenChatLieu().trim();
+
+        java.util.Optional<ChatLieu> existing = chatLieuRepository.findByTenChatLieuIgnoreCase(tenTrimmed);
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên chất liệu đã trùng với chất liệu khác.");
+            return "redirect:" + (referer != null ? referer : "/chat-lieu");
+        }
+
         chatLieu.setId(id);
-        chatLieu.setTenChatLieu(chatLieu.getTenChatLieu().trim());
+        chatLieu.setTenChatLieu(tenTrimmed);
         try {
             chatLieuRepository.save(chatLieu);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

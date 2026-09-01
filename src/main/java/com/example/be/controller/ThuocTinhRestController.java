@@ -37,9 +37,15 @@ public class ThuocTinhRestController {
         if (isInvalidName(ten)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Tên danh mục không được chứa số hoặc ký tự đặc biệt!"));
         }
+        String nameTrim = ten.trim();
+        java.util.Optional<DanhMuc> existing = danhMucRepository.findByTenDanhMucIgnoreCase(nameTrim);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Danh mục đã tồn tại trong hệ thống!"));
+        }
+
         DanhMuc dm = new DanhMuc();
         dm.setMaDanhMuc("DM" + System.currentTimeMillis());
-        dm.setTenDanhMuc(ten.trim());
+        dm.setTenDanhMuc(nameTrim);
         dm.setTrangThai(true);
         dm = danhMucRepository.save(dm);
         return ResponseEntity.ok(Map.of("id", dm.getId(), "ten", dm.getTenDanhMuc()));
@@ -50,9 +56,15 @@ public class ThuocTinhRestController {
         if (isInvalidName(ten)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Tên loại giày không được chứa số hoặc ký tự đặc biệt!"));
         }
+        String nameTrim = ten.trim();
+        java.util.Optional<LoaiGiay> existing = loaiGiayRepository.findByTenLoaiGiayIgnoreCase(nameTrim);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Loại giày đã tồn tại trong hệ thống!"));
+        }
+
         LoaiGiay lg = new LoaiGiay();
         lg.setMaLoaiGiay("LG" + System.currentTimeMillis());
-        lg.setTenLoaiGiay(ten.trim());
+        lg.setTenLoaiGiay(nameTrim);
         lg.setTrangThai(true);
         lg = loaiGiayRepository.save(lg);
         return ResponseEntity.ok(Map.of("id", lg.getId(), "ten", lg.getTenLoaiGiay()));
@@ -63,9 +75,15 @@ public class ThuocTinhRestController {
         if (isInvalidName(ten)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Tên thương hiệu không được chứa số hoặc ký tự đặc biệt!"));
         }
+        String nameTrim = ten.trim();
+        java.util.Optional<ThuongHieu> existing = thuongHieuRepository.findByTenThuongHieuIgnoreCase(nameTrim);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Thương hiệu đã tồn tại trong hệ thống!"));
+        }
+
         ThuongHieu th = new ThuongHieu();
         th.setMaThuongHieu("TH" + System.currentTimeMillis());
-        th.setTenThuongHieu(ten.trim());
+        th.setTenThuongHieu(nameTrim);
         th.setTrangThai(true);
         th = thuongHieuRepository.save(th);
         return ResponseEntity.ok(Map.of("id", th.getId(), "ten", th.getTenThuongHieu()));
@@ -76,9 +94,15 @@ public class ThuocTinhRestController {
         if (isInvalidName(ten)) {
             return ResponseEntity.badRequest().body(Map.of("message", "Tên chất liệu không được chứa số hoặc ký tự đặc biệt!"));
         }
+        String nameTrim = ten.trim();
+        java.util.Optional<ChatLieu> existing = chatLieuRepository.findByTenChatLieuIgnoreCase(nameTrim);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Chất liệu đã tồn tại trong hệ thống!"));
+        }
+
         ChatLieu cl = new ChatLieu();
         cl.setMaChatLieu("CL" + System.currentTimeMillis());
-        cl.setTenChatLieu(ten.trim());
+        cl.setTenChatLieu(nameTrim);
         cl.setTrangThai(true);
         cl = chatLieuRepository.save(cl);
         return ResponseEntity.ok(Map.of("id", cl.getId(), "ten", cl.getTenChatLieu()));
@@ -104,16 +128,21 @@ public class ThuocTinhRestController {
                 return ResponseEntity.badRequest().body(Map.of("message", "Mã màu không hợp lệ! Phải có dạng #RRGGBB (ví dụ: #FF0000)."));
             }
         }
-        MauSac ms = new MauSac();
-        if (ma != null && !ma.trim().isEmpty()) {
-            ms.setMaMauSac(ma.trim());
-        } else {
-            ms.setMaMauSac("MS" + System.currentTimeMillis());
+
+        java.util.Optional<MauSac> existing = mauSacRepository.findByTenMauSacIgnoreCase(trimmedTen);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Màu sắc đã tồn tại trong hệ thống!"));
         }
-        ms.setTenMauSac(ten.trim());
+
+        MauSac ms = new MauSac();
+        ms.setMaMauSac("MS" + System.currentTimeMillis());
+        ms.setTenMauSac(trimmedTen);
         ms.setTrangThai(true);
+        if (ma != null && !ma.trim().isEmpty()) {
+            ms.setMaHex(ma.trim());
+        }
         ms = mauSacRepository.save(ms);
-        return ResponseEntity.ok(Map.of("id", ms.getId(), "ten", ms.getTenMauSac(), "ma", ms.getMaMauSac()));
+        return ResponseEntity.ok(Map.of("id", ms.getId(), "ten", ms.getTenMauSac(), "ma", ms.getMaMauSac(), "hex", ms.getMaHex() != null ? ms.getMaHex() : ""));
     }
 
     @PostMapping("/add-co-giay")
@@ -125,6 +154,12 @@ public class ThuocTinhRestController {
         if (size < 35 || size > 48) {
             return ResponseEntity.badRequest().body(Map.of("message", "Kích cỡ phải nằm trong khoảng từ 35 đến 48!"));
         }
+
+        java.util.Optional<CoGiay> existing = coGiayRepository.findBySizeGiay(size);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Kích thước đã tồn tại trong hệ thống!"));
+        }
+
         CoGiay cg = new CoGiay();
         cg.setMaCoGiay("SIZE" + System.currentTimeMillis());
         cg.setSizeGiay(size);

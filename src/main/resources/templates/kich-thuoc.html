@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -169,19 +169,15 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-medium">Mã Kích Thước</label>
-                            <input type="text" class="form-control" name="maCoGiay" placeholder="Nhập mã (VD: KT01)" required>
-                        </div>
-                        <div class="mb-3">
                             <label class="form-label fw-medium">Kích Thước</label>
                             <input type="number" class="form-control" name="sizeGiay" placeholder="Nhập kích thước (VD: 40)" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Trạng Thái</label>
-                            <select class="form-select" name="trangThai">
-                                <option value="true">Đang sử dụng</option>
-                                <option value="false">Ngừng sử dụng</option>
+                            <select class="form-select bg-light" disabled>
+                                <option value="true" selected>Đang sử dụng</option>
                             </select>
+                            <input type="hidden" name="trangThai" value="true">
                         </div>
                     </div>
                     <div class="modal-footer">

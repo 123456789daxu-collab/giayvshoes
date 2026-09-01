@@ -473,6 +473,7 @@ public class SanPhamController {
             }
 
             if (variantSizes != null && variantColors != null) {
+                java.util.Map<String, String> base64Cache = new java.util.HashMap<>();
                 for (int i = 0; i < variantSizes.size(); i++) {
                     com.example.be.entity.SanPhamChiTiet variant = new com.example.be.entity.SanPhamChiTiet();
                     variant.setSanPham(savedSp);
@@ -498,9 +499,16 @@ public class SanPhamController {
                                 
                                 for (int j = 0; j < base64List.size(); j++) {
                                     String b64 = base64List.get(j);
-                                    String fileName = "variant_" + savedSp.getId() + "_" + i + "_" + System.currentTimeMillis() + "_" + j + ".png";
-                                    String fileUrl = saveBase64File(uploadDir, fileName, b64);
-                                    savedUrls.add(fileUrl);
+                                    if (b64.startsWith("http://") || b64.startsWith("https://") || b64.startsWith("/upload/") || b64.startsWith("/images/")) {
+                                        savedUrls.add(b64);
+                                    } else if (base64Cache.containsKey(b64)) {
+                                        savedUrls.add(base64Cache.get(b64));
+                                    } else {
+                                        String fileName = "variant_" + savedSp.getId() + "_" + i + "_" + System.currentTimeMillis() + "_" + j + ".png";
+                                        String fileUrl = saveBase64File(uploadDir, fileName, b64);
+                                        base64Cache.put(b64, fileUrl);
+                                        savedUrls.add(fileUrl);
+                                    }
                                 }
                                 
                                 if (!savedUrls.isEmpty()) {
@@ -606,6 +614,13 @@ public class SanPhamController {
         java.util.List<String> list = new java.util.ArrayList<>();
         if (input == null || input.trim().isEmpty()) return list;
         String str = input.trim();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            if (str.startsWith("[")) {
+                return mapper.readValue(str, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<String>>() {});
+            }
+        } catch (Exception ignored) {
+        }
         if (str.startsWith("[")) {
             str = str.substring(1, str.length() - 1).trim();
             String[] tokens = str.split("\",\\s*\"");
@@ -622,13 +637,13 @@ public class SanPhamController {
     }
 
     private String saveBase64File(String uploadDir, String fileName, String base64String) throws java.io.IOException {
-        java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir);
+        java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir).toAbsolutePath().normalize();
         if (!java.nio.file.Files.exists(uploadPath)) {
             java.nio.file.Files.createDirectories(uploadPath);
         }
         String base64Image = base64String;
         if (base64String.contains(",")) {
-            base64Image = base64String.split(",")[1];
+            base64Image = base64String.substring(base64String.indexOf(",") + 1);
         }
         // Khi gửi qua form application/x-www-form-urlencoded, ký tự '+' trong Base64 bị giải mã thành dấu cách ' '
         base64Image = base64Image.replace(" ", "+");
@@ -641,7 +656,7 @@ public class SanPhamController {
 
         // Lưu đồng thời vào target/classes/static/upload/ để server Spring Boot đang chạy truy cập được ảnh ngay lập tức
         try {
-            java.nio.file.Path targetPath = java.nio.file.Paths.get("target/classes/static/upload/");
+            java.nio.file.Path targetPath = java.nio.file.Paths.get("target/classes/static/upload/").toAbsolutePath().normalize();
             if (!java.nio.file.Files.exists(targetPath)) {
                 java.nio.file.Files.createDirectories(targetPath);
             }

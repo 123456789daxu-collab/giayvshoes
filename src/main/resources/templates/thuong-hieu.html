@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -165,24 +165,20 @@
             <div class="modal-content">
                 <form action="/thuong-hieu/add" method="POST">
                     <div class="modal-header">
-                        <h5 class="modal-title fw-bold">Thêm Thương Hiệu Mãới</h5>
+                        <h5 class="modal-title fw-bold">Thêm Thương Hiệu Mới</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Mã Thương Hiệu</label>
-                            <input type="text" class="form-control" name="maThuongHieu" placeholder="Nhập mã (VD: TL01)" required>
-                        </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Tên Thương Hiệu</label>
                             <input type="text" class="form-control" name="tenThuongHieu" placeholder="Nhập tên thương hiệu" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-medium">Trạng Thái</label>
-                            <select class="form-select" name="trangThai">
-                                <option value="true">Đang sử dụng</option>
-                                <option value="false">Ngừng sử dụng</option>
+                            <select class="form-select bg-light" disabled>
+                                <option value="true" selected>Đang sử dụng</option>
                             </select>
+                            <input type="hidden" name="trangThai" value="true">
                         </div>
                     </div>
                     <div class="modal-footer">

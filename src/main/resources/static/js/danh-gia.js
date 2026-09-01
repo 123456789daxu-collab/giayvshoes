@@ -244,7 +244,7 @@ function renderTable() {
                 <tr>
                     <td>
                         <div class="dg-prod-cell">
-                            <img src="${imgUrl}" class="dg-prod-img" alt="${escapeHtml(p.tenSanPham || '')}" onerror="this.src='/images/shoe1.png'">
+                            <img src="${imgUrl}" class="dg-prod-img" alt="${escapeHtml(p.tenSanPham || '')}" onerror="this.src='/images/white.png'">
                             <div class="dg-prod-info">
                                 <div class="dg-prod-title">${escapeHtml(p.tenSanPham || 'Sản phẩm VShoes')}</div>
                                 <span class="dg-prod-code">${escapeHtml(p.ma || 'SP-N/A')}</span>
@@ -318,7 +318,7 @@ function renderTable() {
                     <td style="text-align: center; color: #94a3b8; font-weight: 600;">${stt}</td>
                     <td>
                         <div class="dg-prod-cell">
-                            <img src="${imgUrl}" class="dg-prod-img" alt="${escapeHtml(sp.tenSanPham || '')}" onerror="this.src='/images/shoe1.png'">
+                            <img src="${imgUrl}" class="dg-prod-img" alt="${escapeHtml(sp.tenSanPham || '')}" onerror="this.src='/images/white.png'">
                             <div class="dg-prod-info">
                                 <div class="dg-prod-title">${escapeHtml(sp.tenSanPham || 'Sản phẩm VShoes')}</div>
                                 <span class="dg-prod-code">${escapeHtml(sp.ma || 'SP-N/A')}</span>
@@ -410,7 +410,7 @@ function renderDetailView() {
         const imgUrl = getImageUrl(prod.hinhAnh, prod.id || 0);
         bannerEl.innerHTML = `
             <div class="dg-banner-prod">
-                <img src="${imgUrl}" class="dg-banner-img" alt="${escapeHtml(prod.tenSanPham || '')}" onerror="this.src='/images/shoe1.png'">
+                <img src="${imgUrl}" class="dg-banner-img" alt="${escapeHtml(prod.tenSanPham || '')}" onerror="this.src='/images/white.png'">
                 <div class="dg-banner-info">
                     <div class="dg-banner-title">${escapeHtml(prod.tenSanPham || 'Sản phẩm')}</div>
                     <div class="dg-banner-code">${escapeHtml(prod.ma || 'SP-N/A')}</div>
@@ -547,11 +547,17 @@ function renderDetailReviewsList() {
         // Images gallery
         const imagesHtml = images.length > 0 ? `
             <div class="dg-review-images-list">
-                ${images.map(img => `
-                    <img src="${img}" class="dg-review-img-thumb" alt="Ảnh thực tế" 
-                         onclick="openLightbox('${img}')"
+                ${images.map(img => {
+                    let finalSrc = (img || '').trim();
+                    if (finalSrc && !finalSrc.startsWith('/') && !finalSrc.startsWith('http') && !finalSrc.startsWith('data:')) {
+                        finalSrc = '/upload/' + finalSrc;
+                    }
+                    return `
+                    <img src="${finalSrc}" class="dg-review-img-thumb" alt="Ảnh thực tế" 
+                         onclick="openLightbox('${finalSrc}')"
                          onerror="this.style.display='none'">
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         ` : '';
 
@@ -773,8 +779,7 @@ function getImageUrl(hinhAnh, seedId) {
             return parts[0].trim();
         }
     }
-    const seed = (seedId % 6) + 1;
-    return `/images/shoe${seed}.png`;
+    return '/images/white.png';
 }
 
 function escapeHtml(str) {

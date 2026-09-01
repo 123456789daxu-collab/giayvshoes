@@ -161,37 +161,50 @@ async function handlePaidConfirmation() {
     }
 
     try {
-        if (orderId) {
-            // Khách xác nhận đã chuyển khoản → CHỈ ghi chú vào đơn hàng, KHÔNG tự xác nhận
-            // Admin sẽ kiểm tra thực tế và xác nhận thủ công trên trang quản lý
-            const notePayload = {
-                ghiChu: `[KHÁCH XÁC NHẬN ĐÃ THANH TOÁN] qua ${method} lúc ${new Date().toLocaleString('vi-VN')}. Vui lòng kiểm tra và xác nhận!`
-            };
-
-            await fetch(`/api/auth/tracking/${orderId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(notePayload)
-            });
-
-            // Gửi email xác nhận cho khách
-            fetch(`/api/hoa-don/${orderId}/send-email`, { method: 'POST' }).catch(err => console.warn('Lỗi gửi email:', err));
-        } else if (pendingData && pendingData.payload) {
-            // Trường hợp dự phòng nếu đơn hàng chưa có ID: tạo hóa đơn mới
-            const res = await fetch('/api/hoa-don/ban-hang', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(pendingData.payload)
-            });
-            if (res.ok) {
-                const newOrder = await res.json();
-                orderMa = newOrder.maHoaDon;
-                orderTotal = newOrder.tongTien;
-                fetch(`/api/hoa-don/${newOrder.id}/send-email`, { method: 'POST' }).catch(err => console.warn(err));
-            }
+        if (!pendingData || !pendingData.payload) {
+            throw new Error('Không tìm thấy thông tin đơn hàng chờ thanh toán. Vui lòng đặt hàng lại!');
         }
 
-        // Xóa thông tin giỏ hàng và phiên thanh toán tạm
+        const payload = pendingData.payload;
+        // Gắn thêm ghi chú xác nhận thanh toán online
+        payload.ghiChu = (payload.ghiChu || '') + ` | [KHÁCH XÁC NHẬN ĐÃ THANH TOÁN QUA ${method}]`;
+
+        const res = await fetch('/api/hoa-don/ban-hang', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            let errMsg = 'Lỗi khi tạo đơn hàng';
+            try {
+                const errBody = await res.json();
+                errMsg = errBody.error || errBody.message || errMsg;
+            } catch (_) {
+                errMsg = (await res.text()) || errMsg;
+            }
+            throw new Error(errMsg);
+        }
+
+        const newOrder = await res.json();
+        orderMa = newOrder.maHoaDon;
+        orderTotal = newOrder.tongTien;
+
+        // Gửi email xác nhận cho khách
+        if (newOrder.id) {
+            fetch(`/api/hoa-don/${newOrder.id}/send-email`, { method: 'POST' }).catch(err => console.warn('Lỗi gửi email:', err));
+        }
+
+        // Xóa các sản phẩm đã mua khỏi giỏ hàng
+        if (payload.items && Array.isArray(payload.items)) {
+            const purchasedIds = payload.items.map(item => item.sanPhamChiTietId);
+            const generalCart = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
+            const remainingCart = generalCart.filter(item => !purchasedIds.includes(item.id));
+            localStorage.setItem('vshoes_cart', JSON.stringify(remainingCart));
+            localStorage.removeItem('checkout_items');
+        }
+
+        // Xóa thông tin phiên thanh toán tạm
         sessionStorage.removeItem('pending_online_order');
 
         showToast('✅ Đã ghi nhận thanh toán! Đơn hàng đang chờ admin xác nhận.', 'success');

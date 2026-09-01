@@ -40,4 +40,13 @@ public class GiaoCaController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/active")
+    public ResponseEntity<GiaoCa> getActive() {
+        GiaoCa active = giaoCaService.findActiveShift();
+        if (active != null) {
+            return ResponseEntity.ok(active);
+        }
+        return ResponseEntity.noContent().build();
+    }
 }

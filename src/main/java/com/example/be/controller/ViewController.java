@@ -199,4 +199,9 @@ public class ViewController {
     public String flashSaleShortcut() {
         return "redirect:/client/flash-sale";
     }
+
+    @GetMapping("/client/checkout/vnpay-return")
+    public String vnpayReturn() {
+        return "client/vnpay-return";
+    }
 }

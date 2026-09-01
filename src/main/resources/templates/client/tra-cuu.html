@@ -163,12 +163,13 @@
             justify-content: space-between;
             align-items: flex-start;
             padding: 10px 0;
+            overflow: hidden;
         }
         .timeline-6steps-line {
             position: absolute;
             top: 33px;
-            left: 5%;
-            right: 5%;
+            left: 7.5%;
+            right: 7.5%;
             height: 3px;
             background: #e2e8f0;
             z-index: 1;
@@ -176,8 +177,9 @@
         .timeline-6steps-line-active {
             position: absolute;
             top: 33px;
-            left: 5%;
+            left: 7.5%;
             width: 0%;
+            max-width: 85%;
             height: 3px;
             background: #ef4444;
             z-index: 2;
@@ -1000,7 +1002,7 @@
                         <h3 class="detail-card-title" style="margin: 0;">Thông tin nhận hàng</h3>
                         <button id="btnEditShippingInfo" 
                                 onclick="openEditShippingModal()" 
-                                style="display: inline-flex; align-items: center; gap: 5px; background: #f0f9ff; border: 1.5px solid #bae6fd; color: #0284c7; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;"
+                                style="display: none; align-items: center; gap: 5px; background: #f0f9ff; border: 1.5px solid #bae6fd; color: #0284c7; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;"
                                 onmouseover="this.style.background='#e0f2fe'"
                                 onmouseout="this.style.background='#f0f9ff'">
                             <i data-lucide="edit" style="width: 14px; height: 14px;"></i> Sửa thông tin

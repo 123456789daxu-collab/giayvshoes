@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -1005,7 +1005,8 @@
                         const isChecked = selectedProductDetailIds.has(v.id) ? "checked" : "";
                         let imgUrl = v.hinhAnh;
                         if (imgUrl && imgUrl.includes(",")) imgUrl = imgUrl.split(",")[0];
-                        const hinhAnh = imgUrl ? `<img src="${imgUrl}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">` : `<div style="width: 40px; height: 40px; background: #f1f5f9; border-radius: 4px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;"><i data-lucide="image" style="width: 20px; height: 20px; color: #94a3b8;"></i></div>`;
+                        const hinhSrc = imgUrl || '/images/white.png';
+                        const hinhAnh = `<img src="${hinhSrc}" onerror="this.onerror=null;this.src='/images/white.png';" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">`;
                         const safeMauSac = (v.tenMauSac || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         const safeMaSP = (v.maSanPham || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         const safeKichCo = (v.tenKichCo || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1162,7 +1163,8 @@
                 
                 let imgUrl = v.hinhAnh;
                 if (imgUrl && imgUrl.includes(",")) imgUrl = imgUrl.split(",")[0];
-                const hinhAnh = imgUrl ? `<img src="${imgUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;">` : `<div style="width: 48px; height: 48px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;"><i data-lucide="image" style="width: 20px; height: 20px; color: #94a3b8;"></i></div>`;
+                const hinhSrc = imgUrl || '/images/white.png';
+                const hinhAnh = `<img src="${hinhSrc}" onerror="this.onerror=null;this.src='/images/white.png';" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;">`;
                 
                 const discountedPrice = calculateDiscountedPrice(v.giaBan);
                 

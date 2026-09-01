@@ -689,32 +689,35 @@ function renderInvoiceData(inv) {
     const paymentMethodSub = document.getElementById("paymentMethodSub");
     const paymentStatusText = document.getElementById("paymentStatusText");
     if (paymentMethodTitle && paymentMethodSub) {
-        const isOnline = inv.loaiHoaDon === 'Trực tuyến' || inv.loaiHoaDon === 'Online';
+        const isOnline = inv.loaiHoaDon === 'Trực tuyến' || inv.loaiHoaDon === 'Online' || inv.loaiHoaDon === true;
         const noteText = (inv.ghiChu || '').trim().toUpperCase();
 
         let title = "COD";
         let sub = "Thanh toán khi nhận hàng";
-        let isPaid = true;
+        let isOnlineMethod = false;
 
         if (noteText.includes('VNPAY')) {
             title = "Ví VNPAY";
             sub = "Thanh toán qua ví VNPAY";
+            isOnlineMethod = true;
         } else if (noteText.includes('MOMO')) {
             title = "Ví MOMO";
             sub = "Thanh toán qua ví MOMO";
+            isOnlineMethod = true;
         } else if (noteText.includes('ZALOPAY')) {
             title = "Ví ZaloPay";
             sub = "Thanh toán qua ví ZaloPay";
+            isOnlineMethod = true;
         } else if (noteText.includes('VIETQR') || noteText.includes('CHUYỂN KHOẢN') || noteText.includes('TRANSFER')) {
             title = "VietQR";
             sub = "Chuyển khoản ngân hàng qua VietQR";
+            isOnlineMethod = true;
         } else if (noteText.includes('TIỀN MẶT') || noteText.includes('CASH')) {
             title = "Tiền Mặt";
             sub = "Thanh toán bằng tiền mặt";
         } else if (isOnline) {
             title = "COD";
             sub = "Thanh toán khi nhận hàng (COD)";
-            isPaid = false;
         } else {
             title = "Tiền Mặt";
             sub = "Thanh toán bằng tiền mặt tại quầy";
@@ -723,19 +726,34 @@ function renderInvoiceData(inv) {
         paymentMethodTitle.textContent = title;
         paymentMethodSub.textContent = sub;
 
+        // Xử lý hiển thị trạng thái thanh toán & số tiền đã thanh toán
+        const lblPaidAmountSub = document.getElementById("lblPaidAmountSub");
+        // Khách đã xác nhận chuyển khoản nếu ghi chú có từ khóa này
+        const khachDaXacNhanTT = noteText.includes('KHÁCH XÁC NHẬN ĐÃ THANH TOÁN') || 
+                                  noteText.includes('KHACH XAC NHAN DA THANH TOAN') ||
+                                  noteText.includes('XÁC NHẬN ĐÃ THANH TOÁN QUA') ||
+                                  noteText.includes('VNPAY THANH TOÁN THÀNH CÔNG') ||
+                                  noteText.includes('VNPAY THANH TOAN THANH CONG');
+
         if (paymentStatusText) {
-            if (inv.trangThai === 7) {
+            if (inv.trangThai === 7 || inv.trangThai === 8) {
                 paymentStatusText.textContent = "Đã hủy";
                 paymentStatusText.style.color = "#64748b";
+                if (lblPaidAmountSub) lblPaidAmountSub.textContent = "Đã thanh toán: 0 đ";
             } else if (inv.trangThai === 9) {
                 paymentStatusText.textContent = "Đã hoàn tiền";
                 paymentStatusText.style.color = "#64748b";
-            } else if (!isPaid && inv.trangThai === 0) {
-                paymentStatusText.textContent = "Chờ thanh toán";
+                if (lblPaidAmountSub) lblPaidAmountSub.textContent = "Đã hoàn tiền: " + grandTotalValStr;
+            } else if (isOnline && inv.trangThai === 0 && !isOnlineMethod && !khachDaXacNhanTT) {
+                // Đơn online COD, chưa trả tiền
+                paymentStatusText.textContent = "Chờ xác nhận (COD)";
                 paymentStatusText.style.color = "#ea580c";
+                if (lblPaidAmountSub) lblPaidAmountSub.textContent = "Chưa thanh toán (0 đ / " + grandTotalValStr + ")";
             } else {
+                // Đã thanh toán: hoặc khách đã xác nhận chuyển khoản online, hoặc đơn ở bước > 0
                 paymentStatusText.textContent = "Đã thanh toán";
                 paymentStatusText.style.color = "#10b981";
+                if (lblPaidAmountSub) lblPaidAmountSub.textContent = "Đã thanh toán: " + grandTotalValStr;
             }
         }
     }
@@ -906,14 +924,14 @@ function renderInvoiceItems(items) {
         const total = item.thanhTien || (price * item.soLuong);
         totalGoods += total;
 
-        const imgUrl = item.hinhAnh || '/images/logo.png';
+        const imgUrl = item.hinhAnh || '/images/white.png';
         const priceStr = new Intl.NumberFormat('vi-VN').format(price) + ' đ';
         const totalStr = new Intl.NumberFormat('vi-VN').format(total) + ' đ';
         
         tr.innerHTML = `
             <td>${index + 1}</td>
             <td>
-                <img src="${imgUrl}" alt="Product" onerror="this.src='/images/logo.png'" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                <img src="${imgUrl}" alt="Product" onerror="this.onerror=null;this.src='/images/white.png';" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
             </td>
             <td>
                 <div class="product-detail-info">

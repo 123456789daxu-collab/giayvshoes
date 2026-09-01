@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -665,6 +665,10 @@
             var stompClient = null;
 
             function connectWS(onConnectCallback) {
+                if (stompClient && stompClient.connected) {
+                    if (typeof onConnectCallback === 'function') onConnectCallback();
+                    return;
+                }
                 try {
                     var socket = new SockJS('/ws-chat');
                     stompClient = Stomp.over(socket);
@@ -695,10 +699,62 @@
                             onConnectCallback();
                         }
                     }, function(error) {
-                        setTimeout(connectWS, 10000);
+                        console.warn("WebSocket reconnecting in 5s...", error);
+                        setTimeout(function() { connectWS(onConnectCallback); }, 5000);
                     });
                 } catch(e) {
-                    console.warn("WebSocket status: standalone mode");
+                    console.warn("WebSocket status: fallback mode", e);
+                }
+            }
+
+            async function loadHistoryIfAvailable() {
+                try {
+                    var res = await fetch('/api/chat/history/' + sessionId);
+                    if (res.ok) {
+                        var data = await res.json();
+                        if (data && data.messages && data.messages.length > 0) {
+                            var container = document.getElementById('cwMessages');
+                            container.innerHTML = `
+                                <div class="cw-msg bot">
+                                    <div class="cw-msg-bubble">
+                                        Xin chào! 👋 Tôi là <strong>VShoes AI Assistant</strong>.<br><br>
+                                        Tôi có thể gợi ý cho bạn các mẫu giày <strong>bán chạy nhất</strong>, giày <strong>đánh giá 5 sao</strong>, tìm giày theo <strong>màu sắc / thương hiệu</strong>, hoặc tư vấn chọn size chuẩn xác. Bạn đang cần tìm mẫu giày như thế nào ạ? 👟✨
+                                    </div>
+                                    <div class="cw-msg-time">VShoes AI • Vừa xong</div>
+                                </div>
+                            `;
+                            data.messages.forEach(function(m) {
+                                if (m.senderRole === 'CUSTOMER') {
+                                    var div = document.createElement('div');
+                                    div.className = 'cw-msg user';
+                                    div.innerHTML = `
+                                        <div class="cw-msg-bubble">${escapeHTML(m.content)}</div>
+                                        <div class="cw-msg-time">${m.timestamp || ''}</div>
+                                    `;
+                                    container.appendChild(div);
+                                } else if (m.senderRole === 'ADMIN') {
+                                    var div = document.createElement('div');
+                                    div.className = 'cw-msg admin';
+                                    div.innerHTML = `
+                                        <div class="cw-msg-bubble">${escapeHTML(m.content)}</div>
+                                        <div class="cw-msg-time">${escapeHTML(m.sender || 'CSKH VShoes')} • ${m.timestamp || ''}</div>
+                                    `;
+                                    container.appendChild(div);
+                                } else if (m.senderRole === 'BOT') {
+                                    var div = document.createElement('div');
+                                    div.className = 'cw-msg bot';
+                                    div.innerHTML = `
+                                        <div class="cw-msg-bubble">${m.content}</div>
+                                        <div class="cw-msg-time">Trợ lý AI • ${m.timestamp || ''}</div>
+                                    `;
+                                    container.appendChild(div);
+                                }
+                            });
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    }
+                } catch(e) {
+                    console.warn("Lỗi tải lịch sử chat:", e);
                 }
             }
 
@@ -706,6 +762,7 @@
             (async function init() {
                 await checkCurrentUser();
                 connectWS();
+                await loadHistoryIfAvailable();
             })();
 
             function sendMessage() {
@@ -899,12 +956,17 @@
 
                 // TẠO HTML DANH SÁCH THẺ SẢN PHẨM TƯƠNG TÁC
                 var productCardsHtml = "";
+                var summaryListText = "";
                 if (matchedProducts && matchedProducts.length > 0) {
+                    summaryListText = "<br>" + matchedProducts.map(function(p) {
+                        return "• <b>" + escapeHTML(p.tenSanPham || 'Giày VShoes') + "</b> - " + formatCurrency(p.giaBan || p.giaGoc || 0) + " (★ " + getProductRating(p) + ")";
+                    }).join("<br>");
+
                     productCardsHtml = `
                         <div class="cw-prod-cards-container">
                             ${matchedProducts.map(function(p) {
                                 var rating = getProductRating(p);
-                                var img = p.hinhAnh || '/images/shoe1.png';
+                                var img = p.hinhAnh || '/images/white.png';
                                 var price = formatCurrency(p.giaBan || p.giaGoc || 0);
                                 var discountBadge = (p.phanTramGiam && p.phanTramGiam > 0) ? `<span class="cw-prod-discount">-${p.phanTramGiam}%</span>` : '';
                                 var colorText = p.mauSac ? ` · ${p.mauSac}` : '';
@@ -912,7 +974,7 @@
 
                                 return `
                                     <div class="cw-prod-mini-card" onclick="window.open('${link}', '_blank')" style="cursor: pointer;">
-                                        <img src="${img}" class="cw-prod-mini-img" alt="${escapeHTML(p.tenSanPham || '')}" onerror="this.src='/images/shoe1.png'">
+                                        <img src="${img}" class="cw-prod-mini-img" alt="${escapeHTML(p.tenSanPham || '')}" onerror="this.src='/images/white.png'">
                                         <div class="cw-prod-mini-info">
                                             <div class="cw-prod-mini-title" title="${escapeHTML(p.tenSanPham || '')}">
                                                 ${escapeHTML(p.tenSanPham || 'Giày thể thao VShoes')}
@@ -937,30 +999,58 @@
                 }
 
                 var container = document.getElementById('cwMessages');
-                var time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                var now = new Date();
+                var timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' - ' + now.getDate() + '/' + (now.getMonth() + 1) + '/' + now.getFullYear();
+                var shortTime = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 var div = document.createElement('div');
                 div.className = 'cw-msg bot';
                 div.innerHTML = `
                     <div class="cw-msg-bubble">${aiReply}${productCardsHtml}</div>
-                    <div class="cw-msg-time">VShoes AI • ${time}</div>
+                    <div class="cw-msg-time">VShoes AI • ${shortTime}</div>
                 `;
                 container.appendChild(div);
                 container.scrollTop = container.scrollHeight;
+
+                // Đồng bộ tin nhắn phản hồi của AI sang bên Admin
+                var botMsg = {
+                    sender: 'Trợ lý AI',
+                    phone: customerPhone,
+                    content: aiReply + summaryListText,
+                    type: 'CHAT',
+                    sessionId: sessionId,
+                    senderRole: 'BOT',
+                    status: 'CHATTING',
+                    timestamp: timeStr
+                };
+                ensureSendToAdmin(botMsg);
             }
 
             function showReceivedMessage(msg) {
                 // Ẩn thanh gặp nhân viên khi nhận tin nhắn từ CSKH
                 var banner = document.getElementById('cwAgentBanner');
-                if (banner) banner.style.display = 'none';
+                if (banner && msg.senderRole === 'ADMIN') banner.style.display = 'none';
 
                 var container = document.getElementById('cwMessages');
-                var time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                var now = new Date();
+                var time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 var div = document.createElement('div');
-                div.className = 'cw-msg admin';
-                div.innerHTML = `
-                    <div class="cw-msg-bubble">${escapeHTML(msg.content)}</div>
-                    <div class="cw-msg-time">${escapeHTML(msg.sender || 'CSKH VShoes')} • ${time}</div>
-                `;
+                
+                if (msg.type === 'CLOSE_SESSION') {
+                    div.className = 'cw-msg bot';
+                    div.innerHTML = `
+                        <div class="cw-msg-bubble" style="border-left: 3px solid #64748b; background: #f8fafc; color: #475569;">
+                            ℹ️ <em>${escapeHTML(msg.content || 'Phiên hỗ trợ đã kết thúc.')}</em>
+                        </div>
+                        <div class="cw-msg-time">${time}</div>
+                    `;
+                    if (banner) banner.style.display = 'flex';
+                } else {
+                    div.className = 'cw-msg admin';
+                    div.innerHTML = `
+                        <div class="cw-msg-bubble">${escapeHTML(msg.content)}</div>
+                        <div class="cw-msg-time">${escapeHTML(msg.sender || 'CSKH VShoes')} • ${time}</div>
+                    `;
+                }
                 container.appendChild(div);
                 container.scrollTop = container.scrollHeight;
             }
@@ -993,8 +1083,6 @@
                     if(e.key === 'Enter') sendMessage();
                 });
             }
-
-            connectWS();
         })();
     </script>
 </div>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -425,7 +425,7 @@
                                 <div style="margin-bottom: 24px;">
                                     <label style="font-size: 13px; font-weight: 600; color: #64748b; display: block; margin-bottom: 8px; text-transform: uppercase;">Số tiền bàn giao thực tế</label>
                                     <div style="position: relative;">
-                                        <input type="number" id="dashTienBanGiao" required min="0" style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 22px; font-weight: 700; color: #2563eb;" placeholder="0">
+                                        <input type="text" inputmode="numeric" id="dashTienBanGiao" required style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 22px; font-weight: 700; color: #2563eb;" placeholder="0">
                                         <span style="position: absolute; right: 60px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 600; font-size: 18px;">đ</span>
                                         <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fee2e2; padding: 10px; border-radius: 8px; display: flex; cursor: pointer;">
                                             <i data-lucide="calculator" style="color: #dc2626; width: 20px; height: 20px;"></i>
@@ -506,8 +506,8 @@
                     </div>
                     <div id="formMoCa">
                         <div style="display: flex; flex-direction: column; gap: 20px;">
-                            <div style="display: none;">
-                                <label style="font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn Thu ngân</label>
+                            <div style="margin-bottom: 5px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px; text-transform: uppercase;">Chọn Thu ngân / Người mở ca</label>
                                 <select id="nhanVienMoCa" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; background: #f8fafc; font-size: 15px; font-weight: 600;">
                                     <option value="">-- Chọn nhân viên --</option>
                                 </select>
@@ -516,7 +516,7 @@
                             <div>
                                 <label style="font-size: 12px; font-weight: 700; color: #94a3b8; display: block; margin-bottom: 8px; text-transform: uppercase;">Nhập số tiền mặt có trong két *</label>
                                 <div style="position: relative;">
-                                    <input type="number" id="tienBanDauMoCa" required min="0" style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 24px; font-weight: 700; color: #1e293b;" value="0">
+                                    <input type="text" inputmode="numeric" id="tienBanDauMoCa" required style="width: 100%; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 24px; font-weight: 700; color: #1e293b;" value="0">
                                     <span style="position: absolute; right: 55px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 600; font-size: 18px;">đ</span>
                                     <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fee2e2; padding: 8px; border-radius: 8px; display: flex;">
                                         <i data-lucide="calculator" style="color: #ef4444; width: 20px; height: 20px;"></i>
@@ -562,11 +562,11 @@
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tổng tiền mặt bàn giao (Két tiền) *</label>
-                        <input type="number" id="tienBanGiao" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; font-weight: 700; color: #1e293b; font-size: 16px;" placeholder="Nhập số tiền...">
+                        <input type="text" inputmode="numeric" id="tienBanGiao" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; font-weight: 700; color: #1e293b; font-size: 16px;" placeholder="Nhập số tiền...">
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tiền phát sinh (Thâm hụt / Dư ra)</label>
-                        <input type="number" id="tienPhatSinh" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;" placeholder="Nhập số tiền phát sinh (nếu có)">
+                        <input type="text" inputmode="numeric" id="tienPhatSinh" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;" placeholder="Nhập số tiền phát sinh (nếu có)">
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Ghi chú</label>
@@ -585,6 +585,26 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         let allGiaoCa = [];
+
+        function setupNumberFormatting(inputIds) {
+            inputIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', function() {
+                        let val = this.value.replace(/[^\d\-]/g, '');
+                        if (val !== '' && val !== '-') {
+                            this.value = parseInt(val, 10).toLocaleString('vi-VN');
+                        } else {
+                            this.value = val;
+                        }
+                    });
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setupNumberFormatting(['dashTienBanGiao', 'tienBanDauMoCa', 'tienBanGiao', 'tienPhatSinh']);
+        });
 
         function formatTimeDate(dateString) {
             if (!dateString) return null;
@@ -650,7 +670,7 @@
             const elChenhLechTxt = document.getElementById('dashChenhLechTxt');
 
             const calcDiff = () => {
-                const thucTe = parseInt(inputTienThucTe.value) || 0;
+                const thucTe = parseInt(inputTienThucTe.value.replace(/\./g, '')) || 0;
                 elThucTe.innerText = formatCurrency(thucTe);
                 const diff = thucTe - tienHeThong;
                 
@@ -677,7 +697,7 @@
             }
             inputTienThucTe._calcDiffHandler = calcDiff;
             inputTienThucTe.addEventListener('input', calcDiff);
-            inputTienThucTe.value = tienHeThong;
+            inputTienThucTe.value = tienHeThong.toLocaleString('vi-VN');
             calcDiff();
 
             const selectNhanVienNhan = document.getElementById('dashNhanVienNhan');
@@ -894,8 +914,8 @@
                         selectDashNhan.innerHTML += opt;
                     });
                     
-                    // Auto select current logged-in user for Mo Ca
-                    const currentId = document.getElementById('currentLoggedInUserId').value;
+                    const currentIdEl = document.getElementById('currentLoggedInUserId');
+                    const currentId = currentIdEl ? currentIdEl.value : null;
                     if (data.length > 0) {
                         let matchedNv = null;
                         if (currentId) {
@@ -905,7 +925,50 @@
                             matchedNv = data[0]; // fallback
                         }
                         selectMoCa.value = matchedNv.id;
-                        document.getElementById('txtThuNganMoCa').innerText = matchedNv.maNhanVien + " - " + matchedNv.hoTen;
+                        
+                        const updateThuNganUI = (selectedId) => {
+                            const nv = data.find(x => x.id == selectedId);
+                            if (!nv) return;
+                            
+                            const thunganEl = document.getElementById('txtThuNganMoCa');
+                            thunganEl.innerText = nv.maNhanVien + " - " + nv.hoTen;
+                            
+                            fetch('/api/lich-lam-viec')
+                                .then(res => res.json())
+                                .then(lichData => {
+                                    const todayStr = new Date().toISOString().substring(0, 10);
+                                    let isScheduled = lichData.some(l => {
+                                        let dateStr = l.ngayLamViec;
+                                        if (Array.isArray(dateStr)) {
+                                            dateStr = dateStr[0] + '-' + String(dateStr[1]).padStart(2, '0') + '-' + String(dateStr[2]).padStart(2, '0');
+                                        }
+                                        return dateStr === todayStr && l.nhanVien && l.nhanVien.id == nv.id;
+                                    });
+                                    
+                                    const btnMoCa = document.getElementById('btnSubmitMoCa');
+                                    if(isScheduled) {
+                                        thunganEl.style.color = '#2563eb'; // Xanh dương
+                                        thunganEl.style.fontWeight = '800';
+                                        btnMoCa.style.background = 'linear-gradient(to right, #14466b, #009fe3)';
+                                        btnMoCa.innerText = 'BẮT ĐẦU CA LÀM VIỆC';
+                                        btnMoCa.disabled = false;
+                                        btnMoCa.style.opacity = '1';
+                                    } else {
+                                        thunganEl.style.color = '#ef4444'; // Đỏ
+                                        thunganEl.style.fontWeight = '800';
+                                        btnMoCa.style.background = '#ef4444';
+                                        btnMoCa.innerText = 'BẮT ĐẦU CA (KHÔNG CÓ LỊCH)';
+                                        btnMoCa.disabled = false;
+                                        btnMoCa.style.opacity = '1';
+                                    }
+                                });
+                        };
+                        
+                        updateThuNganUI(matchedNv.id);
+                        
+                        selectMoCa.addEventListener('change', (e) => {
+                            updateThuNganUI(e.target.value);
+                        });
                     }
                 }).catch(e => console.log('Cannot load nhan vien API'));
 
@@ -956,7 +1019,7 @@
                 btn.style.opacity = '0.7';
                 btn.disabled = true;
 
-                let tienStr = document.getElementById('tienBanDauMoCa').value;
+                let tienStr = document.getElementById('tienBanDauMoCa').value.replace(/\./g, '');
                 let tien = tienStr ? parseFloat(tienStr) : 0;
 
                 const payload = {
@@ -1019,7 +1082,7 @@
                 e.preventDefault();
                 if(!activeShift) return;
                 
-                const tienThucTe = parseInt(document.getElementById('dashTienBanGiao').value) || 0;
+                const tienThucTe = parseInt(document.getElementById('dashTienBanGiao').value.replace(/\./g, '')) || 0;
                 const tienBanDau = activeShift.tienBanDau || 0;
                 const tienBanGiao = activeShift.tienBanGiao || 0;
                 const doanhThuMat = tienBanGiao > 0 ? (tienBanGiao - tienBanDau) : 0;
@@ -1072,8 +1135,8 @@
                     thoiGianGiaoCa: new Date().toISOString().slice(0,19),
                     nhanVienNhan: activeShift.nhanVienNhan, // Keep the same user
                     tienBanDau: activeShift.tienBanDau,
-                    tienBanGiao: document.getElementById('tienBanGiao').value,
-                    tienPhatSinh: document.getElementById('tienPhatSinh').value || 0,
+                    tienBanGiao: document.getElementById('tienBanGiao').value.replace(/\./g, ''),
+                    tienPhatSinh: document.getElementById('tienPhatSinh').value.replace(/\./g, '') || 0,
                     ghiChu: document.getElementById('ghiChu').value,
                     trangThai: 1 // Hoàn tất
                 };

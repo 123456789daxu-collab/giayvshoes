@@ -170,9 +170,12 @@ public class BanHangController {
     @GetMapping("/phieu-giam-gia")
     public ResponseEntity<?> getPhieuGiamGia() {
         List<PhieuGiamGia> list = phieuGiamGiaRepository.findAll();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
         List<Map<String, Object>> result = list.stream()
                 .filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1) // 1 = Đang hoạt động
                 .filter(p -> p.getSoLuong() > (p.getSoLuongDaDung() == null ? 0 : p.getSoLuongDaDung())) // Còn lượt dùng
+                .filter(p -> p.getNgayBatDau() == null || !p.getNgayBatDau().isAfter(now))
+                .filter(p -> p.getNgayKetThuc() == null || !p.getNgayKetThuc().isBefore(now))
                 .map(p -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", p.getId());

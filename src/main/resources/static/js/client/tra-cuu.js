@@ -360,8 +360,8 @@ function renderTrackingResult(inv, items, history = []) {
             timelineWrapper.style.maxWidth = '560px';
             timelineWrapper.style.margin = '10px auto 0 auto';
             timelineWrapper.innerHTML = `
-                <div class="timeline-6steps-line" style="left: 20%; right: 20%; top: 33px;"></div>
-                <div class="timeline-6steps-line-active" style="left: 20%; width: 60%; top: 33px; background: ${isRequestCancel ? '#f59e0b' : '#ef4444'};"></div>
+                <div class="timeline-6steps-line" style="left: 17.5%; right: 17.5%; top: 33px;"></div>
+                <div class="timeline-6steps-line-active" style="left: 17.5%; width: 65%; max-width: 65%; top: 33px; background: ${isRequestCancel ? '#f59e0b' : '#ef4444'};"></div>
 
                 <!-- Step 1: Chờ xác nhận -->
                 <div class="timeline-step-col step-ordered completed" style="width: 35%;">
@@ -438,11 +438,11 @@ function renderTrackingResult(inv, items, history = []) {
             else if (st === 4) maxCompletedIdx = 4;
             else if (st === 6) maxCompletedIdx = 5;
 
-            const activePct = maxCompletedIdx >= 0 ? (maxCompletedIdx / 5) * 100 : 0;
+            const activePct = maxCompletedIdx > 0 ? (maxCompletedIdx / 5) * 85 : 0;
 
             timelineWrapper.innerHTML = `
                 <div class="timeline-6steps-line"></div>
-                <div class="timeline-6steps-line-active" id="timelineConnectorActive" style="width: ${activePct}%; background: #ef4444;"></div>
+                <div class="timeline-6steps-line-active" id="timelineConnectorActive" style="left: 7.5%; width: ${activePct}%; max-width: 85%; background: #ef4444;"></div>
 
                 <!-- Step 0: Chờ xác nhận -->
                 <div class="timeline-step-col ${maxCompletedIdx >= 0 ? 'completed' : ''}" id="stepCol0">
@@ -500,19 +500,17 @@ function renderTrackingResult(inv, items, history = []) {
         actionsBar.innerHTML = '';
 
         if (st === 6) {
-            // ĐƠN HOÀN THÀNH: Nút Đánh giá sản phẩm & Nút Yêu cầu trả hàng
-            const isAlreadyReviewed = _danhGiaCache[inv.id] === true;
+            // ĐƠN HOÀN THÀNH: Nút Đánh giá sản phẩm & Nút Mua Lại
+            const cachedInfo = _danhGiaCache[inv.id];
+            const isAlreadyReviewed = cachedInfo === true || (cachedInfo && (cachedInfo.daDanhGia === true || typeof cachedInfo === 'number'));
+            const stars = (cachedInfo && cachedInfo.soSao) ? cachedInfo.soSao : ((typeof cachedInfo === 'number') ? cachedInfo : 5);
+            const starsText = isAlreadyReviewed ? ('⭐'.repeat(stars) + ' Đã đánh giá') : '★ Đánh giá sản phẩm';
 
             actionsBar.innerHTML = `
                 <button class="btn-action-review-main ${isAlreadyReviewed ? 'btn-reviewed' : ''}" 
                         id="btnDetailReview" 
-                        onclick="openDanhGiaModal(${inv.id}, '${ma}')">
-                    ${isAlreadyReviewed ? '⭐ Đã đánh giá' : '★ Đánh giá sản phẩm'}
-                </button>
-                <button class="btn-action-return-main" 
-                        id="btnDetailReturn" 
-                        onclick="alert('Vui lòng liên hệ Hotline 1900 6789 để được hỗ trợ đổi trả sản phẩm!')">
-                    ↩ Yêu cầu trả hàng
+                        onclick="${isAlreadyReviewed ? `showToast('Bạn đã đánh giá đơn hàng này ${stars} sao rồi!', 'info')` : `openDanhGiaModal(${inv.id}, '${ma}')`}">
+                    ${starsText}
                 </button>
                 <a href="/client/san-pham" class="btn-action-return-main" style="text-decoration:none; color:#1e293b; border-color:#e2e8f0; background:#f8fafc;">
                     Mua Lại
@@ -523,11 +521,13 @@ function renderTrackingResult(inv, items, history = []) {
             if (!isAlreadyReviewed) {
                 safeFetchJson(`/api/auth/danh-gia/check/${inv.id}`).then(check => {
                     if (check && check.daDanhGia) {
-                        _danhGiaCache[inv.id] = true;
+                        const checkedStars = check.soSao || 5;
+                        _danhGiaCache[inv.id] = { daDanhGia: true, soSao: checkedStars };
                         const btn = $('btnDetailReview');
                         if (btn) {
-                            btn.innerHTML = '⭐ Đã đánh giá';
+                            btn.innerHTML = '⭐'.repeat(checkedStars) + ' Đã đánh giá';
                             btn.classList.add('btn-reviewed');
+                            btn.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${checkedStars} sao rồi!`, 'info');
                         }
                     }
                 }).catch(() => {});
@@ -542,9 +542,6 @@ function renderTrackingResult(inv, items, history = []) {
         } else if (st === 4) {
             // ĐÃ GIAO HÀNG
             actionsBar.innerHTML = `
-                <button class="btn-action-return-main" onclick="alert('Vui lòng liên hệ Hotline 1900 6789 để được hỗ trợ đổi trả sản phẩm!')">
-                    ↩ Yêu cầu trả hàng
-                </button>
                 <a href="/client/san-pham" class="btn-action-review-main" style="text-decoration:none;">
                     Mua Lại
                 </a>
@@ -600,10 +597,14 @@ function renderTrackingResult(inv, items, history = []) {
     }
 
     // Nút Sửa thông tin: chỉ cho phép sửa khi đơn hàng đang Chờ xác nhận (trangThai === 0)
-    // Khi đơn hàng đã xác nhận hoặc các trạng thái tiếp theo thì không thể chỉnh sửa nữa
+    // VÀ khách hàng chưa từng chỉnh sửa thông tin lần nào (soLanSuaThongTin < 1)
+    // Đối với những đơn hàng đã sửa thông tin rồi thì biến mất nút sửa thông tin
     const btnEditShip = $('btnEditShippingInfo');
     if (btnEditShip) {
-        const canEdit = (inv.trangThai === 0);
+        const editCount = (inv.soLanSuaThongTin != null) ? parseInt(inv.soLanSuaThongTin) : 0;
+        const hasHistoryEdit = Array.isArray(history) && history.some(h => (h.hanhDong || '').toLowerCase().includes('cập nhật thông tin nhận hàng'));
+        const isAlreadyEdited = (editCount >= 1) || hasHistoryEdit;
+        const canEdit = (inv.trangThai === 0) && !isAlreadyEdited;
         btnEditShip.style.display = canEdit ? 'inline-flex' : 'none';
     }
 
@@ -1178,12 +1179,23 @@ function renderTrackOrdersListHtml(invoices) {
                         ${st === 0 ? `
                             <button class="btn-ref-cancel" onclick="requestCancelOrder(${inv.id}, '${ma}')">Hủy đơn</button>
                         ` : ''}
-                        ${st === 6 ? `
-                            <button class="btn-ref-review" id="btnDanhGia_${inv.id}" onclick="openDanhGiaModal(${inv.id}, '${ma}')">
-                                ⭐ Đánh giá
-                            </button>
-                            <a href="/client/san-pham" class="btn-ref-primary">Mua Lại</a>
-                        ` : ''}
+                        ${st === 6 ? (() => {
+                            const cached = _danhGiaCache[inv.id];
+                            const daDG = cached === true || (cached && (cached.daDanhGia === true || typeof cached === 'number'));
+                            const stars = (cached && cached.soSao) ? cached.soSao : ((typeof cached === 'number') ? cached : 5);
+                            if (daDG) {
+                                return `
+                                    <button class="btn-ref-review btn-ref-reviewed" id="btnDanhGia_${inv.id}" disabled style="background:#f0fdf4; color:#16a34a; border-color:#86efac;" onclick="showToast('Bạn đã đánh giá đơn hàng này ${stars} sao rồi!', 'info')">
+                                        ${'⭐'.repeat(stars)} Đã đánh giá
+                                    </button>
+                                `;
+                            }
+                            return `
+                                <button class="btn-ref-review" id="btnDanhGia_${inv.id}" onclick="openDanhGiaModal(${inv.id}, '${ma}')">
+                                    ⭐ Đánh giá
+                                </button>
+                            `;
+                        })() : ''}
                         ${st === 4 ? `
                             <a href="/client/san-pham" class="btn-ref-primary">Mua Lại</a>
                         ` : ''}
@@ -1501,9 +1513,12 @@ const _danhGiaCache = {};
  */
 window.openDanhGiaModal = async function(hoaDonId, maHoaDon) {
     const btn = document.getElementById('btnDanhGia_' + hoaDonId);
+    const cached = _danhGiaCache[hoaDonId];
+    const isCached = cached === true || (cached && (cached.daDanhGia === true || typeof cached === 'number'));
 
-    if (_danhGiaCache[hoaDonId] === true) {
-        showToast('Bạn đã đánh giá đơn hàng này rồi!', 'error');
+    if (isCached) {
+        const stars = (cached && cached.soSao) ? cached.soSao : ((typeof cached === 'number') ? cached : 5);
+        showToast(`Bạn đã đánh giá đơn hàng này ${stars} sao rồi!`, 'info');
         return;
     }
 
@@ -1512,21 +1527,32 @@ window.openDanhGiaModal = async function(hoaDonId, maHoaDon) {
     try {
         const check = await safeFetchJson(`/api/auth/danh-gia/check/${hoaDonId}`);
         if (check && check.daDanhGia) {
-            _danhGiaCache[hoaDonId] = true;
+            const stars = check.soSao || 5;
+            _danhGiaCache[hoaDonId] = { daDanhGia: true, soSao: stars };
             if (btn) {
-                btn.innerHTML = '⭐'.repeat(check.soSao || 5) + ' Đã đánh giá';
+                btn.innerHTML = '⭐'.repeat(stars) + ' Đã đánh giá';
                 btn.disabled = true;
                 btn.style.background = '#f0fdf4';
                 btn.style.color = '#16a34a';
                 btn.style.borderColor = '#86efac';
+                btn.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${stars} sao rồi!`, 'info');
             }
-            showToast(`Bạn đã đánh giá đơn hàng này ${check.soSao} sao rồi!`, 'error');
+            const btnDetail = $('btnDetailReview');
+            if (btnDetail) {
+                btnDetail.innerHTML = '⭐'.repeat(stars) + ' Đã đánh giá';
+                btnDetail.classList.add('btn-reviewed');
+                btnDetail.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${stars} sao rồi!`, 'info');
+            }
+            showToast(`Bạn đã đánh giá đơn hàng này ${stars} sao rồi!`, 'info');
             return;
         }
     } catch (e) {
         console.warn('Không kiểm tra được trạng thái đánh giá:', e);
     } finally {
-        if (btn && btn.disabled) { btn.disabled = false; btn.innerHTML = '⭐ Đánh giá'; }
+        if (btn && btn.disabled && !(_danhGiaCache[hoaDonId]?.daDanhGia)) {
+            btn.disabled = false;
+            btn.innerHTML = '⭐ Đánh giá';
+        }
     }
 
     _showDanhGiaModal(hoaDonId, maHoaDon);
@@ -1536,6 +1562,8 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
     const existingModal = document.getElementById('danhGiaModal');
     if (existingModal) existingModal.remove();
 
+    const displayCode = maHoaDon || ('HD' + hoaDonId);
+
     const modal = document.createElement('div');
     modal.id = 'danhGiaModal';
     modal.innerHTML = `
@@ -1543,7 +1571,8 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
             #danhGiaModal {
                 position: fixed; inset: 0; z-index: 99999;
                 display: flex; align-items: center; justify-content: center;
-                background: rgba(0,0,0,0.52);
+                background: rgba(15, 23, 42, 0.65);
+                backdrop-filter: blur(4px);
                 animation: fadeInModal 0.2s ease;
                 padding: 16px;
             }
@@ -1565,8 +1594,8 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
                 display: flex; align-items: flex-start; justify-content: space-between;
                 flex-shrink: 0;
             }
-            .dg-title { font-size: 16px; font-weight: 800; color: #1e293b; }
-            .dg-subtitle { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+            .dg-title { font-size: 17px; font-weight: 800; color: #1e293b; }
+            .dg-subtitle { font-size: 12px; color: #64748b; margin-top: 2px; }
             .dg-close {
                 width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
                 background: #f8fafc; border: none; cursor: pointer;
@@ -1586,7 +1615,7 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
                 margin-bottom: 6px;
             }
             .dg-star {
-                font-size: 34px; cursor: pointer; transition: transform 0.15s;
+                font-size: 36px; cursor: pointer; transition: transform 0.15s;
                 line-height: 1; user-select: none;
                 filter: grayscale(1) opacity(0.3);
             }
@@ -1686,7 +1715,7 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
             <div class="dg-header">
                 <div>
                     <div class="dg-title">⭐ Đánh giá sản phẩm</div>
-                    <div class="dg-subtitle">#${maHoaDon} — Cảm ơn bạn đã tin tưởng VHOES!</div>
+                    <div class="dg-subtitle">#${displayCode} — Cảm ơn bạn đã tin tưởng VHOES!</div>
                 </div>
                 <button class="dg-close" onclick="document.getElementById('danhGiaModal').remove()">✕</button>
             </div>
@@ -1699,11 +1728,11 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
                     <span class="dg-star" data-val="4">⭐</span>
                     <span class="dg-star" data-val="5">⭐</span>
                 </div>
-                <div class="dg-star-label" id="dgStarLabel">Chọn số sao để đánh giá</div>
+                <div class="dg-star-label" id="dgStarLabel">Tuyệt vời! 🤩</div>
 
                 <!-- Textarea -->
                 <textarea class="dg-textarea" id="dgNoiDung"
-                          placeholder="Chia sẻ cảm nhận của bạn về sản phẩm... (không bắt buộc)"></textarea>
+                          placeholder="Chia sẻ cảm nhận của bạn về chất lượng sản phẩm, độ vừa vặn..."></textarea>
 
                 <!-- Image upload -->
                 <div class="dg-img-section">
@@ -1724,7 +1753,7 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
             </div>
             <div class="dg-footer">
                 <button class="dg-btn-cancel" onclick="document.getElementById('danhGiaModal').remove()">Huỷ</button>
-                <button class="dg-btn-submit" id="dgBtnSubmit" onclick="_submitDanhGia(${hoaDonId})">
+                <button class="dg-btn-submit" id="dgBtnSubmit" onclick="submitDanhGia(${hoaDonId})">
                     ⭐ Gửi đánh giá
                 </button>
             </div>
@@ -1736,26 +1765,29 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
     // ── Close backdrop ──
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
-    // ── Stars ──
-    let selectedStar = 0;
+    // ── Stars (default 5 stars) ──
+    let selectedStar = 5;
     const starLabels = ['', 'Rất tệ 😞', 'Không hài lòng 😕', 'Bình thường 😐', 'Hài lòng 😊', 'Tuyệt vời! 🤩'];
     const stars  = modal.querySelectorAll('.dg-star');
     const label  = modal.querySelector('#dgStarLabel');
 
+    function applyStars(v) {
+        stars.forEach((s, i) => s.classList.toggle('active', i < v));
+        if (label) label.textContent = starLabels[v] || '';
+    }
+    applyStars(5);
+
     stars.forEach(star => {
         star.addEventListener('mouseenter', () => {
             const v = +star.dataset.val;
-            stars.forEach((s, i) => s.classList.toggle('active', i < v));
-            label.textContent = starLabels[v];
+            applyStars(v);
         });
         star.addEventListener('mouseleave', () => {
-            stars.forEach((s, i) => s.classList.toggle('active', i < selectedStar));
-            label.textContent = selectedStar ? starLabels[selectedStar] : 'Chọn số sao để đánh giá';
+            applyStars(selectedStar);
         });
         star.addEventListener('click', () => {
             selectedStar = +star.dataset.val;
-            stars.forEach((s, i) => s.classList.toggle('active', i < selectedStar));
-            label.textContent = starLabels[selectedStar];
+            applyStars(selectedStar);
         });
     });
     modal._selectedStar = () => selectedStar;
@@ -1771,31 +1803,34 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
     const counter    = modal.querySelector('#dgImgCounter');
 
     function updateCounter() {
-        counter.textContent = imageFiles.length > 0
-            ? `${imageFiles.length} / ${MAX_IMG} ảnh đã chọn`
-            : '';
-        // Ẩn drop zone khi đã đủ 5 ảnh
-        dropZone.style.display = imageFiles.length >= MAX_IMG ? 'none' : '';
+        if (counter) {
+            counter.textContent = imageFiles.length > 0
+                ? `${imageFiles.length} / ${MAX_IMG} ảnh đã chọn`
+                : '';
+        }
+        if (dropZone) {
+            dropZone.style.display = imageFiles.length >= MAX_IMG ? 'none' : '';
+        }
     }
 
     function renderPreviews() {
+        if (!previewGrid) return;
         previewGrid.innerHTML = '';
         imageFiles.forEach((f, idx) => {
             const item = document.createElement('div');
             item.className = 'dg-preview-item';
             item.innerHTML = `
                 <img src="${f.dataUrl}" alt="ảnh ${idx+1}">
-                <button class="dg-preview-remove" title="Xoá ảnh" onclick="_dgRemoveImg(${idx})">✕</button>
+                <button class="dg-preview-remove" type="button" title="Xoá ảnh">✕</button>
             `;
+            item.querySelector('.dg-preview-remove').addEventListener('click', () => {
+                imageFiles.splice(idx, 1);
+                renderPreviews();
+            });
             previewGrid.appendChild(item);
         });
         updateCounter();
     }
-
-    window._dgRemoveImg = function(idx) {
-        imageFiles.splice(idx, 1);
-        renderPreviews();
-    };
 
     function addFiles(files) {
         for (const file of files) {
@@ -1817,40 +1852,36 @@ function _showDanhGiaModal(hoaDonId, maHoaDon) {
         }
     }
 
-    fileInput.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+    }
 
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        addFiles(e.dataTransfer.files);
-    });
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            addFiles(e.dataTransfer.files);
+        });
+    }
 
     modal._getImageBase64List = () => imageFiles.map(f => f.dataUrl);
-
     updateCounter();
 }
 
-window._submitDanhGia = async function(hoaDonId) {
+window.submitDanhGia = async function(hoaDonId) {
     const modal = document.getElementById('danhGiaModal');
     if (!modal) return;
 
-    const soSao = modal._selectedStar ? modal._selectedStar() : 0;
-    if (!soSao) {
-        showToast('Vui lòng chọn số sao đánh giá!', 'error');
-        return;
-    }
-
-    const noiDung  = (document.getElementById('dgNoiDung').value || '').trim();
+    const soSao = modal._selectedStar ? modal._selectedStar() : 5;
+    const noiDung = (modal.querySelector('#dgNoiDung')?.value || '').trim();
     const anhBase64List = modal._getImageBase64List ? modal._getImageBase64List() : [];
-    const submitBtn = document.getElementById('dgBtnSubmit');
+    const submitBtn = modal.querySelector('#dgBtnSubmit');
 
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.innerHTML = anhBase64List.length > 0
-            ? '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span> Đang tải ảnh...'
-            : '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span> Đang gửi...';
+        submitBtn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span> Đang gửi...';
     }
 
     try {
@@ -1861,7 +1892,7 @@ window._submitDanhGia = async function(hoaDonId) {
         });
 
         if (resp && resp.success) {
-            _danhGiaCache[hoaDonId] = true;
+            _danhGiaCache[hoaDonId] = { daDanhGia: true, soSao: soSao };
 
             // Đóng modal
             modal.remove();
@@ -1875,7 +1906,7 @@ window._submitDanhGia = async function(hoaDonId) {
                 btn.style.color = '#16a34a';
                 btn.style.borderColor = '#86efac';
                 btn.classList.add('btn-ref-reviewed');
-                btn.onclick = () => showToast('Bạn đã đánh giá đơn hàng này rồi!', 'error');
+                btn.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${soSao} sao rồi!`, 'info');
             }
 
             // Cập nhật nút đánh giá ở chi tiết đơn hàng
@@ -1883,17 +1914,17 @@ window._submitDanhGia = async function(hoaDonId) {
             if (btnDetail) {
                 btnDetail.innerHTML = '⭐'.repeat(soSao) + ' Đã đánh giá';
                 btnDetail.classList.add('btn-reviewed');
-                btnDetail.onclick = () => showToast('Bạn đã đánh giá đơn hàng này rồi!', 'error');
+                btnDetail.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${soSao} sao rồi!`, 'info');
             }
 
             showToast('🎉 Cảm ơn bạn đã đánh giá sản phẩm!', 'success');
         } else {
             showToast(resp?.error || 'Gửi đánh giá thất bại!', 'error');
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '⭐ Gửi đánh giá'; }
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '⭐ Gửi đánh giá'; }
         }
     } catch (e) {
         showToast(e.message || 'Lỗi kết nối máy chủ!', 'error');
-        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '⭐ Gửi đánh giá'; }
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '⭐ Gửi đánh giá'; }
     }
 };
 
@@ -1914,17 +1945,28 @@ async function checkBatchDanhGia(invoices) {
 
         if (result) {
             Object.keys(result).forEach(id => {
-                _danhGiaCache[id] = result[id];
-                if (result[id]) {
+                const item = result[id];
+                const daDanhGia = (item === true || (item && item.daDanhGia === true));
+                if (daDanhGia) {
+                    const stars = (item && item.soSao) ? item.soSao : 5;
+                    _danhGiaCache[id] = { daDanhGia: true, soSao: stars };
+
                     // Cập nhật nút nếu đã render
                     const btn = document.getElementById('btnDanhGia_' + id);
                     if (btn) {
-                        btn.innerHTML = '✅ Đã đánh giá';
+                        btn.innerHTML = '⭐'.repeat(stars) + ' Đã đánh giá';
                         btn.disabled = true;
                         btn.style.background = '#f0fdf4';
                         btn.style.color = '#16a34a';
                         btn.style.borderColor = '#86efac';
-                        btn.onclick = () => showToast('Bạn đã đánh giá đơn hàng này rồi!', 'error');
+                        btn.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${stars} sao rồi!`, 'info');
+                    }
+
+                    const btnDetail = document.getElementById('btnDetailReview');
+                    if (btnDetail && window._currentTrackingInvoice && window._currentTrackingInvoice.id == id) {
+                        btnDetail.innerHTML = '⭐'.repeat(stars) + ' Đã đánh giá';
+                        btnDetail.classList.add('btn-reviewed');
+                        btnDetail.onclick = () => showToast(`Bạn đã đánh giá đơn hàng này ${stars} sao rồi!`, 'info');
                     }
                 }
             });
@@ -2131,6 +2173,12 @@ window.submitEditShipping = async function(hoaDonId) {
                 state.currentInvoice.diaChiNhan = address;
                 state.currentInvoice.ghiChu = note;
                 state.currentInvoice.soLanSuaThongTin = (state.currentInvoice.soLanSuaThongTin || 0) + 1;
+            }
+
+            // Ẩn ngay nút sửa thông tin vì khách đã thay đổi thông tin rồi
+            const btnEditShip = $('btnEditShippingInfo');
+            if (btnEditShip) {
+                btnEditShip.style.display = 'none';
             }
 
             // Cập nhật trực tiếp lên giao diện chi tiết

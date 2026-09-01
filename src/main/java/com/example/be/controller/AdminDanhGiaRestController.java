@@ -344,7 +344,7 @@ public class AdminDanhGiaRestController {
             spMap.put("id", null);
             spMap.put("tenSanPham", "Giày Thể Thao VShoes");
             spMap.put("ma", "SP-N/A");
-            spMap.put("hinhAnh", "/images/shoe1.png");
+            spMap.put("hinhAnh", "/images/white.png");
         }
         m.put("sanPham", spMap);
 

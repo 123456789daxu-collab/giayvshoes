@@ -448,6 +448,7 @@ const posApp = {
     // --- 2. Order Details & Cart ---
     loadOrderDetails: async function(orderId) {
         try {
+            await this.fetchVouchers();
             const res = await fetch(`/api/pos/hoa-don/${orderId}/chi-tiet`);
             if(res.ok) {
                 const data = await res.json();
@@ -487,23 +488,75 @@ const posApp = {
         document.getElementById('cartTable').style.display = 'table';
         document.getElementById('cartItemCount').innerText = `${cartItems.length} sản phẩm`;
 
+        // Tìm các cặp dòng cùng idSanPhamChiTiet để xác định dòng mới (giá hiện tại)
+        // Khi giá đổi, backend tạo dòng mới với donGia = giaHienTai, giữ dòng cũ với donGia đóng băng
+        // Ta nhóm theo idSanPhamChiTiet, rồi đánh dấu dòng nào là "dòng mới do đổi giá"
+        const priceChangedNewRowIds = new Set();
+        const groupBySPCT = {};
+        cartItems.forEach(item => {
+            if (!item.idSanPhamChiTiet) return;
+            if (!groupBySPCT[item.idSanPhamChiTiet]) groupBySPCT[item.idSanPhamChiTiet] = [];
+            groupBySPCT[item.idSanPhamChiTiet].push(item);
+        });
+        // Với mỗi nhóm có nhiều hơn 1 dòng, dòng có donGia == giaHienTai là dòng mới (sẽ hiện cảnh báo)
+        Object.values(groupBySPCT).forEach(group => {
+            if (group.length > 1) {
+                group.forEach(item => {
+                    if (item.giaHienTai !== undefined && item.giaHienTai !== null &&
+                        Math.abs(Number(item.donGia) - Number(item.giaHienTai)) < 1) {
+                        // Đây là dòng mới (giá hiện tại) - đánh dấu để hiển thị cảnh báo
+                        priceChangedNewRowIds.add(item.id);
+                    }
+                });
+            }
+        });
+
         cartItems.forEach((item, index) => {
+            // Cảnh báo ngừng kinh doanh (uu tiên hiển thị hơn cảnh báo giá)
             let priceWarning = '';
-            if (item.giaHienTai !== undefined && item.giaHienTai !== null && item.giaHienTai !== item.donGia) {
-                const isTang = item.giaHienTai > item.donGia;
-                const text = isTang ? 'Giá hiện tại đã tăng' : 'Giá hiện tại đã giảm';
-                priceWarning = `<div class="mt-1 px-2 py-1 rounded text-white" style="background-color: #3b82f6; display: inline-block; font-size: 0.75rem;">
-                    <i class="fa-solid fa-circle-exclamation me-1"></i>${text}:<br>${this.formatCurrency(item.donGia)} <i class="fa-solid fa-arrow-right mx-1"></i> ${this.formatCurrency(item.giaHienTai)}
+            if (item.ngungKinhDoanh) {
+                priceWarning = `<div class="mt-1 px-2 py-1 rounded text-white d-inline-flex align-items-center gap-1" style="background-color: #dc2626; font-size: 0.75rem;">
+                    <i class="fa-solid fa-ban me-1"></i>Sản phẩm đã ngừng kinh doanh
                 </div>`;
+            } else if (priceChangedNewRowIds.has(item.id)) {
+                // Đây là dòng MỚI được tạo do giá thay đổi - tìm giá đóng băng của dòng cũ cùng sản phẩm
+                const siblings = groupBySPCT[item.idSanPhamChiTiet] || [];
+                const oldRow = siblings.find(s => s.id !== item.id);
+                const giaCu = oldRow ? oldRow.donGia : null;
+                const isTang = Number(item.donGia) > Number(giaCu);
+                const text = isTang ? 'Giá hiện tại đã tăng' : 'Giá hiện tại đã giảm';
+                if (giaCu !== null) {
+                    priceWarning = `<div class="mt-1 px-2 py-1 rounded text-white" style="background-color: #3b82f6; display: inline-block; font-size: 0.75rem;">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>${text}:<br>${this.formatCurrency(giaCu)} <i class="fa-solid fa-arrow-right mx-1"></i> ${this.formatCurrency(item.donGia)}
+                    </div>`;
+                }
+            } else if (!groupBySPCT[item.idSanPhamChiTiet] || groupBySPCT[item.idSanPhamChiTiet].length === 1) {
+                // Chỉ có 1 dòng cho sản phẩm này - kiểm tra giá hiện tại so với giá đóng băng
+                if (item.giaHienTai !== undefined && item.giaHienTai !== null &&
+                    Math.abs(Number(item.giaHienTai) - Number(item.donGia)) >= 1) {
+                    const isTang = item.giaHienTai > item.donGia;
+                    const text = isTang ? 'Giá hiện tại đã tăng' : 'Giá hiện tại đã giảm';
+                    priceWarning = `<div class="mt-1 px-2 py-1 rounded text-white" style="background-color: #3b82f6; display: inline-block; font-size: 0.75rem;">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>${text}:<br>${this.formatCurrency(item.donGia)} <i class="fa-solid fa-arrow-right mx-1"></i> ${this.formatCurrency(item.giaHienTai)}
+                    </div>`;
+                }
             }
 
+            // Vô hiệu hóa nút chỉnh số lượng nếu sản phẩm ngừng KD hoặc giá đã thay đổi
+            let isPriceChanged = false;
+            if (item.giaHienTai !== undefined && item.giaHienTai !== null && Math.abs(Number(item.giaHienTai) - Number(item.donGia)) >= 1) {
+                isPriceChanged = true;
+            }
+            const qtyDisabled = (item.ngungKinhDoanh || isPriceChanged) ? 'disabled' : '';
+            const rowStyle = item.ngungKinhDoanh ? 'opacity: 0.75; background-color: #fff5f5;' : '';
+
             const tr = `
-                <tr style="font-size: 0.95rem; vertical-align: middle;">
+                <tr style="font-size: 0.95rem; vertical-align: middle; ${rowStyle}">
                     <td class="text-muted ps-4 py-2">${index + 1}</td>
                     <td class="text-muted py-2">${item.maSanPham || 'N/A'}</td>
                     <td class="text-start py-2">
                         <div class="d-flex align-items-center">
-                            <img src="${item.hinhAnh || 'https://via.placeholder.com/32'}" class="product-img me-2 shadow-sm" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                            <img src="${item.hinhAnh || '/images/white.png'}" class="product-img me-2 shadow-sm" onerror="this.src='/images/white.png'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
                             <div class="d-flex flex-column">
                                 <span class="fw-semibold text-dark">${item.tenSanPham}</span>
                                 ${priceWarning}
@@ -514,9 +567,9 @@ const posApp = {
                     <td class="text-muted py-2">${item.size}</td>
                     <td class="py-2">
                         <div class="d-flex justify-content-center align-items-center gap-2">
-                            <button class="btn btn-sm btn-light border shadow-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width: 28px; height: 28px;" onclick="posApp.updateCartItemQty(${item.id}, ${item.soLuong - 1})"><i class="fa-solid fa-minus" style="font-size: 10px;"></i></button>
-                            <span class="qty-text fw-bold text-dark border rounded d-flex align-items-center justify-content-center" title="Nhấn để sửa" onclick="posApp.promptUpdateQty(${item.id}, ${item.soLuong})" style="cursor: pointer; min-width: 40px; height: 28px; background-color: #fff;">${item.soLuong}</span>
-                            <button class="btn btn-sm btn-light border shadow-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width: 28px; height: 28px;" onclick="posApp.updateCartItemQty(${item.id}, ${item.soLuong + 1})"><i class="fa-solid fa-plus" style="font-size: 10px;"></i></button>
+                            <button class="btn btn-sm btn-light border shadow-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width: 28px; height: 28px;" onclick="posApp.updateCartItemQty(${item.id}, ${item.soLuong - 1})" ${qtyDisabled}><i class="fa-solid fa-minus" style="font-size: 10px;"></i></button>
+                            <input type="number" class="qty-input-box" value="${item.soLuong}" min="1" ${qtyDisabled} onfocus="this.select()" onchange="posApp.handleQtyInputChange(this, ${item.id}, ${item.soLuong})" onkeydown="if(event.key==='Enter'){this.blur();}">
+                            <button class="btn btn-sm btn-light border shadow-sm rounded-circle d-flex align-items-center justify-content-center text-muted" style="width: 28px; height: 28px;" onclick="posApp.updateCartItemQty(${item.id}, ${item.soLuong + 1})" ${qtyDisabled}><i class="fa-solid fa-plus" style="font-size: 10px;"></i></button>
                         </div>
                     </td>
                     <td class="py-2 text-center">
@@ -526,12 +579,14 @@ const posApp = {
                         }
                     </td>
                     <td class="py-2 text-end">
-                        ${(item.giaBanGoc && item.giaBanGoc > item.donGia && item.phanTramGiam > 0) ? 
-                            `<div class="d-flex flex-column align-items-end justify-content-center">
-                                <span class="text-muted text-decoration-line-through" style="font-size: 0.8rem;">${this.formatCurrency(item.giaBanGoc * item.soLuong)}</span>
-                                <span class="fw-bold text-danger" style="font-size: 0.95rem;">${this.formatCurrency(item.donGia * item.soLuong)}</span>
-                            </div>` 
-                            : `<span class="fw-bold text-dark" style="font-size: 0.95rem;">${this.formatCurrency(item.donGia * item.soLuong)}</span>`
+                        ${item.ngungKinhDoanh
+                            ? `<span class="text-muted text-decoration-line-through" style="font-size: 0.9rem;">${this.formatCurrency((item.donGia || 0) * item.soLuong)}</span>`
+                            : (item.giaBanGoc && item.giaBanGoc > item.donGia && item.phanTramGiam > 0) ? 
+                                `<div class="d-flex flex-column align-items-end justify-content-center">
+                                    <span class="text-muted text-decoration-line-through" style="font-size: 0.8rem;">${this.formatCurrency(item.giaBanGoc * item.soLuong)}</span>
+                                    <span class="fw-bold text-danger" style="font-size: 0.95rem;">${this.formatCurrency(item.donGia * item.soLuong)}</span>
+                                </div>` 
+                                : `<span class="fw-bold text-dark" style="font-size: 0.95rem;">${this.formatCurrency(item.donGia * item.soLuong)}</span>`
                         }
                     </td>
                     <td class="pe-4 py-2">
@@ -564,6 +619,32 @@ const posApp = {
         }
     },
 
+    handleQtyInputChange: function(inputElement, idChiTiet, currentQty) {
+        const valStr = inputElement.value ? inputElement.value.trim() : '';
+        const newQty = parseInt(valStr);
+
+        if (isNaN(newQty) || newQty <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Số lượng không hợp lệ',
+                text: 'Số lượng phải là số nguyên lớn hơn 0!',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-4 shadow border-0',
+                    confirmButton: 'btn btn-primary rounded-pill px-4 py-2 fw-bold'
+                }
+            });
+            inputElement.value = currentQty;
+            return;
+        }
+
+        if (newQty === currentQty) {
+            return;
+        }
+
+        this.updateCartItemQty(idChiTiet, newQty);
+    },
+
     updateCartItemQty: async function(idChiTiet, newQtyStr) {
         const newQty = parseInt(newQtyStr);
         if(isNaN(newQty) || newQty <= 0) {
@@ -581,7 +662,9 @@ const posApp = {
                 this.manualVoucherFlags[this.currentOrderId] = false;
                 this.loadOrderDetails(this.currentOrderId);
             } else {
-                Swal.fire('Lỗi', await res.text(), 'error');
+                const errorMsg = await res.text();
+                Swal.fire('Lỗi', errorMsg || 'Không thể cập nhật số lượng', 'error');
+                this.loadOrderDetails(this.currentOrderId);
             }
         } catch(e) { console.error(e); }
     },
@@ -694,7 +777,7 @@ const posApp = {
                     <td>${p.ma || 'N/A'}</td>
                     <td class="text-start fw-semibold">
                         <div class="d-flex align-items-center">
-                            <img src="${p.hinhAnh || 'https://via.placeholder.com/32'}" class="product-img me-2" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                            <img src="${p.hinhAnh || '/images/white.png'}" class="product-img me-2" onerror="this.src='/images/white.png'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
                             <span>${p.tenSanPham}</span>
                         </div>
                     </td>
@@ -812,8 +895,8 @@ const posApp = {
                 <div class="row px-4 pt-3 pb-2" style="font-family: 'Inter', sans-serif;">
                     <div class="col-5">
                         <div class="border rounded-4 d-flex align-items-center justify-content-center bg-white shadow-sm" style="min-height: 350px; padding: 10px;">
-                            <img src="${product.hinhAnh || 'https://via.placeholder.com/400'}" 
-                                 onerror="this.src='https://via.placeholder.com/400'"
+                            <img src="${product.hinhAnh || '/images/white.png'}" 
+                                 onerror="this.src='/images/white.png'"
                                  class="img-fluid rounded-3" style="max-height: 330px; object-fit: contain;">
                         </div>
                     </div>
@@ -922,12 +1005,39 @@ const posApp = {
             return;
         }
 
+        // Kiểm tra sản phẩm ngừng kinh doanh trong giỏ
+        const currentOrder = this.orders.find(o => o.id === order.id);
+        const cartItems = (currentOrder && currentOrder.cart) ? currentOrder.cart : [];
+        const hasNgungKD = cartItems.some(item => item.ngungKinhDoanh);
+
         // Tự động áp dụng voucher tốt nhất
-        if (this.autoApplyBestVoucher(order)) {
+        if (!hasNgungKD && this.autoApplyBestVoucher(order)) {
             return; // Dừng updateSummary vì sẽ gọi lại qua loadOrderDetails
         }
 
-        document.getElementById('btnCheckout').disabled = false;
+        // Khóa nút thanh toán nếu có sản phẩm ngừng KD
+        const btnCheckout = document.getElementById('btnCheckout');
+        if (hasNgungKD) {
+            btnCheckout.disabled = true;
+            btnCheckout.title = 'Giỏ hàng có sản phẩm ngừng kinh doanh';
+
+            // Hiển thị thông báo cảnh báo nếu chưa có
+            let warnEl = document.getElementById('ngungKDWarning');
+            if (!warnEl) {
+                warnEl = document.createElement('div');
+                warnEl.id = 'ngungKDWarning';
+                warnEl.className = 'alert alert-danger d-flex align-items-center gap-2 rounded-3 py-2 px-3 mb-2';
+                warnEl.style.fontSize = '0.85rem';
+                btnCheckout.parentElement.insertBefore(warnEl, btnCheckout);
+            }
+            const soSP = cartItems.filter(i => i.ngungKinhDoanh).length;
+            warnEl.innerHTML = `<i class="fa-solid fa-ban"></i> <span>Giỏ hàng có <strong>${soSP} sản phẩm ngừng kinh doanh</strong>. Vui lòng xóa khỏi giỏ trước khi thanh toán.</span>`;
+        } else {
+            btnCheckout.disabled = false;
+            btnCheckout.title = '';
+            const warnEl = document.getElementById('ngungKDWarning');
+            if (warnEl) warnEl.remove();
+        }
         
         // Handle Customer Info & Auto-fill Shipping
         const giaoHangToggleContainer = document.getElementById('giaoHangSwitch').parentElement;
@@ -1075,7 +1185,7 @@ const posApp = {
 
         eligibleVouchers.forEach(v => {
             let discount = 0;
-            if (v.loaiGiamGia === '1' || v.loaiGiamGia === '%') {
+            if (v.loaiGiamGia === '1' || v.loaiGiamGia === '%' || v.loaiGiamGia === 'Phần trăm' || v.loaiGiamGia === 'PERCENT') {
                 discount = order.tongTienHang * v.giaTriGiam / 100;
                 if (v.giamToiDa && discount > v.giamToiDa) discount = v.giamToiDa;
             } else {
@@ -1093,8 +1203,13 @@ const posApp = {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ idPhieuGiamGia: bestVoucher.id })
-                }).then(res => {
-                    if(res.ok) this.loadOrderDetails(order.id);
+                }).then(async res => {
+                    if(res.ok) {
+                        this.loadOrderDetails(order.id);
+                    } else {
+                        await this.fetchVouchers();
+                        this.loadOrderDetails(order.id);
+                    }
                 });
                 return true; 
             }
@@ -1443,9 +1558,181 @@ const posApp = {
         this.updateSummary(this.getCurrentOrder());
     },
 
+    showBetterVoucherModal: function(order, bestVoucher, newDiscount) {
+        return new Promise((resolve) => {
+            const currentDiscount = order.tienGiamGia || 0;
+            const savings = newDiscount - currentDiscount;
+            const currentCode = (order.phieuGiamGia && order.phieuGiamGia.maVoucher) ? order.phieuGiamGia.maVoucher : '(Chưa dùng voucher)';
+            const currentDiscountText = this.formatCurrency(currentDiscount);
+            const newDiscountText = this.formatCurrency(newDiscount);
+            const newCode = bestVoucher.maVoucher;
+            const tongTienHang = order.tongTienHang || 0;
+            const newTotal = tongTienHang - newDiscount;
+
+            const htmlContent = `
+                <div class="text-start" style="font-family: system-ui, -apple-system, sans-serif; font-size: 14px;">
+                    <!-- Banner Alert Box -->
+                    <div class="p-3 mb-3 rounded-3 d-flex align-items-center shadow-sm" style="background: linear-gradient(135deg, #e0f2fe, #f0f9ff); color: #0369a1; border: 1px solid #bae6fd; font-weight: 600; font-size: 13.5px;">
+                        <i class="fa-solid fa-gift fs-5 me-3 text-primary"></i>
+                        <div>
+                            <div class="fw-bold" style="color: #0284c7;">Ưu đãi tốt hơn sẵn có!</div>
+                            <div class="small fw-normal text-secondary">Hệ thống tìm thấy 1 mã giảm giá giúp bạn tiết kiệm thêm chi phí.</div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Grid -->
+                    <div class="row g-2 mb-3">
+                        <!-- Current Voucher -->
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 h-100" style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div class="text-muted fw-semibold mb-1" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Voucher hiện tại</div>
+                                <div class="fw-bold text-dark my-1" style="font-size: 14px; letter-spacing: 0.3px;">${currentCode}</div>
+                                <div class="text-secondary small">Giảm: <strong>${currentDiscountText}</strong></div>
+                            </div>
+                        </div>
+                        <!-- Better Voucher -->
+                        <div class="col-6">
+                            <div class="p-3 rounded-3 h-100 position-relative" style="background-color: #ecfdf5; border: 1.5px solid #34d399; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);">
+                                <div class="fw-bold mb-1 d-flex align-items-center justify-content-between" style="font-size: 11px; color: #047857; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    <span><i class="fa-solid fa-circle-check me-1"></i> Khuyên dùng</span>
+                                </div>
+                                <div class="my-1">
+                                    <span class="badge rounded-2 px-2.5 py-1 fw-bold shadow-sm" style="background-color: #059669; color: #ffffff; font-size: 13px; letter-spacing: 0.3px;">${newCode}</span>
+                                </div>
+                                <div class="fw-bold small" style="color: #047857;">Giảm: -${newDiscountText}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Savings Callout Box -->
+                    <div class="p-3 mb-3 rounded-3 d-flex justify-content-between align-items-center shadow-sm" style="background: linear-gradient(135deg, #dcfce7, #f0fdf4); border: 1.5px dashed #34d399;">
+                        <span class="fw-bold" style="color: #166534; font-size: 14px;">
+                            <i class="fa-solid fa-piggy-bank me-2" style="color: #059669; font-size: 16px;"></i>Bạn tiết kiệm thêm:
+                        </span>
+                        <span class="fw-extrabold fs-5" style="color: #047857;">+${this.formatCurrency(savings)}</span>
+                    </div>
+
+                    <!-- Order Summary Breakdown -->
+                    <div class="p-3 rounded-3 mb-4" style="background-color: #ffffff; border: 1px solid #f1f5f9;">
+                        <div class="d-flex justify-content-between mb-2 text-muted" style="font-size: 13px;">
+                            <span>Tổng tiền hàng:</span>
+                            <span class="fw-semibold text-dark">${this.formatCurrency(tongTienHang)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-muted" style="font-size: 13px;">
+                            <span>Mức giảm giá mới:</span>
+                            <span class="fw-bold" style="color: #059669;">-${newDiscountText}</span>
+                        </div>
+                        <div class="d-flex justify-content-between pt-2 border-top fw-bold align-items-center">
+                            <span class="text-dark" style="font-size: 14px;">Tổng thanh toán mới:</span>
+                            <span class="fs-5 fw-bold" style="color: #0284c7;">${this.formatCurrency(newTotal > 0 ? newTotal : 0)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex justify-content-end gap-2 pt-1">
+                        <button id="btnKeepOldVoucher" class="btn btn-light border rounded-pill px-4 py-2 text-secondary fw-semibold shadow-sm" style="font-size: 13px; background-color: #f8fafc;">
+                            Giữ voucher cũ
+                        </button>
+                        <button id="btnUseNewVoucher" class="btn rounded-pill px-4 py-2 fw-bold text-white shadow" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; font-size: 13px;">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1.5"></i> Dùng voucher mới (Tiết kiệm hơn)
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            let chosenAction = 'cancel';
+            Swal.fire({
+                title: `
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle text-white me-2.5 d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px; font-size: 15px; background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);">
+                            <i class="fa-solid fa-ticket"></i>
+                        </div>
+                        <span class="fw-bold text-dark fs-5">Có voucher ưu đãi tốt hơn</span>
+                    </div>
+                `,
+                html: htmlContent,
+                showConfirmButton: false,
+                showCancelButton: false,
+                showCloseButton: true,
+                width: '480px',
+                customClass: {
+                    popup: 'rounded-4 p-4 shadow-lg border-0',
+                    header: 'p-0 mb-3 border-0',
+                    closeButton: 'shadow-none'
+                },
+                didOpen: () => {
+                    document.getElementById('btnKeepOldVoucher').addEventListener('click', () => {
+                        chosenAction = 'keep_old';
+                        Swal.close();
+                    });
+                    document.getElementById('btnUseNewVoucher').addEventListener('click', () => {
+                        chosenAction = 'use_new';
+                        Swal.close();
+                    });
+                },
+                willClose: () => {
+                    resolve(chosenAction);
+                }
+            });
+        });
+    },
+
     checkout: async function() {
-        const order = this.getCurrentOrder();
+        let order = this.getCurrentOrder();
         if(!order || !order.cart || order.cart.length === 0) return;
+
+        // Check if a better voucher exists before proceeding
+        await this.fetchVouchers();
+        const currentDiscount = order.tienGiamGia || 0;
+        let bestVoucher = null;
+        let maxDiscount = currentDiscount;
+
+        if (this.vouchers && this.vouchers.length > 0 && order.tongTienHang > 0) {
+            let eligibleVouchers = this.vouchers.filter(v => v.donToiThieu <= order.tongTienHang);
+            eligibleVouchers.forEach(v => {
+                let discount = 0;
+                if (v.loaiGiamGia === '1' || v.loaiGiamGia === '%' || v.loaiGiamGia === 'Phần trăm' || v.loaiGiamGia === 'PERCENT') {
+                    discount = order.tongTienHang * v.giaTriGiam / 100;
+                    if (v.giamToiDa && discount > v.giamToiDa) discount = v.giamToiDa;
+                } else {
+                    discount = v.giaTriGiam;
+                }
+                if (discount > order.tongTienHang) discount = order.tongTienHang;
+
+                if (discount > maxDiscount) {
+                    maxDiscount = discount;
+                    bestVoucher = v;
+                }
+            });
+        }
+
+        if (bestVoucher && (maxDiscount - currentDiscount) >= 1) {
+            const userChoice = await this.showBetterVoucherModal(order, bestVoucher, maxDiscount);
+            if (userChoice === 'cancel') return;
+            if (userChoice === 'use_new') {
+                try {
+                    const res = await fetch(`/api/ban-hang/hoa-don/${order.id}/phieu-giam-gia`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idPhieuGiamGia: bestVoucher.id })
+                    });
+                    if (res.ok) {
+                        this.manualVoucherFlags = this.manualVoucherFlags || {};
+                        this.manualVoucherFlags[order.id] = true;
+                        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, icon: 'success', title: 'Áp dụng voucher mới thành công' });
+                        await this.loadOrderDetails(order.id);
+                        order = this.getCurrentOrder();
+                    } else {
+                        const errText = await res.text();
+                        Swal.fire('Lỗi', errText || 'Không thể áp dụng voucher mới', 'error');
+                        return;
+                    }
+                } catch(e) {
+                    console.error(e);
+                    return;
+                }
+            }
+        }
 
         const method = document.querySelector('input[name="paymentMethod"]:checked').value;
         let cash = parseFloat(document.getElementById('customerCash').value.replace(/[^0-9]/g, '')) || 0;

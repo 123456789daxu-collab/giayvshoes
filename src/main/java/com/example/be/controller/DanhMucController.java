@@ -47,7 +47,19 @@ public class DanhMucController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên danh mục không được để trống!");
             return "redirect:" + (referer != null ? referer : "/the-loai");
         }
-        danhMuc.setTenDanhMuc(danhMuc.getTenDanhMuc().trim());
+        String tenTrimmed = danhMuc.getTenDanhMuc().trim();
+
+        java.util.Optional<DanhMuc> existing = danhMucRepository.findByTenDanhMucIgnoreCase(tenTrimmed);
+        if (existing.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Danh mục này đã tồn tại trong hệ thống.");
+            return "redirect:" + (referer != null ? referer : "/the-loai");
+        }
+
+        danhMuc.setTenDanhMuc(tenTrimmed);
+        if (danhMuc.getMaDanhMuc() == null || danhMuc.getMaDanhMuc().trim().isEmpty() || "(Tự động sinh)".equals(danhMuc.getMaDanhMuc().trim())) {
+            danhMuc.setMaDanhMuc("DM" + System.currentTimeMillis());
+        }
+        danhMuc.setTrangThai(true);
         try {
             danhMucRepository.save(danhMuc);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
@@ -64,8 +76,16 @@ public class DanhMucController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên danh mục không được để trống!");
             return "redirect:" + (referer != null ? referer : "/the-loai");
         }
+        String tenTrimmed = danhMuc.getTenDanhMuc().trim();
+
+        java.util.Optional<DanhMuc> existing = danhMucRepository.findByTenDanhMucIgnoreCase(tenTrimmed);
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên danh mục đã trùng với danh mục khác.");
+            return "redirect:" + (referer != null ? referer : "/the-loai");
+        }
+
         danhMuc.setId(id);
-        danhMuc.setTenDanhMuc(danhMuc.getTenDanhMuc().trim());
+        danhMuc.setTenDanhMuc(tenTrimmed);
         try {
             danhMucRepository.save(danhMuc);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

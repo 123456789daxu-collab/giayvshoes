@@ -323,24 +323,6 @@ public class SanPhamRestController {
                 return clean.split("\\s*,\\s*")[0].trim();
             }
         }
-        // Fallback sang các biến thể cùng sản phẩm
-        if (s.getSanPham() != null && s.getSanPham().getId() != null) {
-            List<SanPhamChiTiet> siblings = sanPhamChiTietRepository.findBySanPhamId(s.getSanPham().getId());
-            for (SanPhamChiTiet sib : siblings) {
-                if (sib.getDanhSachHinhAnh() != null && !sib.getDanhSachHinhAnh().isEmpty()) {
-                    String first = sib.getDanhSachHinhAnh().get(0);
-                    if (first != null && !first.isBlank()) {
-                        return first.trim();
-                    }
-                }
-                if (sib.getHinhAnh() != null && !sib.getHinhAnh().isBlank() && !sib.getHinhAnh().equals("[]") && !sib.getHinhAnh().equals("[\"\"]")) {
-                    String clean = sib.getHinhAnh().replaceAll("[\\[\\]\"]", "").trim();
-                    if (!clean.isEmpty()) {
-                        return clean.split("\\s*,\\s*")[0].trim();
-                    }
-                }
-            }
-        }
         return null;
     }
 }

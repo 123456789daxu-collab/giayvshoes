@@ -25,7 +25,7 @@
         <!-- Bán hàng -->
         <a href="/ban-hang" class="menu-item">
             <i data-lucide="shopping-cart" class="menu-icon"></i>
-            <span>Bán hàng</span>
+            <span>Bán hàng tại quầy</span>
         </a>
 
         <!-- Hóa đơn -->
@@ -95,7 +95,7 @@
         </a>
 
         <!-- Phiếu giảm giá -->
-        <a href="/phieu-giam-gia" class="menu-item">
+        <a href="/phieu-giam-gia" class="menu-item" sec:authorize="hasRole('ADMIN')">
             <i data-lucide="ticket" class="menu-icon"></i>
             <span>Phiếu giảm giá</span>
         </a>
@@ -106,14 +106,14 @@
             <span>Đợt giảm giá</span>
         </a>
 
-        <!-- Tài khoản khách hàng -->
-        <a href="/tai-khoan/khach-hang" class="menu-item" sec:authorize="hasRole('ADMIN')">
+        <!-- Tài khoản khách hàng (Nhân viên được phép thêm khách hàng) -->
+        <a href="/tai-khoan/khach-hang" class="menu-item">
             <i data-lucide="users" class="menu-icon"></i>
             <span>Tài khoản khách hàng</span>
         </a>
 
         <!-- Tài khoản nhân viên -->
-        <a href="/tai-khoan/nhan-vien" class="menu-item">
+        <a href="/tai-khoan/nhan-vien" class="menu-item" sec:authorize="hasRole('ADMIN')">
             <i data-lucide="user-cog" class="menu-icon"></i>
             <span>Tài khoản nhân viên</span>
         </a>
@@ -128,7 +128,7 @@
             </a>
             <!-- Danh sách các mục con -->
             <ul class="submenu" id="submenu-lich-giao-ca">
-                <li>
+                <li sec:authorize="hasRole('ADMIN')">
                     <a href="/lich-lam-viec" class="submenu-item">Lịch làm việc</a>
                 </li>
                 <li>

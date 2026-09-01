@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -100,13 +100,26 @@
             align-items: center;
         }
 
-        .input-wrapper i {
+        .input-wrapper .icon-left {
             position: absolute;
             left: 1rem;
             color: var(--text-muted);
             transition: color 0.3s ease;
-            width: 20px;
-            height: 20px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-wrapper .icon-right {
+            position: absolute;
+            right: 1rem;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .input-field {
@@ -121,13 +134,17 @@
             outline: none;
         }
 
+        .input-field.has-right-icon {
+            padding-right: 3rem;
+        }
+
         .input-field:focus {
             border-color: var(--primary);
             background: #ffffff;
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
         }
 
-        .input-field:focus + i {
+        .input-wrapper:focus-within .icon-left {
             color: var(--primary);
         }
 
@@ -227,7 +244,7 @@
                 <div class="input-group">
                     <label for="username">Tên đăng nhập</label>
                     <div class="input-wrapper">
-                        <i data-lucide="user"></i>
+                        <span class="icon-left"><i data-lucide="user" width="20" height="20"></i></span>
                         <input type="text" id="username" name="username" class="input-field" placeholder="Nhập tên đăng nhập" required autofocus>
                     </div>
                 </div>
@@ -235,8 +252,12 @@
                 <div class="input-group">
                     <label for="password">Mật khẩu</label>
                     <div class="input-wrapper">
-                        <i data-lucide="lock"></i>
-                        <input type="password" id="password" name="password" class="input-field" placeholder="Nhập mật khẩu" required>
+                        <span class="icon-left"><i data-lucide="lock" width="20" height="20"></i></span>
+                        <input type="password" id="password" name="password" class="input-field has-right-icon" placeholder="Nhập mật khẩu" required>
+                        <span class="icon-right" id="togglePassword">
+                            <i data-lucide="eye" id="eyeIcon" width="20" height="20"></i>
+                            <i data-lucide="eye-off" id="eyeOffIcon" style="display: none;" width="20" height="20"></i>
+                        </span>
                     </div>
                 </div>
 
@@ -253,6 +274,26 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', function () {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    eyeIcon.style.display = 'none';
+                    eyeOffIcon.style.display = 'block';
+                } else {
+                    passwordInput.type = 'password';
+                    eyeIcon.style.display = 'block';
+                    eyeOffIcon.style.display = 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>

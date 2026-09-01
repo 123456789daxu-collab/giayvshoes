@@ -8,8 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface DanhMucRepository extends JpaRepository<DanhMuc, Long> {
     @Query("SELECT d FROM DanhMuc d WHERE (:keyword IS NULL OR (LOWER(d.tenDanhMuc) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(d.maDanhMuc) LIKE LOWER(CONCAT('%', :keyword, '%')))) AND (:trangThai IS NULL OR d.trangThai = :trangThai)")
     Page<DanhMuc> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
+
+    Optional<DanhMuc> findByTenDanhMucIgnoreCase(String tenDanhMuc);
 }

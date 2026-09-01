@@ -8,9 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface LoaiGiayRepository extends JpaRepository<LoaiGiay, Long> {
     
     @Query("SELECT l FROM LoaiGiay l WHERE (:keyword IS NULL OR (LOWER(l.tenLoaiGiay) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(l.maLoaiGiay) LIKE LOWER(CONCAT('%', :keyword, '%')))) AND (:trangThai IS NULL OR l.trangThai = :trangThai)")
     Page<LoaiGiay> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
+
+    Optional<LoaiGiay> findByTenLoaiGiayIgnoreCase(String tenLoaiGiay);
 }

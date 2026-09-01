@@ -222,8 +222,18 @@ async function checkCurrentUserStatus() {
     
     try {
         const res = await fetch('/api/auth/current-user');
-        if (!res.ok) return;
+        if (!res.ok) {
+            if (res.status === 403) {
+                const data = await res.json();
+                if (data.expired) {
+                    alert(data.message || 'Trạng thái đăng nhập đã hết hạn hoặc tài khoản bị khóa!');
+                    window.location.href = '/client/dang-nhap';
+                }
+            }
+            return;
+        }
         const data = await res.json();
+
         
         if (data.loggedIn) {
             authSection.innerHTML = `
@@ -295,21 +305,15 @@ async function performLogout() {
 }
 
 function getImageUrlHeader(hinhAnh, defaultIdx = 0) {
-    const defaultImages = [
-        '/images/shoe1.png',
-        '/images/shoe2.png',
-        '/images/shoe3.png',
-        '/images/shoe4.png'
-    ];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+        return '/images/white.png';
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

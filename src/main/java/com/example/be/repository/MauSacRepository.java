@@ -9,8 +9,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 @Repository
 public interface MauSacRepository extends JpaRepository<MauSac, Long> {
     @Query("SELECT m FROM MauSac m WHERE (:keyword IS NULL OR (LOWER(m.tenMauSac) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(m.maMauSac) LIKE LOWER(CONCAT('%', :keyword, '%')))) AND (:trangThai IS NULL OR m.trangThai = :trangThai)")
     Page<MauSac> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
+
+    Optional<MauSac> findByTenMauSacIgnoreCase(String tenMauSac);
 }

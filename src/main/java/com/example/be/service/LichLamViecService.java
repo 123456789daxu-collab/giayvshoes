@@ -20,6 +20,16 @@ public class LichLamViecService {
     }
 
     public LichLamViec save(LichLamViec lichLamViec) {
+        if (lichLamViec.getId() == null && lichLamViec.getNhanVien() != null && lichLamViec.getCaLam() != null && lichLamViec.getNgayLamViec() != null) {
+            boolean exists = lichLamViecRepository.existsByNhanVienIdAndCaLamIdAndNgayLamViec(
+                    lichLamViec.getNhanVien().getId(),
+                    lichLamViec.getCaLam().getId(),
+                    lichLamViec.getNgayLamViec()
+            );
+            if (exists) {
+                throw new IllegalArgumentException("Nhân viên đã được phân ca vào ngày này.");
+            }
+        }
         return lichLamViecRepository.save(lichLamViec);
     }
 

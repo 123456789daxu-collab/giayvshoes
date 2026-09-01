@@ -24,10 +24,7 @@ const spState = {
 
 /* Shoe images mapping */
 const shoeImages = [
-    '/images/shoe1.png',
-    '/images/shoe2.png',
-    '/images/shoe3.png',
-    '/images/shoe4.png',
+    '/images/white.png'
 ];
 
 /* =============================================
@@ -182,7 +179,7 @@ async function fetchProducts() {
                 ...p,
                 gia: giaActual,
                 giaGoc: giaGoc,
-                hinh: imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '/images/' + imgPath) : shoeImgs[i % shoeImgs.length],
+                hinh: imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '/images/' + imgPath) : '/images/white.png',
                 sizes: uniqueSizes,
                 isNew: i < 4,
                 discountPct: Math.round(discountPct),
@@ -411,14 +408,7 @@ function renderCard(p, globalIdx = 0) {
         ? `<span class="sp-brand-label" style="background:${brand.color};">${brand.name}</span>`
         : '';
 
-    const fallbackImgs = [
-        '/images/sp_33_1781237903207.png',
-        '/images/sp_34_1781238256333.png',
-        '/images/sp_35_1781242880837.png',
-        '/images/sp_36_1781244856644.png',
-        '/images/sp_37_1781246418348.png'
-    ];
-    const fallbackImg = fallbackImgs[globalIdx % fallbackImgs.length];
+    const fallbackImg = '/images/white.png';
 
     return `
     <div class="sp-card" onclick="window.location.href='/client/products/${p.id}'">
@@ -426,7 +416,7 @@ function renderCard(p, globalIdx = 0) {
             ${badges.length ? `<div class="sp-badges">${badges.join('')}</div>` : ''}
             ${brandBadge}
             <img src="${p.hinh || fallbackImg}" alt="${p.ten}" loading="lazy"
-                 onerror="this.src='${fallbackImg}'">
+                 onerror="this.onerror=null;this.src='${fallbackImg}';">
             <div class="sp-hover-actions">
                 <button class="sp-hover-btn sp-hover-btn-cart"
                         onclick="event.stopPropagation(); addToCart(${targetId}, '${p.ten}', ${p.gia}, '${p.hinh}', ${targetStock})">
@@ -644,8 +634,8 @@ function renderProductModalContent() {
     const stock = v.soLuongTon != null ? v.soLuongTon : (v.soLuong != null ? v.soLuong : 0);
     const selectedSizeStr = String(v.sizeGiay);
 
-    const mainImg = p.hinh || '/images/shoe1.png';
-    const thumbnails = [mainImg, '/images/shoe1.png', '/images/shoe2.png', '/images/shoe3.png', '/images/shoe4.png'];
+    const mainImg = p.hinh || '/images/white.png';
+    const thumbnails = p.hinh ? [mainImg] : ['/images/white.png'];
     const uniqueThumbs = [...new Set(thumbnails)];
 
     content.innerHTML = `
@@ -655,7 +645,7 @@ function renderProductModalContent() {
                 <div style="border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; background: #fff; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 220px; box-shadow: var(--shadow-sm);">
                     <img id="modalMainImage" src="${mainImg}" alt="${p.ten}"
                          style="max-height:190px;max-width:100%;object-fit:contain;filter:drop-shadow(0 12px 30px rgba(0,0,0,0.1));"
-                         onerror="this.src='/images/shoe1.png'">
+                         onerror="this.src='/images/white.png'">
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%;" id="modalThumbnailGrid">
                     ${uniqueThumbs.map((t, idx) => `

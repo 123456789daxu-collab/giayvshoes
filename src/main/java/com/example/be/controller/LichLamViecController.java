@@ -22,8 +22,12 @@ public class LichLamViecController {
     }
 
     @PostMapping
-    public ResponseEntity<LichLamViec> create(@RequestBody LichLamViec lichLamViec) {
-        return ResponseEntity.ok(lichLamViecService.save(lichLamViec));
+    public ResponseEntity<?> create(@RequestBody LichLamViec lichLamViec) {
+        try {
+            return ResponseEntity.ok(lichLamViecService.save(lichLamViec));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")

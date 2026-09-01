@@ -576,7 +576,7 @@ async function loadRelatedProducts() {
             const discountPct = hasDiscount ? Math.round(p.phanTramGiam) : 0;
             const price = parseFloat(p.giaBan) || 0;
             const originalPrice = hasDiscount ? parseFloat(p.giaGoc) : 0;
-            const imgUrl = p.hinhAnh ? (p.hinhAnh.startsWith('http') || p.hinhAnh.startsWith('/') ? p.hinhAnh : '/images/' + p.hinhAnh) : '/images/shoe1.png';
+            const imgUrl = p.hinhAnh ? (p.hinhAnh.startsWith('http') || p.hinhAnh.startsWith('/') ? p.hinhAnh : '/images/' + p.hinhAnh) : '/images/white.png';
             
             const sId = String(p.id);
             const spId = p.sanPhamId ? String(p.sanPhamId) : null;
@@ -590,7 +590,7 @@ async function loadRelatedProducts() {
                         <div class="product-badges">
                             ${hasDiscount ? `<span class="badge badge-sale" style="background:#ef4444;color:white;font-weight:900;">-${discountPct}%</span>` : ''}
                         </div>
-                        <img src="${imgUrl}" alt="${p.tenSanPham}" onerror="this.src='/images/shoe1.png'">
+                        <img src="${imgUrl}" alt="${p.tenSanPham}" onerror="this.src='/images/white.png'">
                     </div>
                     <div style="padding: 16px; display: flex; flex-direction: column; gap: 8px;">
                         <div style="font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Mã: ${p.ma}</div>
@@ -830,13 +830,13 @@ function renderReviewsDashboard(reviews) {
     if (totalText) totalText.textContent = total;
 
     const sumRating = reviews.reduce((sum, r) => sum + (parseInt(r.rating || r.soSao) || 5), 0);
-    const avg = total > 0 ? (sumRating / total).toFixed(1) : '5.0';
+    const avg = total > 0 ? (sumRating / total).toFixed(1) : '0.0';
 
     const avgScoreEl = $('avgRatingScore');
     const avgStarsEl = $('avgRatingStars');
     if (avgScoreEl) avgScoreEl.textContent = avg;
     if (avgStarsEl) {
-        const numStars = Math.round(parseFloat(avg));
+        const numStars = total > 0 ? Math.round(parseFloat(avg)) : 0;
         avgStarsEl.textContent = '★'.repeat(numStars) + '☆'.repeat(5 - numStars);
     }
 
@@ -853,14 +853,14 @@ function renderReviewsDashboard(reviews) {
     let html = '';
     for (let star = 5; star >= 1; star--) {
         const count = counts[star] || 0;
-        const pct = total > 0 ? Math.round((count / total) * 100) : (star === 5 ? 100 : 0);
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
         html += `
             <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#475569;">
                 <span style="width:30px;font-weight:700;text-align:right;color:#0f172a;">${star} ★</span>
                 <div style="flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
-                    <div style="width:${total > 0 ? pct : 0}%;height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;transition:width 0.5s;"></div>
+                    <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;transition:width 0.5s;"></div>
                 </div>
-                <span style="width:40px;font-size:12px;color:#64748b;font-weight:600;">${total > 0 ? pct : 0}%</span>
+                <span style="width:40px;font-size:12px;color:#64748b;font-weight:600;">${pct}%</span>
             </div>
         `;
     }
@@ -894,14 +894,21 @@ function renderReviewsList(reviews) {
         if (Array.isArray(images) && images.length > 0) {
             imagesHtml = `
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
-                    ${images.map(img => `
-                        <img src="${img}" 
+                    ${images.map(img => {
+                        let finalSrc = (img || '').trim();
+                        if (finalSrc && !finalSrc.startsWith('/') && !finalSrc.startsWith('http') && !finalSrc.startsWith('data:')) {
+                            finalSrc = '/upload/' + finalSrc;
+                        }
+                        return `
+                        <img src="${finalSrc}" 
                              alt="Ảnh đánh giá" 
                              style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1.5px solid #e2e8f0; cursor: pointer; transition: transform 0.2s;"
-                             onclick="showImageModal('${img}')"
+                             onclick="showImageModal('${finalSrc}')"
                              onmouseover="this.style.transform='scale(1.05)'"
-                             onmouseout="this.style.transform='scale(1)'">
-                    `).join('')}
+                             onmouseout="this.style.transform='scale(1)'"
+                             onerror="this.style.display='none'">
+                        `;
+                    }).join('')}
                 </div>
             `;
         }
@@ -977,21 +984,15 @@ function escHtml(str) {
 }
 
 function getImageUrl(hinhAnh, defaultIdx = 0) {
-    const defaultImages = [
-        '/images/shoe1.png',
-        '/images/shoe2.png',
-        '/images/shoe3.png',
-        '/images/shoe4.png'
-    ];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+        return '/images/white.png';
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

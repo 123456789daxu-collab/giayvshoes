@@ -123,20 +123,20 @@
                 <div class="col-lg-4">
                     <div th:id="'carouselVariant'" class="carousel slide mb-3 shadow-sm rounded-4" data-bs-ride="carousel" style="overflow: hidden; border: 1px solid #e2e8f0;">
                         <div class="carousel-inner" id="imagePreviewContainer" style="background: #ffffff;">
-                            <th:block th:if="${ct.hinhAnh != null}">
+                            <th:block th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}">
                                 <div th:each="imgUrl, stat : ${#strings.arraySplit(ct.hinhAnh, ',')}" 
                                      th:class="'carousel-item ' + ${stat.index == 0 ? 'active' : ''}">
-                                    <img th:src="${imgUrl}" class="d-block w-100" style="height: 350px; object-fit: cover;">
+                                    <img th:src="${imgUrl}" onerror="this.onerror=null;this.src='/images/white.png';" class="d-block w-100" style="height: 350px; object-fit: contain; background: #ffffff;" alt="">
                                 </div>
                             </th:block>
                             <div th:unless="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" class="carousel-item active">
-                                <img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" class="d-block w-100" style="height: 350px; object-fit: contain; background: #f8fafc;" alt="Chưa có ảnh">
+                                <img src="/images/white.png" class="d-block w-100 p-4" style="height: 350px; object-fit: contain; background: #ffffff;" alt="">
                             </div>
                         </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselVariant" data-bs-slide="prev" style="filter: invert(100%);">
+                        <button th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh) and #strings.contains(ct.hinhAnh, ',')}" class="carousel-control-prev" type="button" data-bs-target="#carouselVariant" data-bs-slide="prev" style="filter: invert(100%);">
                             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#carouselVariant" data-bs-slide="next" style="filter: invert(100%);">
+                        <button th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh) and #strings.contains(ct.hinhAnh, ',')}" class="carousel-control-next" type="button" data-bs-target="#carouselVariant" data-bs-slide="next" style="filter: invert(100%);">
                             <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         </button>
                     </div>

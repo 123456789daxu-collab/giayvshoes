@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -584,6 +584,11 @@
                                 ngayLamViec: ngay,
                                 ghiChu: ''
                             })
+                        }).then(res => {
+                            if (!res.ok) {
+                                return res.text().then(text => { throw new Error(text || 'Lỗi không xác định'); });
+                            }
+                            return res.json();
                         }));
                     });
                 });
@@ -596,7 +601,7 @@
                     closeQuickAddModal();
                     calendar.refetchEvents();
                 }).catch(err => {
-                    Swal.fire('Lỗi', 'Không thể lưu lịch làm việc', 'error');
+                    Swal.fire('Cảnh báo', err.message, 'warning');
                 });
             });
 
@@ -756,30 +761,43 @@
                     openQuickAddModal(info.dateStr);
                 },
                 
-                eventClick: function(info) {
-                    deleteLichLamViec(info.event.id);
-                },
-                
                 events: function(fetchInfo, successCallback, failureCallback) {
                     fetch('/api/lich-lam-viec')
                         .then(res => res.json())
                         .then(data => {
-                            var events = data.map(item => {
-                                var tenNV = item.nhanVien ? item.nhanVien.hoTen : 'Unknown';
-                                var maNhanVien = item.nhanVien ? item.nhanVien.maNhanVien : '';
-                                var tenCa = item.caLam ? item.caLam.tenCa : 'Ca';
-                                var title = tenCa + ' - ' + tenNV;
-                                var initials = tenNV.split(' ').pop().charAt(0).toUpperCase();
+                            let grouped = {};
+                            data.forEach(item => {
+                                var startStr = item.ngayLamViec;
+                                if (Array.isArray(startStr)) {
+                                    startStr = startStr[0] + '-' + String(startStr[1]).padStart(2, '0') + '-' + String(startStr[2]).padStart(2, '0');
+                                }
+                                let caId = (item.caLam && item.caLam.id) ? item.caLam.id : 'null';
+                                let key = startStr + '_' + caId;
+                                
+                                if (!grouped[key]) {
+                                    grouped[key] = {
+                                        start: startStr,
+                                        tenCa: (item.caLam && item.caLam.tenCa) ? item.caLam.tenCa : 'Ca',
+                                        shiftId: caId,
+                                        records: []
+                                    };
+                                }
+                                grouped[key].records.push(item);
+                            });
+
+                            var events = Object.values(grouped).map(g => {
+                                let namesStr = g.records.map(r => (r.nhanVien && r.nhanVien.hoTen) ? r.nhanVien.hoTen : 'Unknown').join(' - ');
+                                let title = g.tenCa + ': ' + namesStr;
                                 
                                 return {
-                                    id: item.id,
+                                    id: g.start + '_' + g.shiftId,
                                     title: title,
-                                    start: item.ngayLamViec,
+                                    start: g.start,
                                     extendedProps: { 
-                                        initials: initials,
-                                        tenNV: tenNV,
-                                        maNhanVien: maNhanVien,
-                                        shiftId: item.caLam ? item.caLam.id : null
+                                        tenCa: g.tenCa,
+                                        namesStr: namesStr,
+                                        shiftId: g.shiftId,
+                                        records: g.records
                                     }
                                 };
                             });
@@ -798,12 +816,35 @@
                         })
                         .catch(err => failureCallback(err));
                 },
+                
+                eventClick: function(info) {
+                    let records = info.event.extendedProps.records;
+                    let tenCa = info.event.extendedProps.tenCa;
+                    
+                    let htmlList = records.map(r => {
+                        let name = (r.nhanVien && r.nhanVien.hoTen) ? r.nhanVien.hoTen : 'Unknown';
+                        return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-size: 14px; font-weight: 500; color: #1e293b;">${name}</span>
+                            <button class="fi-btn fi-btn-danger" style="padding: 4px 12px; font-size: 12px;" onclick="deleteLichLamViec(${r.id})">Xóa</button>
+                        </div>
+                        `;
+                    }).join('');
+
+                    Swal.fire({
+                        title: 'Chi tiết ' + tenCa,
+                        html: `<div style="text-align:left; max-height: 300px; overflow-y:auto; padding-right: 8px;">${htmlList}</div>`,
+                        showConfirmButton: false,
+                        showCancelButton: true,
+                        cancelButtonText: 'Đóng'
+                    });
+                },
                 eventContent: function(arg) {
-                    var initials = arg.event.extendedProps.initials || arg.event.title.charAt(0).toUpperCase();
                     var customHtml = `
-                        <div style="display:flex; flex-direction:column; align-items:center; width:100%; padding-top: 10px;">
-                            <div class="event-circle">${initials}</div>
-                            <div class="event-title" title="${arg.event.title}">${arg.event.title}</div>
+                        <div style="width:100%; padding: 6px 8px; background: rgba(37, 99, 235, 0.1); border-left: 3px solid #2563eb; border-radius: 4px; margin-bottom: 2px; overflow: hidden;">
+                            <div class="event-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; color: #1e293b; text-align: left; line-height: 1.4;" title="${arg.event.title}">
+                                <b>${arg.event.extendedProps.tenCa}:</b> ${arg.event.extendedProps.namesStr}
+                            </div>
                         </div>
                     `;
                     return { html: customHtml };
@@ -842,14 +883,21 @@
                 
             // Fetch Nhan Vien cho Modal
             fetch('/api/nhan-vien')
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch nhan vien");
+                    return res.json();
+                })
                 .then(data => {
-                    const nvOptions = data.map(nv => ({
-                        value: nv.id.toString(),
-                        label: nv.maNhanVien + ' - ' + nv.hoTen
-                    }));
-                    choicesNhanVien.setChoices(nvOptions, 'value', 'label', true);
-                });
+                    if (Array.isArray(data)) {
+                        const activeEmployees = data.filter(nv => nv.trangThai === 1);
+                        const nvOptions = activeEmployees.map(nv => ({
+                            value: nv.id ? nv.id.toString() : '',
+                            label: (nv.maNhanVien || 'NV') + ' - ' + (nv.hoTen || 'Chưa cập nhật')
+                        }));
+                        choicesNhanVien.setChoices(nvOptions, 'value', 'label', true);
+                    }
+                })
+                .catch(err => console.error("Lỗi khi tải nhân viên: ", err));
 
             // Search filter event
             document.getElementById('searchNhanVien').addEventListener('input', function() {

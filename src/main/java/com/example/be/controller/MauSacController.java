@@ -47,7 +47,19 @@ public class MauSacController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên màu sắc không được để trống!");
             return "redirect:" + (referer != null ? referer : "/mau-sac");
         }
-        mauSac.setTenMauSac(mauSac.getTenMauSac().trim());
+        String tenTrimmed = mauSac.getTenMauSac().trim();
+
+        java.util.Optional<MauSac> existing = mauSacRepository.findByTenMauSacIgnoreCase(tenTrimmed);
+        if (existing.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Màu sắc này đã tồn tại trong hệ thống.");
+            return "redirect:" + (referer != null ? referer : "/mau-sac");
+        }
+
+        mauSac.setTenMauSac(tenTrimmed);
+        if (mauSac.getMaMauSac() == null || mauSac.getMaMauSac().trim().isEmpty() || "(Tự động sinh)".equals(mauSac.getMaMauSac().trim())) {
+            mauSac.setMaMauSac("MS" + System.currentTimeMillis());
+        }
+        mauSac.setTrangThai(true);
         try {
             mauSacRepository.save(mauSac);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
@@ -64,8 +76,16 @@ public class MauSacController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên màu sắc không được để trống!");
             return "redirect:" + (referer != null ? referer : "/mau-sac");
         }
+        String tenTrimmed = mauSac.getTenMauSac().trim();
+
+        java.util.Optional<MauSac> existing = mauSacRepository.findByTenMauSacIgnoreCase(tenTrimmed);
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên màu sắc đã trùng với màu sắc khác.");
+            return "redirect:" + (referer != null ? referer : "/mau-sac");
+        }
+
         mauSac.setId(id);
-        mauSac.setTenMauSac(mauSac.getTenMauSac().trim());
+        mauSac.setTenMauSac(tenTrimmed);
         try {
             mauSacRepository.save(mauSac);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

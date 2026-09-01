@@ -1021,4 +1021,51 @@ public class HoaDonService {
             sanPhamRepository.save(sanPham);
         }
     }
+
+    /**
+     * Xác nhận thanh toán VNPay thành công.
+     * Được gọi từ VNPay IPN hoặc Return URL sau khi xác thực chữ ký.
+     *
+     * @param txnRef      vnp_TxnRef = maHoaDon (mã hóa đơn, dùng để tìm đơn)
+     * @param transNo     vnp_TransactionNo từ VNPay
+     * @param paidAmount  Số tiền thực tế đã thanh toán (VNĐ)
+     */
+    @Transactional
+    public void confirmVNPayPayment(String txnRef, String transNo, long paidAmount) {
+        // Tìm hóa đơn theo mã (maHoaDon)
+        HoaDon hd = hoaDonRepository.findAll().stream()
+                .filter(h -> txnRef.equals(h.getMaHoaDon()))
+                .findFirst()
+                .orElse(null);
+
+        // Nếu không tìm được theo mã, thử theo ID
+        if (hd == null) {
+            try {
+                long id = Long.parseLong(txnRef);
+                hd = hoaDonRepository.findById(id).orElse(null);
+            } catch (NumberFormatException ignored) {}
+        }
+
+        if (hd == null) {
+            throw new IllegalArgumentException("Không tìm thấy đơn hàng với mã: " + txnRef);
+        }
+
+        // Cập nhật ghi chú & trạng thái thanh toán — KHÔNG tự động chuyển trạng thái đơn hàng
+        // (Admin vẫn cần xác nhận và xử lý đơn)
+        String currentNote = hd.getGhiChu() != null ? hd.getGhiChu() : "";
+        String vnpayNote = " | [VNPAY THANH TOÁN THÀNH CÔNG] Mã GD: " + transNo
+                + " | Số tiền: " + paidAmount + " VNĐ lúc " + LocalDateTime.now();
+        hd.setGhiChu(currentNote + vnpayNote);
+
+        hoaDonRepository.save(hd);
+
+        // Ghi lịch sử
+        LichSuHoaDon history = LichSuHoaDon.builder()
+                .hoaDon(hd)
+                .hanhDong("VNPay thanh toán thành công")
+                .ngayTao(LocalDateTime.now())
+                .ghiChu("Mã GD VNPay: " + transNo + " | Số tiền: " + paidAmount + " VNĐ")
+                .build();
+        lichSuHoaDonRepository.save(history);
+    }
 }

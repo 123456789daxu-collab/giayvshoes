@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 
 <head>
@@ -133,76 +133,53 @@
             searchQuery: '',
             activeSessionId: null,
             adminName: 'CSKH VShoes',
-            sessions: {} // Key: sessionId -> { sender, phone, startTime, status, messages: [] }
+            sessions: {} // Key: sessionId -> { sender, phone, startTime, lastTime, status, messages: [] }
         };
 
-        // Dữ liệu mẫu khởi tạo đẹp mắt (Khách hàng vãng lai)
-        function initDemoData() {
-            chatState.sessions = {
-                'CUS_DEMO_02': {
-                    sessionId: 'CUS_DEMO_02',
-                    sender: 'Khách hàng #8492',
-                    phone: 'Chưa cung cấp SĐT',
-                    startTime: '22:38 - 5/7/2026',
-                    lastTime: '22:38 - 5/7/2026',
-                    status: 'NEED_SUPPORT',
-                    messages: [
-                        {
-                            sender: 'Khách hàng #8492',
-                            role: 'CUSTOMER',
-                            time: '22:38 - 5/7/2026',
-                            content: 'Shop ơi mình muốn hỏi về chính sách đổi trả size'
-                        }
-                    ]
-                },
-                'CUS_DEMO_03': {
-                    sessionId: 'CUS_DEMO_03',
-                    sender: 'Khách hàng #3615',
-                    phone: 'Chưa cung cấp SĐT',
-                    startTime: '22:36 - 5/7/2026',
-                    lastTime: '22:36 - 5/7/2026',
-                    status: 'NEED_SUPPORT',
-                    messages: [
-                        {
-                            sender: 'Khách hàng #3615',
-                            role: 'CUSTOMER',
-                            time: '22:36 - 5/7/2026',
-                            content: 'Tôi muốn gặp nhân viên tư vấn trực tiếp'
-                        }
-                    ]
-                },
-                'CUS_DEMO_05': {
-                    sessionId: 'CUS_DEMO_05',
-                    sender: 'Khách hàng #2107',
-                    phone: 'Chưa cung cấp SĐT',
-                    startTime: '21:07 - 4/7/2026',
-                    lastTime: '21:07 - 4/7/2026',
-                    status: 'NEED_SUPPORT',
-                    messages: [
-                        {
-                            sender: 'Khách hàng #2107',
-                            role: 'CUSTOMER',
-                            time: '21:07 - 4/7/2026',
-                            content: 'Sản phẩm nào bán chạy nhất shop'
-                        }
-                    ]
-                }
-            };
-        }
-
         // Bắt đầu ứng dụng
-        document.addEventListener("DOMContentLoaded", function() {
-            initDemoData();
-            renderSessionsList();
-            connectAdminWS();
+        document.addEventListener("DOMContentLoaded", async function() {
             lucide.createIcons();
+            connectAdminWS();
+            await loadSessionsFromBackend();
+        });
+
+        // Tải danh sách phiên chat từ máy chủ
+        async function loadSessionsFromBackend() {
+            try {
+                const res = await fetch('/api/chat/sessions');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data) && data.length > 0) {
+                        data.forEach(s => {
+                            chatState.sessions[s.sessionId] = {
+                                sessionId: s.sessionId,
+                                sender: s.sender || ('Khách hàng #' + s.sessionId.replace('CUS_', '').replace('USER_', '')),
+                                phone: s.phone || 'Chưa cung cấp SĐT',
+                                startTime: s.startTime || '',
+                                lastTime: s.lastTime || s.startTime || '',
+                                status: s.status || 'NEED_SUPPORT',
+                                messages: (s.messages || []).map(m => ({
+                                    sender: m.senderRole === 'BOT' ? 'Trợ lý AI' : (m.senderRole === 'ADMIN' ? (m.sender || 'CSKH VShoes') : (s.sender || 'Khách hàng')),
+                                    role: m.senderRole || (m.sender === 'Trợ lý AI' ? 'BOT' : 'CUSTOMER'),
+                                    time: m.timestamp || '',
+                                    content: m.content
+                                }))
+                            };
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Lỗi nạp danh sách phiên chat từ API:', e);
+            }
+
+            renderSessionsList();
 
             // Mặc định chọn phiên đầu tiên nếu có
             const firstKey = Object.keys(chatState.sessions)[0];
-            if (firstKey) {
+            if (firstKey && !chatState.activeSessionId) {
                 selectSession(firstKey);
             }
-        });
+        }
 
         // Kết nối WebSocket
         function connectAdminWS() {
@@ -218,7 +195,8 @@
                         handleIncomingMessage(msg);
                     });
                 }, function (error) {
-                    setTimeout(connectAdminWS, 6000);
+                    console.warn('Admin WebSocket error, reconnecting...', error);
+                    setTimeout(connectAdminWS, 5000);
                 });
             } catch (e) {
                 console.warn('WebSocket init warning:', e);
@@ -229,7 +207,7 @@
         function handleIncomingMessage(msg) {
             const sessionId = msg.sessionId || 'CUS_DEFAULT';
             let sender = msg.sender || 'Khách hàng';
-            if (sender === 'Khách hàng' || sender.startsWith('Khách_')) {
+            if (msg.senderRole !== 'BOT' && (sender === 'Khách hàng' || sender.startsWith('Khách_'))) {
                 sender = 'Khách hàng #' + sessionId.replace('CUS_', '').replace('USER_', '');
             }
             const phone = msg.phone || 'Chưa cung cấp SĐT';
@@ -239,10 +217,13 @@
             const isNew = !chatState.sessions[sessionId];
 
             if (isNew) {
-                // Tạo mới session và đặt lên ĐẦU danh sách
+                let defaultSender = sender;
+                if (msg.senderRole === 'BOT' || msg.senderRole === 'ADMIN') {
+                    defaultSender = 'Khách hàng #' + sessionId.replace('CUS_', '').replace('USER_', '');
+                }
                 const newSession = {
                     sessionId: sessionId,
-                    sender: sender,
+                    sender: defaultSender,
                     phone: phone,
                     startTime: timeStr,
                     lastTime: timeStr,
@@ -259,41 +240,46 @@
             }
 
             const session = chatState.sessions[sessionId];
-            session.sender = sender;
+            if (msg.senderRole !== 'BOT' && msg.senderRole !== 'ADMIN' && sender) {
+                session.sender = sender;
+            }
             if (phone && phone !== 'Chưa cung cấp SĐT') session.phone = phone;
             session.lastTime = timeStr;
             if (msg.status) session.status = msg.status;
 
             if (msg.type === 'CHAT' && msg.content) {
                 session.messages.push({
-                    sender: msg.senderRole === 'BOT' ? 'Trợ lý AI' : msg.sender,
+                    sender: msg.senderRole === 'BOT' ? 'Trợ lý AI' : (msg.senderRole === 'ADMIN' ? (msg.sender || 'CSKH VShoes') : session.sender),
                     role: msg.senderRole || (msg.sender === 'Trợ lý AI' ? 'BOT' : 'CUSTOMER'),
                     time: timeStr,
                     content: msg.content
                 });
             }
 
-            // Tự động chuyển qua tab Đang hoạt động và mở khung chat
+            // Tự động chuyển qua tab Đang hoạt động
             chatState.currentTab = 'active';
             const tabActiveBtn = document.getElementById('tabActiveBtn');
             const tabHistoryBtn = document.getElementById('tabHistoryBtn');
             if (tabActiveBtn) tabActiveBtn.classList.add('active');
             if (tabHistoryBtn) tabHistoryBtn.classList.remove('active');
 
-            selectSession(sessionId);
-            renderSessionsList();
-            renderMessagesStream();
+            if (!chatState.activeSessionId || chatState.activeSessionId === sessionId || isNew) {
+                selectSession(sessionId);
+            } else {
+                renderSessionsList();
+                renderMessagesStream();
+            }
 
             // Thông báo Toast cho nhân viên khi có khách cần hỗ trợ
-            if (msg.status === 'NEED_SUPPORT' && isNew) {
+            if (msg.status === 'NEED_SUPPORT' && (isNew || msg.content?.includes('gặp nhân viên'))) {
                 if (window.Swal) {
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'info',
-                        title: `Khách hàng ${sender} vừa gửi yêu cầu hỗ trợ!`,
+                        title: `Khách hàng ${session.sender} yêu cầu hỗ trợ tư vấn!`,
                         showConfirmButton: false,
-                        timer: 3000
+                        timer: 4000
                     });
                 }
             }
@@ -403,7 +389,7 @@
             document.getElementById('activeCustomerPhone').innerText = session.phone && session.phone !== 'Chưa cung cấp SĐT'
                 ? `📞 ${session.phone}`
                 : `📞 Chưa cung cấp SĐT`;
-            document.getElementById('activeStartTime').innerText = `🕒 Bắt đầu lúc: ${session.startTime}`;
+            document.getElementById('activeStartTime').innerText = `🕒 Bắt đầu lúc: ${session.startTime || session.lastTime}`;
 
             // Cập nhật trạng thái composer nếu đã đóng
             const composer = document.getElementById('chatComposerWrap');
@@ -530,7 +516,7 @@
                 cancelButtonColor: '#64748b',
                 confirmButtonText: 'Đồng ý kết thúc',
                 cancelButtonText: 'Hủy'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
                     session.status = 'CLOSED';
 
@@ -549,6 +535,9 @@
                     if (chatState.stompClient && chatState.stompClient.connected) {
                         chatState.stompClient.send("/app/chat.sendToCustomer", {}, JSON.stringify(closeMsg));
                     }
+
+                    // Gọi REST API đóng session trên backend
+                    fetch('/api/chat/close/' + chatState.activeSessionId, { method: 'POST' }).catch(() => {});
 
                     Swal.fire({
                         toast: true,
@@ -582,9 +571,12 @@
                 cancelButtonColor: '#64748b',
                 confirmButtonText: 'Đồng ý xoá',
                 cancelButtonText: 'Hủy'
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
                     delete chatState.sessions[sessionId];
+
+                    // Gọi REST API xóa session trên backend
+                    fetch('/api/chat/session/' + sessionId, { method: 'DELETE' }).catch(() => {});
 
                     if (chatState.activeSessionId === sessionId) {
                         chatState.activeSessionId = null;

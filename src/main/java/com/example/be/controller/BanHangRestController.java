@@ -88,7 +88,7 @@ public class BanHangRestController {
                     map.put("tenSanPham", spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "");
                     map.put("mauSac", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "");
                     map.put("size", spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : "");
-                    map.put("hinhAnh", spct.getDanhSachHinhAnh().isEmpty() ? null : spct.getDanhSachHinhAnh().get(0));
+                    map.put("hinhAnh", resolveImageUrl(spct));
                     map.put("thuongHieu", (spct.getSanPham() != null && spct.getSanPham().getThuongHieu() != null) ? spct.getSanPham().getThuongHieu().getTenThuongHieu() : "");
                     map.put("danhMuc", (spct.getSanPham() != null && spct.getSanPham().getDanhMuc() != null) ? spct.getSanPham().getDanhMuc().getTenDanhMuc() : "");
                     
@@ -196,9 +196,12 @@ public class BanHangRestController {
     @GetMapping("/phieu-giam-gia")
     public ResponseEntity<?> getPhieuGiamGia() {
         List<com.example.be.entity.PhieuGiamGia> list = phieuGiamGiaRepository.findAll();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
         List<Map<String, Object>> result = list.stream()
                 .filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1) // 1 = Đang hoạt động
                 .filter(p -> p.getSoLuong() > (p.getSoLuongDaDung() == null ? 0 : p.getSoLuongDaDung())) // Còn lượt dùng
+                .filter(p -> p.getNgayBatDau() == null || !p.getNgayBatDau().isAfter(now))
+                .filter(p -> p.getNgayKetThuc() == null || !p.getNgayKetThuc().isBefore(now))
                 .map(p -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", p.getId());
@@ -268,13 +271,18 @@ public class BanHangRestController {
             map.put("tenSanPham", spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "");
             map.put("mauSac", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "");
             map.put("size", spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : "");
-            map.put("hinhAnh", spct.getDanhSachHinhAnh().isEmpty() ? null : spct.getDanhSachHinhAnh().get(0));
+            map.put("hinhAnh", resolveImageUrl(spct));
+
+            // Đánh dấu sản phẩm ngừng kinh doanh
+            boolean ngungKinhDoanh = (spct.getTrangThai() == null || spct.getTrangThai() != 1) ||
+                (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1));
+            map.put("ngungKinhDoanh", ngungKinhDoanh);
             
             // Lấy giá gốc đã lưu trong chi tiết hóa đơn (frozen price)
             BigDecimal giaBanGoc = ct.getDonGiaGoc() != null ? ct.getDonGiaGoc() : ct.getDonGia();
             map.put("giaBanGoc", giaBanGoc);
             
-            if (giaBanGoc != null && giaBanGoc.compareTo(ct.getDonGia()) > 0) {
+            if (giaBanGoc != null && ct.getDonGia() != null && giaBanGoc.compareTo(ct.getDonGia()) > 0) {
                 BigDecimal diff = giaBanGoc.subtract(ct.getDonGia());
                 BigDecimal phanTram = diff.multiply(new BigDecimal("100")).divide(giaBanGoc, 0, java.math.RoundingMode.HALF_UP);
                 map.put("phanTramGiam", phanTram.intValue());
@@ -283,14 +291,33 @@ public class BanHangRestController {
             }
 
             // Tính giá hiện tại của sản phẩm để hiển thị cảnh báo nếu giá thay đổi
-            BigDecimal giaHienTai = spct.getGiaBan();
-            Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
-            if (discount != null && discount > 0 && discount <= 100) {
-                BigDecimal giam = giaHienTai.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
-                giaHienTai = giaHienTai.subtract(giam);
+            if (spct.getGiaBan() != null) {
+                BigDecimal giaHienTai = spct.getGiaBan();
+                Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+                if (discount != null && discount > 0 && discount <= 100) {
+                    BigDecimal giam = giaHienTai.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+                    giaHienTai = giaHienTai.subtract(giam);
+                }
+                map.put("giaHienTai", giaHienTai);
             }
-            map.put("giaHienTai", giaHienTai);
         }
         return map;
+    }
+
+    private String resolveImageUrl(SanPhamChiTiet s) {
+        if (s == null) return null;
+        if (s.getDanhSachHinhAnh() != null && !s.getDanhSachHinhAnh().isEmpty()) {
+            String first = s.getDanhSachHinhAnh().get(0);
+            if (first != null && !first.isBlank()) {
+                return first.trim();
+            }
+        }
+        if (s.getHinhAnh() != null && !s.getHinhAnh().isBlank() && !s.getHinhAnh().equals("[]") && !s.getHinhAnh().equals("[\"\"]")) {
+            String clean = s.getHinhAnh().replaceAll("[\\[\\]\"]", "").trim();
+            if (!clean.isEmpty()) {
+                return clean.split("\\s*,\\s*")[0].trim();
+            }
+        }
+        return null;
     }
 }

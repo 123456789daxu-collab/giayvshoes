@@ -202,7 +202,7 @@ function renderCartItems() {
     container.innerHTML = state.cart.map(item => `
         <div class="cart-item" style="${item.isStopped ? 'background:#fff5f5; opacity:0.85;' : ''}">
             <div class="cart-item-img">
-                <img src="${getImageUrl(item.hinhAnh)}" alt="${item.tenSanPham}" onerror="this.src='/images/shoe1.png'">
+                <img src="${getImageUrl(item.hinhAnh)}" alt="${item.tenSanPham}" onerror="this.src='/images/white.png'">
             </div>
             <div class="cart-item-info">
                 <div class="cart-item-name" style="${item.isStopped ? 'color:#64748b; text-decoration:line-through;' : ''}">${item.tenSanPham}</div>
@@ -923,21 +923,15 @@ function formatPrice(val) {
 }
 
 function getImageUrl(hinhAnh, defaultIdx = 0) {
-    const defaultImages = [
-        '/images/shoe1.png',
-        '/images/shoe2.png',
-        '/images/shoe3.png',
-        '/images/shoe4.png'
-    ];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+        return '/images/white.png';
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

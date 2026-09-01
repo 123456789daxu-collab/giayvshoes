@@ -55,10 +55,10 @@
             <select class="form-select form-select-sm" style="width: auto; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; color: #0f172a;" 
                     th:data-url="@{${baseUrl}(keyword=${keyword},trangThai=${trangThai})}" 
                     onchange="let url = this.getAttribute('data-url'); window.location.href = url + (url.includes('?') ? '&' : '?') + 'size=' + this.value;">
-                <option value="5" th:selected="${pageData.size == 5}">5 dòng</option>
-                <option value="10" th:selected="${pageData.size == 10}">10 dòng</option>
-                <option value="20" th:selected="${pageData.size == 20}">20 dòng</option>
-                <option value="50" th:selected="${pageData.size == 50}">50 dòng</option>
+                <option value="5" th:selected="${pageData.size == 5}">5</option>
+                <option value="10" th:selected="${pageData.size == 10}">10</option>
+                <option value="20" th:selected="${pageData.size == 20}">20</option>
+                <option value="50" th:selected="${pageData.size == 50}">50</option>
             </select>
         </div>
         <nav th:if="${pageData.totalPages > 1}">

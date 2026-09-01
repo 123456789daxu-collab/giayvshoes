@@ -685,10 +685,81 @@ async function submitOrder() {
         }))
     } : null;
 
-    // Tiến hành lưu đơn hàng trực tiếp vào CSDL cho TẤT CẢ các phương thức thanh toán
+    // ===== THANH TOÁN VNPAY: Tạo đơn hàng TRƯỚC rồi redirect sang VNPay thực =====
+    if (method === 'VNPAY') {
+        $('btnOrderComplete').disabled = true;
+        $('btnOrderComplete').textContent = 'Đang tạo đơn hàng...';
+        try {
+            // 1. Tạo đơn hàng vào DB
+            const orderRes2 = await fetch('/api/hoa-don/ban-hang', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!orderRes2.ok) {
+                const errBody = await orderRes2.json().catch(() => ({}));
+                throw new Error(errBody.error || errBody.message || 'Lỗi tạo đơn hàng');
+            }
+            const order = await orderRes2.json();
+
+            // 2. Gọi API tạo URL thanh toán VNPay
+            $('btnOrderComplete').textContent = 'Đang kết nối VNPay...';
+            const vnpRes = await fetch('/api/payment/vnpay/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId:   order.maHoaDon,
+                    orderCode: order.maHoaDon,
+                    amount:    order.tongTien,
+                    orderInfo: 'Thanh toan don hang ' + order.maHoaDon,
+                    locale:    'vn'
+                })
+            });
+            if (!vnpRes.ok) {
+                const ve = await vnpRes.json().catch(() => ({}));
+                throw new Error(ve.error || 'Lỗi tạo URL VNPay');
+            }
+            const vnpData = await vnpRes.json();
+
+            // 3. Xóa giỏ hàng cục bộ
+            const purchasedIds3 = state.checkoutItems.map(i => i.id);
+            const cart3 = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
+            localStorage.setItem('vshoes_cart', JSON.stringify(cart3.filter(i => !purchasedIds3.includes(i.id))));
+            localStorage.removeItem('checkout_items');
+
+            // 4. Redirect sang VNPay
+            showToast('🔄 Đang chuyển sang cổng thanh toán VNPay...', 'info');
+            setTimeout(() => { window.location.href = vnpData.paymentUrl; }, 600);
+            return;
+        } catch (err) {
+            showToast('❌ ' + err.message, 'error');
+            $('btnOrderComplete').disabled = false;
+            $('btnOrderComplete').textContent = 'Hoàn thành đặt hàng';
+            return;
+        }
+    }
+
+    // ===== THANH TOÁN ONLINE KHÁC (MoMo, ZaloPay, VietQR): Lưu tạm, chuyển sang trang QR =====
+    if (method === 'MOMO' || method === 'ZALOPAY' || method === 'VIETQR') {
+        const tempMa = 'HD' + Date.now();
+        sessionStorage.setItem('pending_online_order', JSON.stringify({
+            maHoaDon: tempMa,
+            total: total,
+            method: method,
+            payload: payload,
+            emailPayload: emailPayload
+        }));
+        showToast('🔄 Đang chuyển sang cổng thanh toán online...', 'info');
+        setTimeout(() => {
+            window.location.href = `/client/checkout/payment-online?ma=${encodeURIComponent(tempMa)}&total=${encodeURIComponent(total)}&method=${encodeURIComponent(method)}`;
+        }, 500);
+        return;
+    }
+
+    // Đối với COD: Tiến hành lưu đơn hàng trực tiếp vào CSDL
     $('btnOrderComplete').disabled = true;
     $('btnOrderComplete').textContent = 'Đang xử lý đặt hàng...';
-    
+
     try {
         const res = await fetch('/api/hoa-don/ban-hang', {
             method: 'POST',
@@ -734,24 +805,7 @@ async function submitOrder() {
         localStorage.setItem('vshoes_cart', JSON.stringify(remainingCart));
         localStorage.removeItem('checkout_items');
 
-        // Nếu chọn thanh toán online (MoMo, ZaloPay, VNPay, VietQR): Lưu pending_online_order rồi chuyển sang trang quét mã
-        if (method === 'MOMO' || method === 'ZALOPAY' || method === 'VNPAY' || method === 'VIETQR') {
-            sessionStorage.setItem('pending_online_order', JSON.stringify({
-                id: orderRes.id,
-                maHoaDon: orderRes.maHoaDon,
-                total: orderRes.tongTien,
-                method: method,
-                payload: payload
-            }));
-
-            showToast('🔄 Đã ghi nhận đơn hàng! Đang chuyển sang cổng thanh toán online...', 'info');
-            setTimeout(() => {
-                window.location.href = `/client/checkout/payment-online?id=${orderRes.id}&ma=${encodeURIComponent(orderRes.maHoaDon)}&total=${encodeURIComponent(orderRes.tongTien)}&method=${encodeURIComponent(method)}`;
-            }, 800);
-            return;
-        }
-
-        // Nếu là COD: Thông báo thành công và chuyển sang trang hoàn tất
+        // COD: Thông báo thành công và chuyển sang trang hoàn tất
         showToast('🎉 Đặt hàng thành công! Đang chuyển hướng...', 'success');
         
         setTimeout(() => {
@@ -1310,21 +1364,15 @@ function updateCartBadgeGlobal() {
 }
 
 function getImageUrl(hinhAnh, defaultIdx = 0) {
-    const defaultImages = [
-        '/images/shoe1.png',
-        '/images/shoe2.png',
-        '/images/shoe3.png',
-        '/images/shoe4.png'
-    ];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+        return '/images/white.png';
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

@@ -11,4 +11,6 @@ import java.util.List;
 public interface LichLamViecRepository extends JpaRepository<LichLamViec, Long> {
     List<LichLamViec> findByNgayLamViecBetween(LocalDate startDate, LocalDate endDate);
     List<LichLamViec> findByNhanVienId(Long nhanVienId);
+    
+    boolean existsByNhanVienIdAndCaLamIdAndNgayLamViec(Long nhanVienId, Long caLamId, LocalDate ngayLamViec);
 }

@@ -48,6 +48,7 @@ public class BanHangServiceImpl implements BanHangService {
                         .map(ChiTietHoaDon::getThanhTien)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
                     hd.setTongTienHang(tongTienHang);
+                    tinhTongTien(hd);
                 })
                 .toList();
     }
@@ -115,23 +116,12 @@ public class BanHangServiceImpl implements BanHangService {
         for (ChiTietHoaDon ct : list) {
             SanPhamChiTiet spct = ct.getSanPhamChiTiet();
             if (spct != null) {
-                // Check if product or variant is discontinued
-                if (spct.getTrangThai() == null || spct.getTrangThai() != 1 || 
-                    (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1))) {
-                    
-                    // Refund quantity
-                    int restoreQty = ct.getSoLuong();
-                    spct.setSoLuongTon((spct.getSoLuongTon() == null ? 0 : spct.getSoLuongTon()) + restoreQty);
-                    if (spct.getSanPham() != null) {
-                        SanPham sp = spct.getSanPham();
-                        sp.setSoLuong((sp.getSoLuong() == null ? 0 : sp.getSoLuong()) + restoreQty);
-                        sanPhamRepository.save(sp);
-                    }
-                    sanPhamChiTietRepository.save(spct);
-                    
-                    chiTietHoaDonRepository.delete(ct);
-                    changed = true;
-                    continue; // Skip adding to resultList
+                // Check if product or variant is discontinued — giữ nguyên trong giỏ, KHÔNG xóa
+                boolean ngungKinhDoanh = (spct.getTrangThai() == null || spct.getTrangThai() != 1) ||
+                    (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1));
+                if (ngungKinhDoanh) {
+                    resultList.add(ct); // Vẫn đưa vào danh sách để hiển thị cảnh báo ở UI
+                    continue;
                 }
                 
                 if (ct.getDonGia() == null) {
@@ -375,6 +365,28 @@ public class BanHangServiceImpl implements BanHangService {
             throw new RuntimeException("Giỏ hàng trống!");
         }
 
+        // Kiểm tra nếu có sản phẩm ngừng kinh doanh trong giỏ
+        List<String> tenSanPhamNgung = new java.util.ArrayList<>();
+        for (ChiTietHoaDon ct : chiTiets) {
+            SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+            if (spct != null) {
+                boolean ngungKinhDoanh = (spct.getTrangThai() == null || spct.getTrangThai() != 1) ||
+                    (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1));
+                if (ngungKinhDoanh) {
+                    String tenSP = (spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : spct.getMa());
+                    tenSanPhamNgung.add(tenSP);
+                }
+            }
+        }
+        if (!tenSanPhamNgung.isEmpty()) {
+            throw new RuntimeException("Giỏ hàng có sản phẩm ngừng kinh doanh: " + String.join(", ", tenSanPhamNgung) + ". Vui lòng xóa trước khi thanh toán.");
+        }
+
+        hd.setPhiShip(phiShip);
+        hd.setSdtNguoiNhan(sdtNhan);
+        hd.setDiaChiNhan(diaChiGiao);
+
+        tinhTongTien(hd);
         hd.setTrangThai(1); // 1 = Đã thanh toán
         hd.setGhiChu(ghiChu);
         if (tenKhachHang != null && !tenKhachHang.trim().isEmpty()) {
@@ -382,11 +394,6 @@ public class BanHangServiceImpl implements BanHangService {
         } else if (hd.getKhachHang() == null) {
             hd.setTenNguoiNhan("Khách lẻ");
         }
-        
-        // Shipping Details
-        hd.setPhiShip(phiShip);
-        hd.setSdtNguoiNhan(sdtNhan);
-        hd.setDiaChiNhan(diaChiGiao);
 
         hd.setNgayCapNhat(LocalDateTime.now());
         
@@ -404,22 +411,39 @@ public class BanHangServiceImpl implements BanHangService {
         BigDecimal tienGiamGia = BigDecimal.ZERO;
         if (hd.getPhieuGiamGia() != null) {
             PhieuGiamGia pgg = hd.getPhieuGiamGia();
-            if (pgg.getDonToiThieu() == null || tongTienHang.compareTo(pgg.getDonToiThieu()) >= 0) {
-                if (pgg.getLoaiGiamGia() != null && ("1".equals(pgg.getLoaiGiamGia()) || "%".equals(pgg.getLoaiGiamGia()))) { // %
+            LocalDateTime now = LocalDateTime.now();
+            boolean isValid = true;
+
+            if (pgg.getTrangThai() == null || pgg.getTrangThai() != 1) {
+                isValid = false;
+            } else if (pgg.getNgayBatDau() != null && now.isBefore(pgg.getNgayBatDau())) {
+                isValid = false;
+            } else if (pgg.getNgayKetThuc() != null && now.isAfter(pgg.getNgayKetThuc())) {
+                isValid = false;
+            } else if (pgg.getSoLuong() != null && pgg.getSoLuongDaDung() != null && pgg.getSoLuongDaDung() >= pgg.getSoLuong()) {
+                isValid = false;
+            } else if (pgg.getDonToiThieu() != null && tongTienHang.compareTo(pgg.getDonToiThieu()) < 0) {
+                isValid = false;
+            }
+
+            if (isValid) {
+                String loai = pgg.getLoaiGiamGia();
+                if (loai != null && ("1".equals(loai) || "%".equals(loai) || "Phần trăm".equalsIgnoreCase(loai) || "PERCENT".equalsIgnoreCase(loai))) { // %
                     tienGiamGia = tongTienHang.multiply(pgg.getGiaTriGiam()).divide(BigDecimal.valueOf(100));
                     if (pgg.getGiamToiDa() != null && tienGiamGia.compareTo(pgg.getGiamToiDa()) > 0) {
                         tienGiamGia = pgg.getGiamToiDa();
                     }
                 } else { // VND
-                    tienGiamGia = pgg.getGiaTriGiam();
+                    tienGiamGia = pgg.getGiaTriGiam() != null ? pgg.getGiaTriGiam() : BigDecimal.ZERO;
                 }
             } else {
-                hd.setPhieuGiamGia(null); // Invalidated
+                hd.setPhieuGiamGia(null); // Invalidated: Tự động bỏ phiếu giảm giá!
             }
         }
         
         hd.setTienGiamGia(tienGiamGia);
-        hd.setTongTienThanhToan(tongTienHang.subtract(tienGiamGia).max(BigDecimal.ZERO));
+        BigDecimal ship = hd.getPhiShip() != null ? hd.getPhiShip() : (hd.getTienVanChuyen() != null ? hd.getTienVanChuyen() : BigDecimal.ZERO);
+        hd.setTongTienThanhToan(tongTienHang.add(ship).subtract(tienGiamGia).max(BigDecimal.ZERO));
         hoaDonRepository.save(hd);
     }
 }

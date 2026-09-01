@@ -127,7 +127,7 @@ function renderCart() {
                 <td>
                     <div class="cart-product-cell">
                         <div class="cart-product-img">
-                            <img src="${imgUrl}" alt="${item.tenSanPham}" onerror="this.src='/images/shoe1.png'">
+                            <img src="${imgUrl}" alt="${item.tenSanPham}" onerror="this.src='/images/white.png'">
                         </div>
                         <div class="cart-product-info">
                             <div class="cart-product-name" style="${isStopped ? 'color:#64748b; text-decoration:line-through;' : ''}">${item.tenSanPham}</div>
@@ -381,21 +381,15 @@ function updateCartBadgeGlobal() {
 }
 
 function getImageUrl(hinhAnh, defaultIdx = 0) {
-    const defaultImages = [
-        '/images/shoe1.png',
-        '/images/shoe2.png',
-        '/images/shoe3.png',
-        '/images/shoe4.png'
-    ];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+        return '/images/white.png';
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }
@@ -443,7 +437,7 @@ async function loadRecommendedProducts() {
             return `
                 <div class="product-card" onclick="window.location.href='/client/products/${p.id}'" style="cursor: pointer;">
                     <div class="product-img-wrap">
-                        <img src="${img}" alt="${p.tenSanPham}" onerror="this.src='/images/shoe1.png'">
+                        <img src="${img}" alt="${p.tenSanPham}" onerror="this.src='/images/white.png'">
                         ${hasDiscount ? `<span class="product-badge" style="background:#ef4444; color:white;">-${p.phanTramGiam}%</span>` : '<span class="product-badge">MỚI</span>'}
                     </div>
                     <div class="product-info">

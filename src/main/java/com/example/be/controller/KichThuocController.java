@@ -47,6 +47,17 @@ public class KichThuocController {
             redirectAttributes.addFlashAttribute("errorMessage", "Kích thước không hợp lệ!");
             return "redirect:" + (referer != null ? referer : "/kich-thuoc");
         }
+
+        java.util.Optional<CoGiay> existing = coGiayRepository.findBySizeGiay(coGiay.getSizeGiay());
+        if (existing.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Kích thước này đã tồn tại trong hệ thống.");
+            return "redirect:" + (referer != null ? referer : "/kich-thuoc");
+        }
+
+        if (coGiay.getMaCoGiay() == null || coGiay.getMaCoGiay().trim().isEmpty() || "(Tự động sinh)".equals(coGiay.getMaCoGiay().trim())) {
+            coGiay.setMaCoGiay("SIZE" + System.currentTimeMillis());
+        }
+        coGiay.setTrangThai(true);
         try {
             coGiayRepository.save(coGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
@@ -63,6 +74,13 @@ public class KichThuocController {
             redirectAttributes.addFlashAttribute("errorMessage", "Kích thước không hợp lệ!");
             return "redirect:" + (referer != null ? referer : "/kich-thuoc");
         }
+
+        java.util.Optional<CoGiay> existing = coGiayRepository.findBySizeGiay(coGiay.getSizeGiay());
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Kích thước này đã trùng với kích thước khác.");
+            return "redirect:" + (referer != null ? referer : "/kich-thuoc");
+        }
+
         coGiay.setId(id);
         try {
             coGiayRepository.save(coGiay);

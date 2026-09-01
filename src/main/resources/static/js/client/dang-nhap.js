@@ -3,6 +3,11 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('error') === 'inactive') {
+        showToast('Trạng thái đăng nhập đã hết hạn hoặc tài khoản bị khóa!', 'error');
+    }
+
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);

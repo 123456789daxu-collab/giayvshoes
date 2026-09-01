@@ -207,7 +207,7 @@ function renderProducts(list) {
                 <div class="fs-card-hot-tag">🔥 ĐANG GIẢM GIÁ</div>
                 
                 <div class="fs-card-img-wrap">
-                    <img src="${imgUrl}" alt="${escapeHtml(item.tenSanPham)}" class="fs-card-img" onerror="this.src='/images/shoe1.png'">
+                    <img src="${imgUrl}" alt="${escapeHtml(item.tenSanPham)}" class="fs-card-img" onerror="this.src='/images/white.png'">
                 </div>
 
                 <div class="fs-card-body">
@@ -281,21 +281,15 @@ function formatPrice(amount) {
 }
 
 function getImageUrl(hinhAnh, defaultIdx = 0) {
-    const defaultImages = [
-        '/images/shoe1.png',
-        '/images/shoe2.png',
-        '/images/shoe3.png',
-        '/images/shoe4.png'
-    ];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+        return '/images/white.png';
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return defaultImages[Math.abs(defaultIdx) % defaultImages.length];
+    if (!img) return '/images/white.png';
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

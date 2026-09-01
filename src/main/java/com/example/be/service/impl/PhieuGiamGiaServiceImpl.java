@@ -5,6 +5,8 @@ import com.example.be.dto.KhachHangVoucherDto;
 import com.example.be.entity.PhieuGiamGia;
 import com.example.be.entity.KhachHang;
 import com.example.be.entity.PhieuGiamGiaKhachHang;
+import com.example.be.entity.HoaDon;
+import com.example.be.repository.HoaDonRepository;
 import com.example.be.repository.KhachHangRepository;
 import com.example.be.repository.PhieuGiamGiaKhachHangRepository;
 import com.example.be.repository.PhieuGiamGiaRepository;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,6 +45,9 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private HoaDonRepository hoaDonRepository;
 
     @Override
     public Page<PhieuGiamGia> searchVouchers(
@@ -219,6 +225,10 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             }
         }
 
+        if (updatedVoucher.getTrangThai() != null && updatedVoucher.getTrangThai() != 1) {
+            clearVoucherFromPendingInvoices(updatedVoucher.getId());
+        }
+
         return updatedVoucher;
     }
 
@@ -238,6 +248,10 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
         voucher.setTrangThai(status);
         PhieuGiamGia savedVoucher = phieuGiamGiaRepository.save(voucher);
 
+        if (status != null && status != 1) {
+            clearVoucherFromPendingInvoices(savedVoucher.getId());
+        }
+
         // Gửi thông báo email nếu ngừng hoạt động phiếu cá nhân
         if (status == 0 && "Cá nhân".equalsIgnoreCase(savedVoucher.getLoaiPhieu())) {
             List<PhieuGiamGiaKhachHang> mappings = phieuGiamGiaKhachHangRepository.findByPhieuGiamGiaId(id);
@@ -247,6 +261,23 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
         }
 
         return savedVoucher;
+    }
+
+    private void clearVoucherFromPendingInvoices(Long voucherId) {
+        if (voucherId == null) return;
+        List<HoaDon> pendingInvoices = hoaDonRepository.findAll().stream()
+                .filter(hd -> hd.getTrangThai() != null && hd.getTrangThai() == 0)
+                .filter(hd -> hd.getPhieuGiamGia() != null && voucherId.equals(hd.getPhieuGiamGia().getId()))
+                .collect(Collectors.toList());
+
+        for (HoaDon hd : pendingInvoices) {
+            hd.setPhieuGiamGia(null);
+            hd.setTienGiamGia(BigDecimal.ZERO);
+            BigDecimal tongHang = (hd.getTongTienHang() != null) ? hd.getTongTienHang() : BigDecimal.ZERO;
+            BigDecimal ship = (hd.getPhiShip() != null) ? hd.getPhiShip() : (hd.getTienVanChuyen() != null ? hd.getTienVanChuyen() : BigDecimal.ZERO);
+            hd.setTongTienThanhToan(tongHang.add(ship).max(BigDecimal.ZERO));
+            hoaDonRepository.save(hd);
+        }
     }
 
     @Override

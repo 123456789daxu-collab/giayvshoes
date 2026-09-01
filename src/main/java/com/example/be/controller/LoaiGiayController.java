@@ -47,7 +47,19 @@ public class LoaiGiayController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên loại giày không được để trống!");
             return "redirect:" + (referer != null ? referer : "/de-giay");
         }
-        loaiGiay.setTenLoaiGiay(loaiGiay.getTenLoaiGiay().trim());
+        String tenTrimmed = loaiGiay.getTenLoaiGiay().trim();
+
+        java.util.Optional<LoaiGiay> existing = loaiGiayRepository.findByTenLoaiGiayIgnoreCase(tenTrimmed);
+        if (existing.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Loại giày này đã tồn tại trong hệ thống.");
+            return "redirect:" + (referer != null ? referer : "/de-giay");
+        }
+
+        loaiGiay.setTenLoaiGiay(tenTrimmed);
+        if (loaiGiay.getMaLoaiGiay() == null || loaiGiay.getMaLoaiGiay().trim().isEmpty() || "(Tự động sinh)".equals(loaiGiay.getMaLoaiGiay().trim())) {
+            loaiGiay.setMaLoaiGiay("LG" + System.currentTimeMillis());
+        }
+        loaiGiay.setTrangThai(true);
         try {
             loaiGiayRepository.save(loaiGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
@@ -64,8 +76,16 @@ public class LoaiGiayController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên loại giày không được để trống!");
             return "redirect:" + (referer != null ? referer : "/de-giay");
         }
+        String tenTrimmed = loaiGiay.getTenLoaiGiay().trim();
+
+        java.util.Optional<LoaiGiay> existing = loaiGiayRepository.findByTenLoaiGiayIgnoreCase(tenTrimmed);
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên loại giày đã trùng với loại giày khác.");
+            return "redirect:" + (referer != null ? referer : "/de-giay");
+        }
+
         loaiGiay.setId(id);
-        loaiGiay.setTenLoaiGiay(loaiGiay.getTenLoaiGiay().trim());
+        loaiGiay.setTenLoaiGiay(tenTrimmed);
         try {
             loaiGiayRepository.save(loaiGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

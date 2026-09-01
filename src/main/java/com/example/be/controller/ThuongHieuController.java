@@ -47,9 +47,25 @@ public class ThuongHieuController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên thương hiệu không được để trống!");
             return "redirect:" + (referer != null ? referer : "/thuong-hieu");
         }
-        thuongHieu.setTenThuongHieu(thuongHieu.getTenThuongHieu().trim());
-        thuongHieuRepository.save(thuongHieu);
-        redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
+        String tenTrimmed = thuongHieu.getTenThuongHieu().trim();
+
+        java.util.Optional<ThuongHieu> existing = thuongHieuRepository.findByTenThuongHieuIgnoreCase(tenTrimmed);
+        if (existing.isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Thương hiệu này đã tồn tại trong hệ thống.");
+            return "redirect:" + (referer != null ? referer : "/thuong-hieu");
+        }
+
+        thuongHieu.setTenThuongHieu(tenTrimmed);
+        if (thuongHieu.getMaThuongHieu() == null || thuongHieu.getMaThuongHieu().trim().isEmpty() || "(Tự động sinh)".equals(thuongHieu.getMaThuongHieu().trim())) {
+            thuongHieu.setMaThuongHieu("TH" + System.currentTimeMillis());
+        }
+        thuongHieu.setTrangThai(true);
+        try {
+            thuongHieuRepository.save(thuongHieu);
+            redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Tên hoặc mã thương hiệu có thể đã tồn tại.");
+        }
         return "redirect:" + (referer != null ? referer : "/thuong-hieu");
     }
 
@@ -60,8 +76,16 @@ public class ThuongHieuController {
             redirectAttributes.addFlashAttribute("errorMessage", "Tên thương hiệu không được để trống!");
             return "redirect:" + (referer != null ? referer : "/thuong-hieu");
         }
+        String tenTrimmed = thuongHieu.getTenThuongHieu().trim();
+
+        java.util.Optional<ThuongHieu> existing = thuongHieuRepository.findByTenThuongHieuIgnoreCase(tenTrimmed);
+        if (existing.isPresent() && !existing.get().getId().equals(id)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên thương hiệu đã trùng với thương hiệu khác.");
+            return "redirect:" + (referer != null ? referer : "/thuong-hieu");
+        }
+
         thuongHieu.setId(id);
-        thuongHieu.setTenThuongHieu(thuongHieu.getTenThuongHieu().trim());
+        thuongHieu.setTenThuongHieu(tenTrimmed);
         try {
             thuongHieuRepository.save(thuongHieu);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

@@ -70,10 +70,19 @@ public class DanhGiaRestController {
     public ResponseEntity<?> checkBatch(@RequestBody Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         List<Integer> ids = (List<Integer>) body.get("hoaDonIds");
-        Map<String, Boolean> result = new LinkedHashMap<>();
+        Map<String, Object> result = new LinkedHashMap<>();
         if (ids != null) {
             for (Integer id : ids) {
-                result.put(String.valueOf(id), danhGiaRepository.existsByHoaDon_Id(id.longValue()));
+                Map<String, Object> item = new LinkedHashMap<>();
+                boolean exists = danhGiaRepository.existsByHoaDon_Id(id.longValue());
+                item.put("daDanhGia", exists);
+                if (exists) {
+                    danhGiaRepository.findByHoaDon_Id(id.longValue()).ifPresent(dg -> {
+                        item.put("soSao", dg.getSoSao());
+                        item.put("noiDung", dg.getNoiDung());
+                    });
+                }
+                result.put(String.valueOf(id), item);
             }
         }
         return ResponseEntity.ok(result);
@@ -292,39 +301,23 @@ public class DanhGiaRestController {
      */
     @GetMapping("/san-pham/{id}")
     public ResponseEntity<?> getBySanPham(@PathVariable Long id) {
-        // 1. Tự động khắc phục các đánh giá chưa gắn sanPhamId từ hóa đơn
-        try {
-            List<DanhGia> allUnlinked = danhGiaRepository.findAll().stream()
-                    .filter(d -> d.getSanPham() == null && d.getHoaDon() != null)
-                    .collect(Collectors.toList());
-
-            for (DanhGia unlinked : allUnlinked) {
-                List<ChiTietHoaDon> items = chiTietHoaDonRepository.findByHoaDonId(unlinked.getHoaDon().getId());
-                for (ChiTietHoaDon item : items) {
-                    if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getSanPham() != null) {
-                        unlinked.setSanPham(item.getSanPhamChiTiet().getSanPham());
-                        danhGiaRepository.save(unlinked);
-                        break;
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
-
-        // 2. Xác định danh sách ID sản phẩm có thể trùng khớp
-        Set<Long> targetSanPhamIds = new HashSet<>();
-        targetSanPhamIds.add(id);
-
-        Optional<SanPham> spOpt = sanPhamRepository.findById(id);
-        if (spOpt.isPresent()) {
-            targetSanPhamIds.add(spOpt.get().getId());
-        }
+        Long targetSanPhamId = null;
 
         Optional<SanPhamChiTiet> spctOpt = sanPhamChiTietRepository.findById(id);
         if (spctOpt.isPresent() && spctOpt.get().getSanPham() != null) {
-            targetSanPhamIds.add(spctOpt.get().getSanPham().getId());
+            targetSanPhamId = spctOpt.get().getSanPham().getId();
+        } else {
+            Optional<SanPham> spOpt = sanPhamRepository.findById(id);
+            if (spOpt.isPresent()) {
+                targetSanPhamId = spOpt.get().getId();
+            }
         }
 
-        // 3. Lấy đánh giá khớp với targetSanPhamIds hoặc qua HoaDon
+        if (targetSanPhamId == null) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        // Lấy đánh giá khớp với targetSanPhamId
         List<DanhGia> allReviews = danhGiaRepository.findAll();
         List<DanhGia> matchedList = new ArrayList<>();
 
@@ -333,24 +326,19 @@ public class DanhGiaRestController {
 
             boolean matched = false;
             // Khớp theo sanPham
-            if (d.getSanPham() != null && targetSanPhamIds.contains(d.getSanPham().getId())) {
+            if (d.getSanPham() != null && targetSanPhamId.equals(d.getSanPham().getId())) {
                 matched = true;
             }
 
-            // Khớp theo các sản phẩm có trong hóa đơn
-            if (!matched && d.getHoaDon() != null) {
+            // Khớp theo các sản phẩm có trong hóa đơn (chỉ khi d.sanPham == null)
+            if (!matched && d.getSanPham() == null && d.getHoaDon() != null) {
                 List<ChiTietHoaDon> items = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
                 for (ChiTietHoaDon item : items) {
-                    if (item.getSanPhamChiTiet() != null) {
-                        Long ctSpctId = item.getSanPhamChiTiet().getId();
-                        Long ctSpId   = (item.getSanPhamChiTiet().getSanPham() != null) ? item.getSanPhamChiTiet().getSanPham().getId() : null;
-                        if (targetSanPhamIds.contains(ctSpctId) || (ctSpId != null && targetSanPhamIds.contains(ctSpId))) {
+                    if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getSanPham() != null) {
+                        if (targetSanPhamId.equals(item.getSanPhamChiTiet().getSanPham().getId())) {
                             matched = true;
-                            // Gắn luôn sản phẩm để lưu lại
-                            if (d.getSanPham() == null && item.getSanPhamChiTiet().getSanPham() != null) {
-                                d.setSanPham(item.getSanPhamChiTiet().getSanPham());
-                                danhGiaRepository.save(d);
-                            }
+                            d.setSanPham(item.getSanPhamChiTiet().getSanPham());
+                            danhGiaRepository.save(d);
                             break;
                         }
                     }
@@ -504,6 +492,7 @@ public class DanhGiaRestController {
                 raw = base64Data.substring(comma + 1);
             }
 
+            raw = raw.replace(" ", "+").trim();
             byte[] bytes = Base64.getDecoder().decode(raw);
             if (bytes.length > MAX_SIZE_BYTES) return null;
 
@@ -518,7 +507,7 @@ public class DanhGiaRestController {
             Files.write(tgtPath.resolve(fileName), bytes);
 
             return "/upload/" + fileName;
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("Lỗi lưu ảnh đánh giá: " + e.getMessage());
             return null;
         }
