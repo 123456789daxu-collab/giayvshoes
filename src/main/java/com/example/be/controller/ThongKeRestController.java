@@ -3,6 +3,7 @@ package com.example.be.controller;
 import com.example.be.dto.ThongKeBieuDoDTO;
 import com.example.be.dto.ThongKeTongQuanDTO;
 import com.example.be.dto.ThongKeTrangThaiDTO;
+import com.example.be.dto.ThongKeThuongHieuDTO;
 import com.example.be.dto.TopSanPhamDTO;
 import com.example.be.service.ThongKeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,13 @@ public class ThongKeRestController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         return ResponseEntity.ok(thongKeService.getPhanBoTrangThai(startDate, endDate));
+    }
+
+    @GetMapping("/thuong-hieu")
+    public ResponseEntity<List<ThongKeThuongHieuDTO>> getThongKeThuongHieu(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        return ResponseEntity.ok(thongKeService.getThongKeThuongHieu(startDate, endDate));
     }
 
     @GetMapping("/top-san-pham")

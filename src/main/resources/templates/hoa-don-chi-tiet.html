@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -6,15 +6,11 @@
     <title>Chi tiết hóa đơn | VShoes</title>
     
     <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
     <link rel="stylesheet" href="/css/store.css?v=99">
     <link rel="stylesheet" href="/css/invoice-detail.css?v=99">
-
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -26,6 +22,8 @@
 
         <!-- Nội dung chính -->
         <main class="main-content">
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
             <div class="detail-container">
                 <!-- Nút quay lại và tiêu đề -->
                 <div class="detail-header-row">
@@ -33,7 +31,7 @@
                         <i data-lucide="arrow-left"></i> Quay lại
                     </button>
                     <div class="page-title-group">
-                        <h1 class="page-title">Chi tiết hóa đơn</h1>
+                        <h2 class="page-title" style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Chi tiết hóa đơn</h2>
                     </div>
                 </div>
 

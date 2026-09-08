@@ -196,6 +196,12 @@
     box-shadow: 0 6px 15px rgba(0, 173, 239, 0.3);
 }
 
+.customer-container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 /* CUSTOMER LIST CARD */
 .customer-card {
     background-color: #ffffff;
@@ -203,6 +209,15 @@
     border: 1px solid #e2e8f0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     padding: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.custom-table-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 8px;
 }
 
 .card-title-table {
@@ -217,22 +232,24 @@
     width: 100%;
     border-collapse: collapse;
     text-align: left;
+    table-layout: auto;
 }
 
 .customer-table th {
-    background-color: #f1f5f9; /* Xám nhạt */
+    background-color: #f8fafc;
     color: #475569;
     font-weight: 600;
     font-size: 13px;
-    padding: 14px 16px;
+    padding: 10px 8px;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
 }
 
 .customer-table td {
-    padding: 16px;
+    padding: 8px 8px;
     border-bottom: 1px solid #f1f5f9;
     color: #334155;
-    font-size: 14px;
+    font-size: 13px;
     vertical-align: middle;
 }
 
@@ -241,6 +258,30 @@
 }
 
 /* AVATAR STYLE */
+.avatar-td {
+    width: 60px;
+}
+
+.avatar-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    margin: 0 auto;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
 .avatar-cell {
     display: flex;
     align-items: center;
@@ -248,32 +289,31 @@
 }
 
 .avatar-circle {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background-color: #cbd5e1;
+    background-color: #f1f5f9;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    color: #ffffff;
-    font-size: 16px;
+    color: #64748b;
+    font-size: 13px;
     background-size: cover;
     background-position: center;
-    border: 2px solid #e2e8f0;
 }
 
 .avatar-placeholder {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background-color: #f1f5f9;
     color: #64748b;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    border: 2px solid #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 /* CONTACT ROW */
@@ -326,20 +366,26 @@
 .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    border-radius: 6px;
+    justify-content: center;
+    padding: 4px 14px;
+    border-radius: 50px;
     font-size: 12px;
     font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .status-badge.active {
-    background-color: #e6f4ea;
-    color: #137333;
+    background-color: #f0fdf4 !important;
+    color: #15803d !important;
+    border: 1px solid #bbf7d0 !important;
 }
 
 .status-badge.inactive {
-    background-color: #fce8e6;
-    color: #c5221f;
+    background-color: #fff1f2 !important;
+    color: #be123c !important;
+    border: 1px solid #fecdd3 !important;
 }
 
 /* ACTION BUTTONS */

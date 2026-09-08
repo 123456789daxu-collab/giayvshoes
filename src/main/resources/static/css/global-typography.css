@@ -43,3 +43,34 @@ input, textarea, select {
 button {
     letter-spacing: -0.01em;
 }
+
+/* ============================================================
+   ĐỒNG BỘ TIÊU ĐỀ TẤT CẢ MÀN HÌNH QUẢN TRỊ ADMIN (20px - Bold)
+   ============================================================ */
+.main-content > .screen-header h1,
+.main-content > .screen-header h2,
+.main-content > .page-header h1,
+.main-content > .page-header h2,
+.screen-header h1,
+.screen-header h2,
+.screen-title,
+.page-title,
+.dg-page-title,
+.chat-page-title {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+}
+
+/* Ẩn tất cả các dòng chữ phụ/mô tả nhỏ bên dưới tiêu đề màn hình */
+.screen-header p,
+.page-header p,
+.screen-subtitle,
+.page-subtitle,
+.dg-page-subtitle,
+.chat-page-subtitle {
+    display: none !important;
+}
+

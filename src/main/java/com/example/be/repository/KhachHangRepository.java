@@ -23,8 +23,10 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Long>, Jpa
     java.util.List<KhachHang> findAllByEmail(String email);
     java.util.List<KhachHang> findAllBySoDienThoai(String soDienThoai);
 
-
     // Tìm mã khách hàng lớn nhất có tiền tố KH để tự sinh mã
+    @Query("SELECT k.maKhachHang FROM KhachHang k WHERE k.maKhachHang LIKE 'KH%'")
+    java.util.List<String> findAllMaKhachHang();
+
     @Query("SELECT k.maKhachHang FROM KhachHang k WHERE k.maKhachHang LIKE 'KH%' ORDER BY LENGTH(k.maKhachHang) DESC, k.maKhachHang DESC")
     Page<String> findMaxMaKhachHang(Pageable pageable);
 

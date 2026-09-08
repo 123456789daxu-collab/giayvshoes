@@ -6,7 +6,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.example.be.repository.*;
+import com.example.be.repository.ThuongHieuRepository;
+import com.example.be.repository.ChatLieuRepository;
+import com.example.be.repository.LoaiGiayRepository;
+import com.example.be.repository.DanhMucRepository;
+import com.example.be.repository.MauSacRepository;
+import com.example.be.repository.CoGiayRepository;
 
 @Controller
 public class ViewController {
@@ -115,6 +120,11 @@ public class ViewController {
         return "giao-ca";
     }
 
+    @GetMapping("/ho-so-ca-nhan")
+    public String hoSoCaNhan() {
+        return "ho-so-ca-nhan";
+    }
+
     @GetMapping("/them-lich-lam-viec")
     public String themLichLamViec() {
         return "them-lich-lam-viec";
@@ -130,7 +140,7 @@ public class ViewController {
         return "client/san-pham";
     }
 
-    @GetMapping({"/client/products/{id}", "/client/product-detail/{id}", "/client/product-detail"})
+    @GetMapping({ "/client/products/{id}", "/client/product-detail/{id}", "/client/product-detail" })
     public String clientProductDetail() {
         return "client/product-detail";
     }

@@ -3,6 +3,7 @@ package com.example.be.service.impl;
 import com.example.be.dto.ThongKeBieuDoDTO;
 import com.example.be.dto.ThongKeTongQuanDTO;
 import com.example.be.dto.ThongKeTrangThaiDTO;
+import com.example.be.dto.ThongKeThuongHieuDTO;
 import com.example.be.dto.TopSanPhamDTO;
 import com.example.be.service.ThongKeService;
 import jakarta.persistence.EntityManager;
@@ -11,6 +12,7 @@ import jakarta.persistence.Query;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +75,58 @@ public class ThongKeServiceImpl implements ThongKeService {
         
         // Tổng doanh thu (Lấy doanh thu dự kiến cho thấy số)
         dto.setTongDoanhThu(dto.getDoanhThuDuKien());
+
+        // Sản phẩm đã bán
+        String sqlSpDaBan = "SELECT SUM(cthd.so_luong) FROM chi_tiet_hoa_don cthd JOIN hoa_don hd ON cthd.id_hoa_don = hd.id" + whereBase;
+        Query qSpDaBan = entityManager.createNativeQuery(sqlSpDaBan);
+        if (startDate != null) qSpDaBan.setParameter("startDate", startDate);
+        if (endDate != null) qSpDaBan.setParameter("endDate", endDate);
+        Number spDaBan = (Number) qSpDaBan.getSingleResult();
+        dto.setSanPhamDaBan(spDaBan != null ? spDaBan.longValue() : 0L);
+
+        // Khách mới
+        String sqlKhachMoi = "SELECT COUNT(id) FROM khach_hang WHERE 1=1 ";
+        if (startDate != null) sqlKhachMoi += " AND ngay_tao >= :startDate ";
+        if (endDate != null) sqlKhachMoi += " AND ngay_tao <= :endDate ";
+        Query qKhachMoi = entityManager.createNativeQuery(sqlKhachMoi);
+        if (startDate != null) qKhachMoi.setParameter("startDate", startDate);
+        if (endDate != null) qKhachMoi.setParameter("endDate", endDate);
+        Number khachMoi = (Number) qKhachMoi.getSingleResult();
+        dto.setKhachMoi(khachMoi != null ? khachMoi.longValue() : 0L);
+
+        // Giá trị trung bình đơn (AOV)
+        if (dto.getTongDonHang() > 0 && dto.getTongDoanhThu() != null) {
+            dto.setGiaTriTrungBinhDon(dto.getTongDoanhThu().divide(BigDecimal.valueOf(dto.getTongDonHang()), 0, RoundingMode.HALF_UP));
+        } else {
+            dto.setGiaTriTrungBinhDon(BigDecimal.ZERO);
+        }
+
+        // Tiền mặt & Chuyển khoản (truy vấn lich_su_thanh_toan / thanh_toan_hoa_don nếu có)
+        try {
+            String sqlTienMat = "SELECT SUM(so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereBase + " AND (lstt.phuong_thuc_thanh_toan LIKE '%Tien%' OR lstt.phuong_thuc_thanh_toan LIKE '%t%');";
+            Query qTm = entityManager.createNativeQuery(sqlTienMat);
+            if (startDate != null) qTm.setParameter("startDate", startDate);
+            if (endDate != null) qTm.setParameter("endDate", endDate);
+            BigDecimal tm = safeToBigDecimal(qTm.getSingleResult());
+
+            String sqlCk = "SELECT SUM(so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereBase + " AND (lstt.phuong_thuc_thanh_toan LIKE '%ChuyenKhoan%' OR lstt.phuong_thuc_thanh_toan LIKE '%bank%' OR lstt.phuong_thuc_thanh_toan LIKE '%chuy%n%');";
+            Query qCk = entityManager.createNativeQuery(sqlCk);
+            if (startDate != null) qCk.setParameter("startDate", startDate);
+            if (endDate != null) qCk.setParameter("endDate", endDate);
+            BigDecimal ck = safeToBigDecimal(qCk.getSingleResult());
+
+            if (tm.compareTo(BigDecimal.ZERO) == 0 && ck.compareTo(BigDecimal.ZERO) == 0) {
+                // Fallback nếu chưa phân loại thanh toán
+                dto.setTongTienMat(dto.getTongDoanhThu());
+                dto.setTongTienChuyenKhoan(BigDecimal.ZERO);
+            } else {
+                dto.setTongTienMat(tm);
+                dto.setTongTienChuyenKhoan(ck);
+            }
+        } catch (Exception e) {
+            dto.setTongTienMat(dto.getTongDoanhThu());
+            dto.setTongTienChuyenKhoan(BigDecimal.ZERO);
+        }
         
         // 2. Thống kê theo các mốc thời gian
         LocalDateTime now = LocalDateTime.now();
@@ -271,6 +325,49 @@ public class ThongKeServiceImpl implements ThongKeService {
             dtoList.add(dto);
         }
         
+        return dtoList;
+    }
+
+    @Override
+    public List<ThongKeThuongHieuDTO> getThongKeThuongHieu(LocalDateTime startDate, LocalDateTime endDate) {
+        String sql = "SELECT " +
+                     "  th.id as idThuongHieu, " +
+                     "  th.ten_thuong_hieu as tenThuongHieu, " +
+                     "  ISNULL(SUM(cthd.so_luong * cthd.don_gia), 0) as doanhThu, " +
+                     "  ISNULL(SUM(cthd.so_luong), 0) as soLuongBan " +
+                     "FROM thuong_hieu th " +
+                     "LEFT JOIN san_pham sp ON sp.id_thuong_hieu = th.id " +
+                     "LEFT JOIN san_pham_chi_tiet spct ON spct.id_san_pham = sp.id " +
+                     "LEFT JOIN chi_tiet_hoa_don cthd ON cthd.id_san_pham_chi_tiet = spct.id " +
+                     "LEFT JOIN hoa_don hd ON hd.id = cthd.id_hoa_don ";
+
+        if (startDate != null && endDate != null) {
+            sql += " AND hd.ngay_tao >= :startDate AND hd.ngay_tao <= :endDate ";
+        } else if (startDate != null) {
+            sql += " AND hd.ngay_tao >= :startDate ";
+        } else if (endDate != null) {
+            sql += " AND hd.ngay_tao <= :endDate ";
+        }
+
+        sql += " GROUP BY th.id, th.ten_thuong_hieu ORDER BY doanhThu DESC";
+
+        Query query = entityManager.createNativeQuery(sql);
+        if (startDate != null) query.setParameter("startDate", startDate);
+        if (endDate != null) query.setParameter("endDate", endDate);
+
+        @SuppressWarnings("unchecked")
+        List<Object[]> results = query.getResultList();
+        List<ThongKeThuongHieuDTO> dtoList = new ArrayList<>();
+
+        for (Object[] row : results) {
+            ThongKeThuongHieuDTO dto = new ThongKeThuongHieuDTO();
+            dto.setIdThuongHieu(row[0] != null ? ((Number) row[0]).longValue() : null);
+            dto.setTenThuongHieu((String) row[1]);
+            dto.setDoanhThu(safeToBigDecimal(row[2]));
+            dto.setSoLuongBan(row[3] != null ? ((Number) row[3]).longValue() : 0L);
+            dtoList.add(dto);
+        }
+
         return dtoList;
     }
 }

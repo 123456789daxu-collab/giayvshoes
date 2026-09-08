@@ -1,18 +1,19 @@
 @import url('/css/global-typography.css');
+
 /* Custom Top Header */
 .top-header {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 16px 40px;
+    padding: 14px 28px;
     background-color: #ffffff;
     border-bottom: 1px solid #e2e8f0;
     position: sticky;
     top: 0;
     z-index: 100;
-    margin-left: -40px;
-    margin-right: -40px;
-    margin-top: -40px;
+    margin-left: -28px;
+    margin-right: -28px;
+    margin-top: 0;
     margin-bottom: 24px;
 }
 
@@ -137,3 +138,346 @@
     width: 18px;
     height: 18px;
 }
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 4px 0;
+}
+
+/* Modal Hồ sơ cá nhân */
+.profile-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.profile-modal-card {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    animation: slideUpModal 0.25s ease-out;
+}
+
+@keyframes slideUpModal {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.profile-modal-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.profile-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.profile-modal-close {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.profile-modal-close:hover {
+    opacity: 1;
+}
+
+.profile-modal-body {
+    padding: 24px;
+}
+
+.profile-avatar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.profile-avatar-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00adef, #0f2d4a);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.25);
+    overflow: hidden;
+}
+
+.profile-avatar-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-user-main h4 {
+    margin: 0 0 4px 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.profile-role-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #eff6ff;
+    color: #0284c7;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 20px;
+    border: 1px solid #bae6fd;
+}
+
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+}
+
+.profile-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-info-item.full-width {
+    grid-column: span 2;
+}
+
+.info-label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-label i {
+    width: 14px;
+    height: 14px;
+    color: #00adef;
+}
+
+.info-value {
+    font-size: 0.92rem;
+    color: #1e293b;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.profile-modal-footer {
+    padding: 14px 24px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-profile-close {
+    padding: 8px 20px;
+    background: #e2e8f0;
+    color: #334155;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-profile-close:hover {
+    background: #cbd5e1;
+}
+
+/* Tab buttons for Profile & Password modal */
+.profile-modal-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.profile-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.profile-tab-btn.active {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.profile-tab-btn:hover:not(.active) {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.profile-tab-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.profile-form-group {
+    margin-bottom: 16px;
+}
+
+.profile-form-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.profile-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-input {
+    width: 100%;
+    padding: 10px 40px 10px 14px;
+    font-size: 0.88rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #1e293b;
+    background: #ffffff;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.profile-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.profile-pwd-toggle {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 1rem;
+}
+
+.profile-pwd-toggle:hover {
+    color: #0f172a;
+}
+
+.profile-pwd-toggle i {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-profile-save {
+    padding: 9px 22px;
+    background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2);
+}
+
+.btn-profile-save:hover {
+    background: #00adef;
+    box-shadow: 0 6px 16px rgba(0, 173, 239, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-profile-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ============================================================
+   ĐỒNG BỘ TIÊU ĐỀ TẤT CẢ MÀN HÌNH QUẢN TRỊ ADMIN (20px - Bold)
+   ============================================================ */
+.main-content > .screen-header h1,
+.main-content > .screen-header h2,
+.main-content > .page-header h1,
+.main-content > .page-header h2,
+.screen-header h1,
+.screen-header h2,
+.screen-title,
+.page-title,
+.dg-page-title,
+.chat-page-title {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+}
+
+/* Ẩn tất cả các dòng chữ phụ/mô tả nhỏ bên dưới tiêu đề màn hình */
+.screen-header p,
+.page-header p,
+.screen-subtitle,
+.page-subtitle,
+.dg-page-subtitle,
+.chat-page-subtitle {
+    display: none !important;
+}
+

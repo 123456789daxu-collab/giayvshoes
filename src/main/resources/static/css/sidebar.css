@@ -246,9 +246,13 @@ body {
 .main-content {
     margin-left: 280px; /* Cách lề trái bằng đúng chiều rộng Sidebar */
     flex: 1;
-    padding: 40px;
+    min-width: 0;
+    max-width: calc(100vw - 280px);
+    padding: 0 28px 28px 28px;
     background-color: #f8fafc;
     min-height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* CSS Giao diện nội dung trang mẫu */

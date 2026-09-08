@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tài khoản khách hàng | VShoes</title>
-    <!-- Nhúng CSS sidebar dùng chung -->
+    <title>Quản lý tài khoản khách hàng | VShoes</title>
+    <!-- Nhúng CSS dùng chung -->
+    <link rel="stylesheet" href="/css/admin-common.css?v=100">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
     <!-- Nhúng CSS riêng của trang khách hàng -->
     <link rel="stylesheet" href="/css/khach-hang.css?v=99">
-    <!-- SweetAlert2 CSS -->
+    <!-- SweetAlert2 CSS & Admin Common JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="/js/admin-common.js?v=100"></script>
 </head>
 
 <body>
@@ -45,8 +47,8 @@
                             <button type="button" class="status-btn" onclick="toggleStatusFilter(this, '0')">Ngừng hoạt
                                 động</button>
                         </div>
-                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc" style="width: 38px; height: 38px;">
-                            <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
+                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc" style="width: 32px; height: 32px;">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
                         </button>
                     </div>
                 </div>
@@ -109,16 +111,16 @@
                     <table class="customer-table">
                         <thead>
                             <tr>
-                                <th style="width: 50px; text-align: center;">#</th>
-                                <th style="width: 70px; text-align: center;">Ảnh</th>
-                                <th style="width: 100px;">Mã KH</th>
-                                <th style="width: 150px;">Họ tên</th>
-                                <th style="width: 110px;">Ngày sinh</th>
-                                <th style="width: 180px;">Email</th>
-                                <th style="width: 120px;">SĐT</th>
-                                <th style="width: 320px;">Địa chỉ</th>
-                                <th style="width: 130px;">Trạng thái</th>
-                                <th style="width: 160px; text-align: center;">Hành động</th>
+                                <th style="width: 35px; text-align: center;">#</th>
+                                <th style="width: 45px; text-align: center;">Ảnh</th>
+                                <th style="width: 80px;">Mã KH</th>
+                                <th style="min-width: 100px;">Họ tên</th>
+                                <th style="width: 85px;">Ngày sinh</th>
+                                <th style="width: 130px;">Email</th>
+                                <th style="width: 95px;">SĐT</th>
+                                <th style="min-width: 130px;">Địa chỉ</th>
+                                <th style="width: 110px; text-align: center;">Trạng thái</th>
+                                <th style="width: 90px; text-align: center;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="customer-table-body">
@@ -134,20 +136,20 @@
                     </div>
                     <div class="pagination-nav">
                         <button class="page-btn disabled" id="prev-page-btn" onclick="changePage(-1)">
-                            <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
+                            <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
                         </button>
                         <div id="page-numbers-container" style="display: flex; gap: 6px;">
                             <button class="page-btn active">1</button>
                         </div>
                         <button class="page-btn disabled" id="next-page-btn" onclick="changePage(1)">
-                            <i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>
+                            <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
                         </button>
                     </div>
                     <div class="page-size-selector">
                         <select class="page-size-select" id="page-size-select" onchange="changePageSize(this.value)">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
+                            <option value="10">10 / page</option>
+                            <option value="20">20 / page</option>
+                            <option value="50">50 / page</option>
                         </select>
                     </div>
                 </div>
@@ -157,7 +159,7 @@
                 <!-- PANEL 2: THÊM MỚI / CHỈNH SỬA KHÁCH HÀNG (FORM PANEL) -->
                 <div id="form-panel" class="tab-panel">
                     <button class="back-link" onclick="closeCustomerModal()">
-                        <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+                        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
                         Quay lại danh sách
                     </button>
                     
@@ -265,7 +267,9 @@
                 <!-- Thẻ Thông tin cá nhân -->
                 <div class="detail-card-panel">
                     <div class="detail-avatar-container">
-                        <div id="detail-avatar" class="avatar-placeholder-large">U</div>
+                        <div style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 0 auto 10px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid #e2e8f0;">
+                            <img id="detail-avatar" src="" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=KH&background=f1f5f9&color=64748b&size=128'"/>
+                        </div>
                         <span id="detail-name" class="detail-fullname">Nguyễn Văn A</span>
                         <span id="detail-code" class="detail-code-badge">KH00001</span>
                     </div>
@@ -298,7 +302,7 @@
                     <div class="address-panel-header">
                         <span class="panel-subtitle">Sổ địa chỉ liên hệ</span>
                         <button class="btn-primary-action btn-sm" onclick="openAddAddressSubModal()">
-                            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                            <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
                             Thêm địa chỉ mới
                         </button>
                     </div>
@@ -456,7 +460,7 @@
                     <tr>
                         <td colspan="9" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                                <i data-lucide="inbox" style="width: 38px; height: 38px; color: #cbd5e1;"></i>
+                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
                                 <span>Không tìm thấy khách hàng nào khớp với bộ lọc.</span>
                             </div>
                         </td>
@@ -472,93 +476,81 @@
 
                 // STT
                 const sttTd = `
-                    <td style="text-align: center; font-weight: 500; color: #64748b;">
+                    <td style="text-align: center; font-weight: 500; color: #64748b; font-size: 12.5px;">
                         ${currentPage * pageSize + index + 1}
                     </td>
                 `;
 
                 // Ảnh đại diện
-                const words = customer.hoTen ? customer.hoTen.split(" ") : [];
-                let initials = "U";
-                if(words.length >= 2) {
-                    initials = words[0].charAt(0).toUpperCase() + words[words.length-1].charAt(0).toUpperCase();
-                } else if(words.length === 1) {
-                    initials = words[0].substring(0, 2).toUpperCase();
-                }
-                
                 const avatarTd = `
-                    <td style="text-align: center;">
-                        <div class="avatar-cell">
-                            <div class="avatar-placeholder" style="background-color: #f8fafc; color: #4f46e5; font-weight: 600; font-size: 12px;">
-                                ${initials}
-                            </div>
+                    <td class="avatar-td" style="text-align: center; padding: 6px 4px;">
+                        <div class="avatar-wrapper" style="width: 36px; height: 36px; margin: 0 auto; border-radius: 50%; border: none; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img src="${customer.anhDaiDien || ''}" class="avatar-img" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent('${customer.hoTen || "KH"}') + '&background=f1f5f9&color=64748b&size=128'" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
                         </div>
                     </td>
                 `;
 
                 // Mã KH
                 const codeTd = `
-                    <td style="font-weight: 600; color: #0f172a;">
+                    <td style="font-weight: 600; color: #0f172a; white-space: nowrap; font-size: 12.5px;">
                         ${customer.maKhachHang || "KH000"}
                     </td>
                 `;
 
                 // Họ và tên
                 const nameTd = `
-                    <td style="color: #1e293b;">
+                    <td style="color: #1e293b; font-weight: 500; font-size: 13px;">
                         ${customer.hoTen}
                     </td>
                 `;
 
                 // Ngày sinh
                 const dobTd = `
-                    <td style="white-space: nowrap;">${formatDate(customer.ngaySinh)}</td>
+                    <td style="white-space: nowrap; color: #64748b; font-size: 12px;">${formatDate(customer.ngaySinh)}</td>
                 `;
 
                 // Email
                 const emailTd = `
-                    <td>
-                        <span>${customer.email || "-"}</span>
+                    <td style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${customer.email || ''}">
+                        <span style="font-size: 12px;">${customer.email || "-"}</span>
                     </td>
                 `;
 
                 // SĐT
                 const phoneTd = `
-                    <td>
+                    <td style="white-space: nowrap; font-size: 12.5px;">
                         <span>${customer.soDienThoai || "-"}</span>
                     </td>
                 `;
 
                 // Địa chỉ
                 const addressTd = `
-                    <td id="addr-cell-${customer.id}">
-                        <div class="address-cell" style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">
-                            <span class="loading-addr" style="color:#94a3b8; font-style: italic;">Đang tải địa chỉ...</span>
-                        </div>
+                    <td id="addr-cell-${customer.id}" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <span class="loading-addr" style="color:#94a3b8; font-style: italic; font-size: 12px;">Đang tải...</span>
                     </td>
                 `;
 
                 // Trạng thái hoạt động
                 const statusBadge = customer.trangThai === 1
-                    ? `<span class="status-badge active" style="background-color: #10b981; color: white;">Hoạt động</span>`
-                    : `<span class="status-badge inactive" style="background-color: #f1f5f9; color: #94a3b8;">Không hoạt động</span>`;
+                    ? `<span class="status-badge active">Hoạt động</span>`
+                    : `<span class="status-badge inactive">Ngừng hoạt động</span>`;
                 const statusTd = `
-                    <td>${statusBadge}</td>
+                    <td style="text-align: center;">${statusBadge}</td>
                 `;
 
                 // Hành động
                 const checkedAttr = customer.trangThai === 1 ? 'checked' : '';
                 const actionsTd = `
-                    <td style="text-align: center;">
-                        <div class="btn-actions-cell">
-                            <button class="action-icon-btn view" title="Xem chi tiết" onclick="openDetailModal(${customer.id})">
-                                <i data-lucide="map-pin" style="width: 18px; height: 18px;"></i>
+                    <td style="text-align: center; white-space: nowrap;">
+                        <div class="btn-actions-cell" style="justify-content: center; gap: 4px;">
+                            <button class="action-icon-btn view" title="Xem chi tiết" onclick="openDetailModal(${customer.id})" style="width: 28px; height: 28px;">
+                                <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i>
                             </button>
-                            <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCustomerModal(${customer.id})">
-                                <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCustomerModal(${customer.id})" style="width: 28px; height: 28px;">
+                                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
                             </button>
-                            <label class="switch-control" title="Bật/Tắt trạng thái">
-                                <input type="checkbox" ${checkedAttr} onchange="toggleCustomerStatus(${customer.id}, this.checked)">
+                            <label class="switch-control" title="Bật/Tắt trạng thái" style="width: 36px; height: 18px; margin-left: 2px;">
+                                <input type="checkbox" ${checkedAttr} onchange="toggleCustomerStatus(${customer.id}, this.checked, this)">
                                 <span class="switch-slider"></span>
                             </label>
                         </div>
@@ -589,13 +581,13 @@
                 if (defaultAddr) {
                     const fullText = `${defaultAddr.diaChiChiTiet}, ${defaultAddr.phuongXa}, ${defaultAddr.quanHuyen}, ${defaultAddr.tinhThanh}`;
                     cell.innerHTML = `
-                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;" title="${fullText}">
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; font-size: 12px;" title="${fullText}">
                             ${fullText}
                         </div>
                     `;
                 } else {
                     cell.innerHTML = `
-                        <div style="color: #94a3b8;">
+                        <div style="color: #94a3b8; font-size: 12px;">
                             <span>Chưa có địa chỉ</span>
                         </div>
                     `;
@@ -714,21 +706,28 @@
             applyFilters();
         }
 
-        // Cập nhật trạng thái hoạt động nhanh
-        async function toggleCustomerStatus(id, isChecked) {
-            const newStatus = isChecked ? 1 : 0;
-            const url = `/api/khach-hang/${id}/trang-thai?trangThai=${newStatus}`;
-            try {
-                const response = await fetch(url, { method: "PATCH" });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+        // Cập nhật trạng thái hoạt động nhanh với xác nhận
+        async function toggleCustomerStatus(id, isChecked, checkboxEl) {
+            AdminStatus.confirmToggle({
+                entityName: 'Tài khoản khách hàng',
+                checkboxEl: checkboxEl,
+                onConfirm: async () => {
+                    const newStatus = isChecked ? 1 : 0;
+                    const url = `/api/khach-hang/${id}/trang-thai?trangThai=${newStatus}`;
+                    try {
+                        const response = await fetch(url, { method: "PATCH" });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không thể cập nhật trạng thái");
+                        }
+                        loadTable();
+                    } catch (err) {
+                        if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+                        Swal.fire('Lỗi', err.message, 'error');
+                        loadTable();
+                    }
                 }
-                loadTable();
-            } catch (err) {
-                alert("Lỗi: " + err.message);
-                loadTable(); // Reset lại UI
-            }
+            });
         }
 
         // Mở Modal Thêm mới Khách hàng
@@ -933,10 +932,10 @@
                 const customer = await response.json();
 
                 // Gán thông tin cá nhân
-                const firstLetter = customer.hoTen ? customer.hoTen.charAt(0).toUpperCase() : 'U';
-                const avatarDiv = document.getElementById("detail-avatar");
-                avatarDiv.innerText = firstLetter;
-                avatarDiv.style.backgroundColor = getAvatarColor(customer.id);
+                const avatarImg = document.getElementById("detail-avatar");
+                if (avatarImg) {
+                    avatarImg.src = customer.anhDaiDien || `https://ui-avatars.com/api/?name=${encodeURIComponent(customer.hoTen || 'KH')}&background=f1f5f9&color=64748b&size=128`;
+                }
 
                 document.getElementById("detail-name").innerText = customer.hoTen;
                 document.getElementById("detail-code").innerText = customer.maKhachHang || "Không rõ";
@@ -1299,4 +1298,3 @@
 </body>
 
 </html>
-

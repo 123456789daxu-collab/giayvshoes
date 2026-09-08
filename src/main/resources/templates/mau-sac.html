@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Màu Sắc | VShoes</title>
+    <title>Quản lý màu sắc | VShoes</title>
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
@@ -11,6 +11,7 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
+    <link rel="stylesheet" href="/css/header.css?v=99">
     <link rel="stylesheet" href="/css/khach-hang.css?v=99">
 </head>
 <body>
@@ -20,16 +21,18 @@
 
         <!-- Nội dung chính -->
         <main class="main-content">
-            <div class="screen-header" style="margin-bottom: 24px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #0f172a; margin: 0;">Quản lý thuộc tính</h1>
-                <p style="font-size: 14px; color: #64748b; margin: 4px 0 0 0;">Quản lý danh sách các thuộc tính của sản phẩm</p>
+            <!-- Nhúng Header dùng chung -->
+            <div th:replace="~{header/header :: header}"></div>
+
+            <div class="screen-header" style="margin-bottom: 20px;">
+                <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Quản lý màu sắc</h2>
             </div>
 
             <!-- Card Bộ Lọc -->
             <div class="filter-section-card mb-4" style="background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px;">
                 <div class="filter-header d-flex justify-content-between align-items-center mb-3" style="border: none;">
                     <span class="filter-section-title mb-0" style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="list-filter" style="width: 20px; height: 20px;"></i> Bộ lọc thuộc tính
+                        <i data-lucide="list-filter" style="width: 20px; height: 20px;"></i> Bộ lọc màu sắc
                     </span>
                 </div>
                 

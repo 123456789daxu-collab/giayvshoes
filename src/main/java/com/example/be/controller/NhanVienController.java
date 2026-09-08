@@ -17,6 +17,70 @@ public class NhanVienController {
         this.nhanVienService = nhanVienService;
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<?> getCurrentUser(org.springframework.security.core.Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof com.example.be.security.CustomUserDetails userDetails) {
+            NhanVien nv = userDetails.getNhanVien();
+            if (nv != null && nv.getId() != null) {
+                return nhanVienService.findById(nv.getId())
+                        .map(ResponseEntity::ok)
+                        .orElse(ResponseEntity.ok(nv));
+            }
+            return ResponseEntity.ok(nv);
+        }
+        return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
+    }
+
+    @PutMapping("/current")
+    public ResponseEntity<?> updateCurrentProfile(
+            @RequestBody java.util.Map<String, Object> payload,
+            org.springframework.security.core.Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof com.example.be.security.CustomUserDetails userDetails) {
+            NhanVien currentNv = userDetails.getNhanVien();
+            Long id = currentNv.getId();
+            return nhanVienService.findById(id).map(existing -> {
+                String hoTen = payload.get("hoTen") != null ? payload.get("hoTen").toString() : null;
+                String email = payload.get("email") != null ? payload.get("email").toString() : null;
+                String soDienThoai = payload.get("soDienThoai") != null ? payload.get("soDienThoai").toString() : null;
+                String diaChi = payload.get("diaChi") != null ? payload.get("diaChi").toString() : null;
+                String cccd = payload.get("cccd") != null ? payload.get("cccd").toString() : null;
+                String ngaySinhStr = payload.get("ngaySinh") != null ? payload.get("ngaySinh").toString() : null;
+                Object gioiTinhObj = payload.get("gioiTinh");
+                String currentPassword = payload.get("currentPassword") != null ? payload.get("currentPassword").toString() : null;
+                String newPassword = payload.get("newPassword") != null ? payload.get("newPassword").toString() : null;
+
+                if (hoTen != null && !hoTen.trim().isEmpty()) existing.setHoTen(hoTen.trim());
+                if (email != null && !email.trim().isEmpty()) existing.setEmail(email.trim());
+                if (soDienThoai != null && !soDienThoai.trim().isEmpty()) existing.setSoDienThoai(soDienThoai.trim());
+                if (diaChi != null) existing.setDiaChi(diaChi.trim());
+                if (cccd != null) existing.setCccd(cccd.trim());
+                if (ngaySinhStr != null && !ngaySinhStr.trim().isEmpty()) {
+                    try {
+                        existing.setNgaySinh(java.time.LocalDate.parse(ngaySinhStr.trim()));
+                    } catch (Exception ignored) {}
+                }
+                if (gioiTinhObj != null) {
+                    existing.setGioiTinh(Boolean.parseBoolean(gioiTinhObj.toString()));
+                }
+
+                // Changing password if requested
+                if (newPassword != null && !newPassword.trim().isEmpty()) {
+                    if (currentPassword == null || !currentPassword.equals(existing.getMatKhau())) {
+                        return ResponseEntity.badRequest().body("Mật khẩu hiện tại không chính xác!");
+                    }
+                    if (newPassword.trim().length() < 6) {
+                        return ResponseEntity.badRequest().body("Mật khẩu mới phải có ít nhất 6 ký tự!");
+                    }
+                    existing.setMatKhau(newPassword.trim());
+                }
+
+                NhanVien saved = nhanVienService.save(existing);
+                return ResponseEntity.ok(saved);
+            }).orElse(ResponseEntity.notFound().build());
+        }
+        return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
+    }
+
     @GetMapping
     public ResponseEntity<List<NhanVien>> getAll() {
         return ResponseEntity.ok(nhanVienService.findAll());

@@ -11,6 +11,11 @@ import java.math.BigDecimal;
 public class ThongKeTongQuanDTO {
     private BigDecimal tongDoanhThu;
     private Long tongDonHang;
+    private BigDecimal tongTienMat;
+    private BigDecimal tongTienChuyenKhoan;
+    private BigDecimal giaTriTrungBinhDon;
+    private Long sanPhamDaBan;
+    private Long khachMoi;
     private BigDecimal doanhThuThucTe;
     private BigDecimal doanhThuDuKien;
     

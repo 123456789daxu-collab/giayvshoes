@@ -16,17 +16,27 @@ public class NotificationService {
      * Send email notification to employee
      */
     public void sendEmailNotification(String toEmail, String fullName, String password) {
-        if (mailSender == null) {
-            System.out.println("[WARNING] JavaMailSender is not configured. Email to " + toEmail + " is skipped.");
+        if (toEmail == null || toEmail.trim().isEmpty()) {
             return;
         }
-        
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            if (mailSender == null) {
+                System.out.println("[WARNING] JavaMailSender is not configured. Email to " + toEmail + " is skipped.");
+                return;
+            }
             
-            helper.setTo(toEmail);
-            helper.setSubject("Tài khoản hệ thống VShoes của bạn");
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                
+                try {
+                    helper.setFrom("123456789daxu@gmail.com", "VShoes Store");
+                } catch (Exception ignored) {
+                    helper.setFrom("123456789daxu@gmail.com");
+                }
+                helper.setTo(toEmail);
+                helper.setSubject("Tài khoản hệ thống VShoes của bạn");
             
             String htmlMsg = "<!DOCTYPE html>\n" +
                     "<html>\n" +
@@ -122,11 +132,11 @@ public class NotificationService {
             helper.setText(htmlMsg, true); // true indicates HTML
             
             mailSender.send(message);
-            System.out.println("[INFO] HTML Email sent successfully to: " + toEmail);
-        } catch (Exception e) {
-            System.out.println("[ERROR] Failed to send email to " + toEmail + ". Reason: " + e.getMessage());
-            e.printStackTrace();
-        }
+            } catch (Exception e) {
+                System.out.println("[ERROR] Failed to send email to " + toEmail + ". Reason: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
     }
 
     /**

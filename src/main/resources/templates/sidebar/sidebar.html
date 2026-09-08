@@ -88,12 +88,6 @@
             <span>Quản lý đánh giá</span>
         </a>
 
-        <!-- Hỗ trợ trực tuyến -->
-        <a href="/chat" class="menu-item">
-            <i data-lucide="headphones" class="menu-icon"></i>
-            <span>Hỗ trợ trực tuyến</span>
-        </a>
-
         <!-- Phiếu giảm giá -->
         <a href="/phieu-giam-gia" class="menu-item" sec:authorize="hasRole('ADMIN')">
             <i data-lucide="ticket" class="menu-icon"></i>
@@ -117,25 +111,6 @@
             <i data-lucide="user-cog" class="menu-icon"></i>
             <span>Tài khoản nhân viên</span>
         </a>
-
-
-        <!-- Lịch làm việc & Giao ca (Menu Cha - Dropdown) -->
-        <div class="submenu-container">
-            <a href="#" class="menu-item" id="toggle-submenu-lich-giao-ca">
-                <i data-lucide="calendar-clock" class="menu-icon"></i>
-                <span>Lịch làm việc & Giao ca</span>
-                <i data-lucide="chevron-down" class="arrow-icon"></i>
-            </a>
-            <!-- Danh sách các mục con -->
-            <ul class="submenu" id="submenu-lich-giao-ca">
-                <li sec:authorize="hasRole('ADMIN')">
-                    <a href="/lich-lam-viec" class="submenu-item">Lịch làm việc</a>
-                </li>
-                <li>
-                    <a href="/giao-ca" class="submenu-item">Giao ca</a>
-                </li>
-            </ul>
-        </div>
     </nav>
 
     <!-- Nhúng thư viện Lucide Icons qua CDN để vẽ các icon vector sắc nét -->

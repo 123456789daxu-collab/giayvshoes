@@ -1,4 +1,5 @@
 @import url('/css/global-typography.css');
+
 /* ban-hang.css - Giao diện Bán hàng tại quầy (POS) nâng cấp */
 
 /* Font chữ và Biến màu sắc toàn hệ thống */
@@ -226,34 +227,6 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: var(--theme-text-dark);
-}
-
-/* Ô nhập số lượng trực tiếp trong giỏ hàng POS */
-.qty-input-box {
-    width: 46px;
-    height: 28px;
-    background-color: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    text-align: center;
-    font-weight: 700;
-    color: var(--theme-text-dark);
-    font-size: 0.9rem;
-    padding: 0 4px;
-    transition: all 0.2s ease;
-    -moz-appearance: textfield;
-}
-
-.qty-input-box::-webkit-outer-spin-button,
-.qty-input-box::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.qty-input-box:focus {
-    border-color: var(--theme-primary);
-    box-shadow: 0 0 0 3px rgba(0, 141, 213, 0.2);
-    outline: none;
 }
 
 /* Nút xóa sản phẩm khỏi giỏ */

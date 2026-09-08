@@ -777,8 +777,9 @@ function renderTable() {
         const genderText = nv.gioiTinh ? "Nam" : "Nữ";
 
         // Status Badge styling
-        const statusClass = (nv.trangThai === 1) ? "badge-status-active" : "badge-status-inactive";
-        const statusText = (nv.trangThai === 1) ? "Đang áp dụng" : "Ngưng áp dụng";
+        const statusBadge = (nv.trangThai === 1) 
+            ? `<span class="status-badge active">Hoạt động</span>` 
+            : `<span class="status-badge inactive">Ngừng hoạt động</span>`;
 
         tr.innerHTML = `
             <td style="color: #555; text-align: center;">${stt}</td>
@@ -797,18 +798,15 @@ function renderTable() {
             <td style="color: #555;">${nv.diaChi || ''}</td>
             <td style="color: #555;">${nv.chucVu || ''}</td>
             <td style="text-align: center;">
-                <span class="badge ${statusClass}">${statusText}</span>
+                ${statusBadge}
             </td>
             <td style="text-align: center;">
                 <div class="btn-actions-cell" style="justify-content: center;">
-                    <a href="/lich-lam-viec?nhanVien=${nv.maNhanVien}" class="action-icon-btn view" title="Phân ca / Xem lịch">
-                        <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
-                    </a>
                     <button type="button" class="action-icon-btn edit" onclick="editEmployee(${nv.id})" title="Xem/Sửa">
                         <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
                     </button>
                     <label class="switch-control" title="Thay đổi trạng thái">
-                        <input type="checkbox" ${nv.trangThai === 1 ? 'checked' : ''} onchange="toggleEmployeeStatus(${nv.id})">
+                        <input type="checkbox" ${nv.trangThai === 1 ? 'checked' : ''} onchange="toggleEmployeeStatus(${nv.id}, this)">
                         <span class="switch-slider"></span>
                     </label>
                 </div>
@@ -893,18 +891,26 @@ window.changePageSize = function(size) {
     renderTable();
 }
 
-// Toggle employee status with interactive instant click
-window.toggleEmployeeStatus = function(id) {
-    fetch(`/api/nhan-vien/${id}/toggle-trang-thai`, { method: "PUT" })
-        .then(res => {
-            if (!res.ok) throw new Error("Thay đổi trạng thái thất bại!");
-            window.showToast("Thay đổi trạng thái làm việc thành công!");
-            loadEmployees();
-        })
-        .catch(err => {
-            window.showToast(err.message, "error");
-        });
-}
+// Toggle employee status with interactive instant click & confirmation
+window.toggleEmployeeStatus = function(id, checkboxEl) {
+    AdminStatus.confirmToggle({
+        entityName: 'Nhân viên',
+        checkboxEl: checkboxEl,
+        onConfirm: () => {
+            fetch(`/api/nhan-vien/${id}/toggle-trang-thai`, { method: "PUT" })
+                .then(res => {
+                    if (!res.ok) throw new Error("Thay đổi trạng thái thất bại!");
+                    window.showToast("Thay đổi trạng thái làm việc thành công!");
+                    loadEmployees();
+                })
+                .catch(err => {
+                    if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+                    window.showToast(err.message, "error");
+                    loadEmployees();
+                });
+        }
+    });
+};
 
 // Delete employee operation with safe prompt (not exposed in the new UI as power button is used for toggle, but kept for fallback)
 window.deleteEmployee = function(id) {
