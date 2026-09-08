@@ -46,6 +46,17 @@ public class NhanVienService {
             }
         }
 
+        if (nhanVien.getChucVu() == null || nhanVien.getChucVu().trim().isEmpty()) {
+            nhanVien.setChucVu("Nhân viên");
+        } else {
+            String cv = nhanVien.getChucVu().trim();
+            if ("Quản lý".equalsIgnoreCase(cv) || "admin".equalsIgnoreCase(cv) || "Quản trị viên".equalsIgnoreCase(cv) || "ADMIN".equalsIgnoreCase(cv)) {
+                nhanVien.setChucVu("Quản lý");
+            } else {
+                nhanVien.setChucVu("Nhân viên");
+            }
+        }
+
         if (isNew && (nhanVien.getMatKhau() == null || nhanVien.getMatKhau().trim().isEmpty())) {
             String randomPass = String.format("%06d", new java.util.Random().nextInt(1000000));
             nhanVien.setMatKhau(randomPass);

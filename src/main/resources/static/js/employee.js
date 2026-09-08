@@ -49,11 +49,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 const stt = index + 1;
                 const gender = nv.gioiTinh ? "Nam" : "Nữ";
                 const status = nv.trangThai === 1 ? "Đang áp dụng" : "Ngưng áp dụng";
+                let roleCsv = nv.chucVu || "Nhân viên";
+                if (roleCsv === "Quản trị viên" || roleCsv === "admin" || roleCsv === "ADMIN") {
+                    roleCsv = "Quản lý";
+                } else {
+                    roleCsv = "Nhân viên";
+                }
                 const row = [
                     stt,
                     nv.maNhanVien || '',
                     `"${(nv.hoTen || '').replace(/"/g, '""')}"`,
-                    `"${(nv.chucVu || '').replace(/"/g, '""')}"`,
+                    `"${roleCsv.replace(/"/g, '""')}"`,
                     gender,
                     nv.ngaySinh || '',
                     `="${nv.soDienThoai || ''}"`, // Force as string in excel
@@ -488,8 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Get gender radio selection
         const gioiTinh = document.getElementById("genderMale").checked;
 
-        let roleValue = document.getElementById("empRole").value;
-        if(roleValue === "Nhân viên") roleValue = "Nhân viên bán hàng";
+        let roleValue = document.getElementById("empRole").value || "Nhân viên";
+        if (roleValue !== "Quản lý" && roleValue !== "Nhân viên") {
+            roleValue = "Nhân viên";
+        }
         
         // Build request payload matching NhanVien entity
         const payload = {
@@ -617,8 +625,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     passInput.value = "";
                     passInput.required = false;
     
-                    let roleDisplay = nv.chucVu || "Nhân viên bán hàng";
-                    if(roleDisplay === "Nhân viên bán hàng") roleDisplay = "Nhân viên";
+                    let roleDisplay = nv.chucVu || "Nhân viên";
+                    if (roleDisplay === "Quản trị viên" || roleDisplay === "admin" || roleDisplay === "ADMIN") {
+                        roleDisplay = "Quản lý";
+                    } else {
+                        roleDisplay = "Nhân viên";
+                    }
                     document.getElementById("empRole").value = roleDisplay;
                     
                     document.getElementById("empCccd").value = nv.cccd || "";
@@ -725,11 +737,13 @@ function applyLocalFilter() {
         let matchesRole = true;
         if(filterRole && filterRole.value) {
             let selectedRole = filterRole.value;
-            if(selectedRole === "Nhân viên bán hàng" && (nv.chucVu === "Nhân viên bán hàng" || nv.chucVu === "Nhân viên")) {
-                matchesRole = true;
-            } else if (nv.chucVu !== selectedRole) {
-                matchesRole = false;
+            let nvRole = nv.chucVu || "Nhân viên";
+            if (nvRole === "Quản trị viên" || nvRole === "admin" || nvRole === "ADMIN") {
+                nvRole = "Quản lý";
+            } else {
+                nvRole = "Nhân viên";
             }
+            matchesRole = (nvRole === selectedRole);
         }
 
         return matchesSearch && matchesStatus && matchesGender && matchesDob && matchesRole;
@@ -781,6 +795,13 @@ function renderTable() {
             ? `<span class="status-badge active">Hoạt động</span>` 
             : `<span class="status-badge inactive">Ngừng hoạt động</span>`;
 
+        let displayRole = nv.chucVu || "Nhân viên";
+        if (displayRole === "Quản trị viên" || displayRole === "admin" || displayRole === "ADMIN") {
+            displayRole = "Quản lý";
+        } else {
+            displayRole = "Nhân viên";
+        }
+
         tr.innerHTML = `
             <td style="color: #555; text-align: center;">${stt}</td>
             <td class="avatar-td" style="padding: 10px;">
@@ -796,7 +817,7 @@ function renderTable() {
             <td style="color: #555;">${genderText}</td>
             <td style="color: #555;">${nv.soDienThoai || ''}</td>
             <td style="color: #555;">${nv.diaChi || ''}</td>
-            <td style="color: #555;">${nv.chucVu || ''}</td>
+            <td style="color: #555;">${displayRole}</td>
             <td style="text-align: center;">
                 ${statusBadge}
             </td>

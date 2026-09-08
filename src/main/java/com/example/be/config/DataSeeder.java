@@ -104,7 +104,7 @@ public class DataSeeder implements CommandLineRunner {
                     .matKhau("admin")
                     .email("admin@vshoes.com")
                     .soDienThoai("0123456789")
-                    .chucVu("admin")
+                    .chucVu("Quản lý")
                     .trangThai(1)
                     .build();
             nhanVienRepository.save(admin);
