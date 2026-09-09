@@ -1050,6 +1050,38 @@ public class HoaDonService {
             throw new IllegalArgumentException("Không tìm thấy đơn hàng với mã: " + txnRef);
         }
 
+        // Kiểm tra số lượng tồn kho của tất cả sản phẩm trong đơn hàng
+        List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hd.getId());
+        if (details != null && !details.isEmpty()) {
+            for (ChiTietHoaDon ct : details) {
+                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+                if (spct != null) {
+                    spct = sanPhamChiTietRepository.findById(spct.getId()).orElse(spct);
+                    int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+                    int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+                    if (stock < qty) {
+                        String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
+                        String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
+                        String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
+                        String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
+                                ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
+                                : "";
+
+                        // Ghi lịch sử thất bại do thiếu hàng
+                        LichSuHoaDon historyFail = LichSuHoaDon.builder()
+                                .hoaDon(hd)
+                                .hanhDong("VNPay thanh toán thất bại (Không đủ tồn kho)")
+                                .ngayTao(LocalDateTime.now())
+                                .ghiChu("Giao dịch VNPay " + transNo + " thất bại do sản phẩm '" + tenSp + variant + "' không đủ số lượng trong kho (còn: " + stock + ", cần: " + qty + ")")
+                                .build();
+                        lichSuHoaDonRepository.save(historyFail);
+
+                        throw new IllegalStateException("Sản phẩm '" + tenSp + variant + "' không đủ số lượng trong kho (kho còn: " + stock + ", cần: " + qty + ")!");
+                    }
+                }
+            }
+        }
+
         // Cập nhật ghi chú & trạng thái thanh toán — KHÔNG tự động chuyển trạng thái đơn hàng
         // (Admin vẫn cần xác nhận và xử lý đơn)
         String currentNote = hd.getGhiChu() != null ? hd.getGhiChu() : "";

@@ -193,10 +193,14 @@
                                     <i data-lucide="scan" style="width: 20px; height: 20px;"></i> Quét mã CCCD
                                 </button>
                                 <!-- CCCD hidden logic -->
-                                <input type="password" id="empCccd" style="display:none;"/>
-                                <input type="password" id="empPassword" style="display:none;"/>
+                                <input type="hidden" id="empCccd" autocomplete="off"/>
+                                <input type="password" id="empPassword" style="display:none;" autocomplete="new-password"/>
 
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 8px;">Mã nhân viên</label>
+                                        <input type="text" id="empCode" placeholder="Mã tự sinh..." readonly style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; outline: none; background: #e2e8f0; color: #475569; font-weight: 600; cursor: not-allowed;"/>
+                                    </div>
                                     <div>
                                         <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 8px;">Họ và tên <span style="color: #ef4444;">*</span></label>
                                         <input type="text" id="empName" placeholder="Nhập họ và tên" required style="width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; outline: none; background: #f8fafc;"/>

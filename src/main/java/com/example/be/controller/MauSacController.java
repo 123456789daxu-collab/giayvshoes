@@ -37,7 +37,22 @@ public class MauSacController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("nextMaMauSac", generateNextMaMauSac());
         return "mau-sac";
+    }
+
+    private String generateNextMaMauSac() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("MS");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (mauSacRepository.existsByMaMauSac(code));
+        return code;
     }
 
     @PostMapping("/add")
@@ -57,7 +72,7 @@ public class MauSacController {
 
         mauSac.setTenMauSac(tenTrimmed);
         if (mauSac.getMaMauSac() == null || mauSac.getMaMauSac().trim().isEmpty() || "(Tự động sinh)".equals(mauSac.getMaMauSac().trim())) {
-            mauSac.setMaMauSac("MS" + System.currentTimeMillis());
+            mauSac.setMaMauSac(generateNextMaMauSac());
         }
         mauSac.setTrangThai(true);
         try {

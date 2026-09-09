@@ -37,7 +37,22 @@ public class LoaiGiayController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("nextMaLoaiGiay", generateNextMaLoaiGiay());
         return "de-giay";
+    }
+
+    private String generateNextMaLoaiGiay() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("LG");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (loaiGiayRepository.existsByMaLoaiGiay(code));
+        return code;
     }
 
     @PostMapping("/add")
@@ -57,7 +72,7 @@ public class LoaiGiayController {
 
         loaiGiay.setTenLoaiGiay(tenTrimmed);
         if (loaiGiay.getMaLoaiGiay() == null || loaiGiay.getMaLoaiGiay().trim().isEmpty() || "(Tự động sinh)".equals(loaiGiay.getMaLoaiGiay().trim())) {
-            loaiGiay.setMaLoaiGiay("LG" + System.currentTimeMillis());
+            loaiGiay.setMaLoaiGiay(generateNextMaLoaiGiay());
         }
         loaiGiay.setTrangThai(true);
         try {

@@ -16,4 +16,6 @@ public interface ChatLieuRepository extends JpaRepository<ChatLieu, Long> {
     Page<ChatLieu> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
 
     Optional<ChatLieu> findByTenChatLieuIgnoreCase(String tenChatLieu);
+
+    boolean existsByMaChatLieu(String maChatLieu);
 }

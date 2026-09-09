@@ -18,14 +18,26 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Find user by ma_nhan_vien or email
-        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findByMaNhanVien(username);
+        if (username == null || username.trim().isEmpty()) {
+            throw new UsernameNotFoundException("Tên đăng nhập không được để trống!");
+        }
+        String cleanUsername = username.trim();
+
+        // 1. Tìm theo mã nhân viên
+        Optional<NhanVien> nhanVienOpt = nhanVienRepository.findByMaNhanVien(cleanUsername);
+        
+        // 2. Nếu không thấy, tìm theo email
+        if (nhanVienOpt.isEmpty()) {
+            nhanVienOpt = nhanVienRepository.findByEmail(cleanUsername);
+        }
+
+        // 3. Nếu vẫn không thấy, tìm theo số điện thoại
+        if (nhanVienOpt.isEmpty()) {
+            nhanVienOpt = nhanVienRepository.findBySoDienThoai(cleanUsername);
+        }
         
         if (nhanVienOpt.isEmpty()) {
-            // fallback to search by email just in case
-            // Wait, we don't have findByEmail in repository. We'll just stick to maNhanVien for now
-            // or we could throw exception
-            throw new UsernameNotFoundException("Không tìm thấy mã nhân viên: " + username);
+            throw new UsernameNotFoundException("Không tìm thấy tài khoản nhân viên: " + cleanUsername);
         }
         
         return new CustomUserDetails(nhanVienOpt.get());

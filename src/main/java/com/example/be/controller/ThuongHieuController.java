@@ -37,7 +37,22 @@ public class ThuongHieuController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("nextMaThuongHieu", generateNextMaThuongHieu());
         return "thuong-hieu";
+    }
+
+    private String generateNextMaThuongHieu() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("TH");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (thuongHieuRepository.existsByMaThuongHieu(code));
+        return code;
     }
 
     @PostMapping("/add")
@@ -57,7 +72,7 @@ public class ThuongHieuController {
 
         thuongHieu.setTenThuongHieu(tenTrimmed);
         if (thuongHieu.getMaThuongHieu() == null || thuongHieu.getMaThuongHieu().trim().isEmpty() || "(Tự động sinh)".equals(thuongHieu.getMaThuongHieu().trim())) {
-            thuongHieu.setMaThuongHieu("TH" + System.currentTimeMillis());
+            thuongHieu.setMaThuongHieu(generateNextMaThuongHieu());
         }
         thuongHieu.setTrangThai(true);
         try {

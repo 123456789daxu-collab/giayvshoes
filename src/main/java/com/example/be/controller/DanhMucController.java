@@ -37,7 +37,22 @@ public class DanhMucController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("nextMaDanhMuc", generateNextMaDanhMuc());
         return "the-loai";
+    }
+
+    private String generateNextMaDanhMuc() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("DM");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (danhMucRepository.existsByMaDanhMuc(code));
+        return code;
     }
 
     @PostMapping("/add")
@@ -57,7 +72,7 @@ public class DanhMucController {
 
         danhMuc.setTenDanhMuc(tenTrimmed);
         if (danhMuc.getMaDanhMuc() == null || danhMuc.getMaDanhMuc().trim().isEmpty() || "(Tự động sinh)".equals(danhMuc.getMaDanhMuc().trim())) {
-            danhMuc.setMaDanhMuc("DM" + System.currentTimeMillis());
+            danhMuc.setMaDanhMuc(generateNextMaDanhMuc());
         }
         danhMuc.setTrangThai(true);
         try {

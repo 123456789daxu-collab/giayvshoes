@@ -32,6 +32,81 @@ public class ThuocTinhRestController {
         return !name.trim().matches("^[\\p{L}\\d\\s]+$");
     }
 
+    private static final String RANDOM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final java.security.SecureRandom RANDOM = new java.security.SecureRandom();
+
+    private String generateNextMaDanhMuc() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("DM");
+            for (int i = 0; i < 6; i++) {
+                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+            }
+            code = sb.toString();
+        } while (danhMucRepository.existsByMaDanhMuc(code));
+        return code;
+    }
+
+    private String generateNextMaLoaiGiay() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("LG");
+            for (int i = 0; i < 6; i++) {
+                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+            }
+            code = sb.toString();
+        } while (loaiGiayRepository.existsByMaLoaiGiay(code));
+        return code;
+    }
+
+    private String generateNextMaThuongHieu() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("TH");
+            for (int i = 0; i < 6; i++) {
+                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+            }
+            code = sb.toString();
+        } while (thuongHieuRepository.existsByMaThuongHieu(code));
+        return code;
+    }
+
+    private String generateNextMaChatLieu() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("CL");
+            for (int i = 0; i < 6; i++) {
+                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+            }
+            code = sb.toString();
+        } while (chatLieuRepository.existsByMaChatLieu(code));
+        return code;
+    }
+
+    private String generateNextMaMauSac() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("MS");
+            for (int i = 0; i < 6; i++) {
+                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+            }
+            code = sb.toString();
+        } while (mauSacRepository.existsByMaMauSac(code));
+        return code;
+    }
+
+    private String generateNextMaCoGiay() {
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("CG");
+            for (int i = 0; i < 6; i++) {
+                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
+            }
+            code = sb.toString();
+        } while (coGiayRepository.existsByMaCoGiay(code));
+        return code;
+    }
+
     @PostMapping("/add-danh-muc")
     public ResponseEntity<?> addDanhMuc(@RequestParam("ten") String ten) {
         if (isInvalidName(ten)) {
@@ -44,7 +119,7 @@ public class ThuocTinhRestController {
         }
 
         DanhMuc dm = new DanhMuc();
-        dm.setMaDanhMuc("DM" + System.currentTimeMillis());
+        dm.setMaDanhMuc(generateNextMaDanhMuc());
         dm.setTenDanhMuc(nameTrim);
         dm.setTrangThai(true);
         dm = danhMucRepository.save(dm);
@@ -63,7 +138,7 @@ public class ThuocTinhRestController {
         }
 
         LoaiGiay lg = new LoaiGiay();
-        lg.setMaLoaiGiay("LG" + System.currentTimeMillis());
+        lg.setMaLoaiGiay(generateNextMaLoaiGiay());
         lg.setTenLoaiGiay(nameTrim);
         lg.setTrangThai(true);
         lg = loaiGiayRepository.save(lg);
@@ -82,7 +157,7 @@ public class ThuocTinhRestController {
         }
 
         ThuongHieu th = new ThuongHieu();
-        th.setMaThuongHieu("TH" + System.currentTimeMillis());
+        th.setMaThuongHieu(generateNextMaThuongHieu());
         th.setTenThuongHieu(nameTrim);
         th.setTrangThai(true);
         th = thuongHieuRepository.save(th);
@@ -101,7 +176,7 @@ public class ThuocTinhRestController {
         }
 
         ChatLieu cl = new ChatLieu();
-        cl.setMaChatLieu("CL" + System.currentTimeMillis());
+        cl.setMaChatLieu(generateNextMaChatLieu());
         cl.setTenChatLieu(nameTrim);
         cl.setTrangThai(true);
         cl = chatLieuRepository.save(cl);
@@ -135,7 +210,7 @@ public class ThuocTinhRestController {
         }
 
         MauSac ms = new MauSac();
-        ms.setMaMauSac("MS" + System.currentTimeMillis());
+        ms.setMaMauSac(generateNextMaMauSac());
         ms.setTenMauSac(trimmedTen);
         ms.setTrangThai(true);
         if (ma != null && !ma.trim().isEmpty()) {
@@ -161,7 +236,7 @@ public class ThuocTinhRestController {
         }
 
         CoGiay cg = new CoGiay();
-        cg.setMaCoGiay("SIZE" + System.currentTimeMillis());
+        cg.setMaCoGiay(generateNextMaCoGiay());
         cg.setSizeGiay(size);
         cg.setTrangThai(true);
         cg = coGiayRepository.save(cg);

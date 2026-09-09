@@ -27,6 +27,11 @@ public class PhieuGiamGiaController {
     @Autowired
     private com.example.be.repository.PhieuGiamGiaRepository phieuGiamGiaRepository;
 
+    @GetMapping("/next-code")
+    public ResponseEntity<?> getNextCode() {
+        return ResponseEntity.ok(java.util.Map.of("code", phieuGiamGiaService.generateNextMaVoucher()));
+    }
+
     // 0. Kiểm tra voucher hợp lệ và trả về thông tin
     @GetMapping("/check")
     public ResponseEntity<?> checkVoucher(

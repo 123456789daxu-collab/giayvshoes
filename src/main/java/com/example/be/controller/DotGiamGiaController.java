@@ -25,6 +25,11 @@ public class DotGiamGiaController {
     @Autowired
     private jakarta.persistence.EntityManager entityManager;
 
+    @GetMapping("/next-code")
+    public ResponseEntity<?> getNextCode() {
+        return ResponseEntity.ok(Map.of("code", dotGiamGiaService.generateNextMaCampaign()));
+    }
+
     @GetMapping("/filters")
     public ResponseEntity<?> getFilters() {
         try {

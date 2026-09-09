@@ -15,4 +15,6 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, Long
 
     // Find voucher by exact code
     Optional<PhieuGiamGia> findByMaVoucher(String maVoucher);
+
+    boolean existsByMaVoucher(String maVoucher);
 }

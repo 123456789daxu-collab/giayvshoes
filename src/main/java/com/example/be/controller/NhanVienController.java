@@ -81,6 +81,11 @@ public class NhanVienController {
         return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
     }
 
+    @GetMapping("/next-code")
+    public ResponseEntity<?> getNextCode() {
+        return ResponseEntity.ok(java.util.Collections.singletonMap("maNhanVien", nhanVienService.generateNextMaNhanVien()));
+    }
+
     @GetMapping
     public ResponseEntity<List<NhanVien>> getAll() {
         return ResponseEntity.ok(nhanVienService.findAll());
@@ -108,6 +113,7 @@ public class NhanVienController {
         try {
             return nhanVienService.findById(id)
                     .map(existing -> {
+                        // Mã nhân viên tự động và không thể chỉnh sửa
                         existing.setHoTen(nhanVien.getHoTen());
                         existing.setEmail(nhanVien.getEmail());
                         existing.setSoDienThoai(nhanVien.getSoDienThoai());

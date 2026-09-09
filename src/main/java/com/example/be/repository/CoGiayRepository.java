@@ -17,4 +17,6 @@ public interface CoGiayRepository extends JpaRepository<CoGiay, Long> {
     Page<CoGiay> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
 
     Optional<CoGiay> findBySizeGiay(Integer sizeGiay);
+
+    boolean existsByMaCoGiay(String maCoGiay);
 }

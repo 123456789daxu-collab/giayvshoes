@@ -17,4 +17,6 @@ public interface LoaiGiayRepository extends JpaRepository<LoaiGiay, Long> {
     Page<LoaiGiay> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
 
     Optional<LoaiGiay> findByTenLoaiGiayIgnoreCase(String tenLoaiGiay);
+
+    boolean existsByMaLoaiGiay(String maLoaiGiay);
 }

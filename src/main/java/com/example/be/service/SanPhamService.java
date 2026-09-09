@@ -7,13 +7,14 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface SanPhamService {
-    Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, Pageable pageable);
+    Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice, Pageable pageable);
     SanPham findById(Long id);
     SanPham save(SanPham sanPham);
     void deleteById(Long id);
     boolean existsByTenSanPham(String tenSanPham);
     SanPham findByTenSanPham(String tenSanPham);
     boolean existsByMaSanPham(String maSanPham);
+    String generateNextMaSanPham();
 
     List<SanPham> getAll();
     Page<SanPham> getPage(int pageNo, int pageSize);

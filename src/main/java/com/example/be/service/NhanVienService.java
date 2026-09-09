@@ -26,11 +26,36 @@ public class NhanVienService {
         return nhanVienRepository.findById(id);
     }
 
+    public String generateNextMaNhanVien() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("NV");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (nhanVienRepository.existsByMaNhanVien(code));
+        return code;
+    }
+
     public NhanVien save(NhanVien nhanVien) {
         boolean isNew = nhanVien.getId() == null;
         
+        if (isNew) {
+            if (nhanVien.getMaNhanVien() == null || nhanVien.getMaNhanVien().trim().isEmpty()) {
+                nhanVien.setMaNhanVien(generateNextMaNhanVien());
+            } else {
+                nhanVien.setMaNhanVien(nhanVien.getMaNhanVien().trim());
+            }
+        }
+
         // Kiểm tra trùng lặp
         if (isNew) {
+            if (nhanVien.getMaNhanVien() != null && nhanVienRepository.existsByMaNhanVien(nhanVien.getMaNhanVien())) {
+                throw new RuntimeException("Mã nhân viên đã tồn tại trong hệ thống!");
+            }
             if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty() && nhanVienRepository.existsByEmail(nhanVien.getEmail())) {
                 throw new RuntimeException("Email đã tồn tại trong hệ thống!");
             }
@@ -38,6 +63,9 @@ public class NhanVienService {
                 throw new RuntimeException("Số điện thoại đã tồn tại trong hệ thống!");
             }
         } else {
+            if (nhanVien.getMaNhanVien() != null && nhanVienRepository.existsByMaNhanVienAndIdNot(nhanVien.getMaNhanVien(), nhanVien.getId())) {
+                throw new RuntimeException("Mã nhân viên đã tồn tại ở một nhân viên khác!");
+            }
             if (nhanVien.getEmail() != null && !nhanVien.getEmail().trim().isEmpty() && nhanVienRepository.existsByEmailAndIdNot(nhanVien.getEmail(), nhanVien.getId())) {
                 throw new RuntimeException("Email đã tồn tại ở một nhân viên khác!");
             }
@@ -65,21 +93,6 @@ public class NhanVienService {
         String unencryptedPassword = nhanVien.getMatKhau(); // Keep plain text to send in email
         
         NhanVien saved = nhanVienRepository.save(nhanVien);
-        
-        // Auto-generate maNhanVien if empty
-        if (saved.getMaNhanVien() == null || saved.getMaNhanVien().isEmpty()) {
-            String maxMa = nhanVienRepository.findMaxMaNhanVien();
-            int nextNumber = 1;
-            if (maxMa != null && maxMa.startsWith("NV")) {
-                try {
-                    nextNumber = Integer.parseInt(maxMa.substring(2)) + 1;
-                } catch (Exception e) {
-                    // Ignore parsing errors, keep default 1 or handle fallback
-                }
-            }
-            saved.setMaNhanVien(String.format("NV%03d", nextNumber));
-            saved = nhanVienRepository.save(saved);
-        }
         
         // If it's a newly created employee, send notifications
         if (isNew) {

@@ -166,13 +166,15 @@
                         <form id="voucher-form" onsubmit="saveVoucher(event)">
                             <input type="hidden" id="voucher-id">
 
-                            <!-- Hàng 1: Tên phiếu -->
+                            <!-- Hàng 1: Mã phiếu & Tên phiếu -->
                             <div class="form-grid-2">
-                                <div class="form-group" style="grid-column: span 2;">
-                                    <label for="voucher-name">Tên phiếu giảm giá <span
-                                            class="required-star">*</span></label>
-                                    <input type="text" id="voucher-name" class="input-control" required
-                                        placeholder="Nhập tên phiếu giảm giá...">
+                                <div class="form-group">
+                                    <label for="voucher-code">Mã phiếu giảm giá <span class="required-star">*</span></label>
+                                    <input type="text" id="voucher-code" class="input-control" placeholder="Mã tự sinh..." readonly required style="background: #e2e8f0; color: #475569; font-weight: 600; cursor: not-allowed;">
+                                </div>
+                                <div class="form-group">
+                                    <label for="voucher-name">Tên phiếu giảm giá <span class="required-star">*</span></label>
+                                    <input type="text" id="voucher-name" class="input-control" required placeholder="Nhập tên phiếu giảm giá...">
                                 </div>
                             </div>
 
@@ -400,6 +402,7 @@
         let vCurrentPage = 0;
         let vPageSize = 10;
         let vTotalPages = 1;
+        let allLoadedVouchers = [];
 
         // CÁC BIẾN TOÀN CỤC CHO CUSTOMER SELECTION (CHO PHIẾU CÁ NHÂN)
         let custCurrentPage = 0;
@@ -475,6 +478,9 @@
             tbody.innerHTML = "";
 
             const list = pageData.content || [];
+            if (list && list.length > 0) {
+                allLoadedVouchers = list;
+            }
             vTotalPages = pageData.totalPages || 1;
             const totalElements = pageData.totalElements || 0;
 
@@ -842,10 +848,35 @@
             }
         }
 
+        function getNextVoucherCodeLocal() {
+            let maxNum = 0;
+            if (allLoadedVouchers && allLoadedVouchers.length > 0) {
+                allLoadedVouchers.forEach(v => {
+                    if (v && v.maVoucher) {
+                        const digits = String(v.maVoucher).replace(/\D+/g, '');
+                        if (digits) {
+                            const num = parseInt(digits, 10);
+                            if (num < 1000000 && num > maxNum) maxNum = num;
+                        }
+                    }
+                });
+            }
+            return 'PGG' + String(maxNum + 1).padStart(3, '0');
+        }
+
         // Mở màn hình thêm mới voucher
         function openAddVoucherForm() {
             document.getElementById("voucher-form").reset();
             document.getElementById("voucher-id").value = "";
+            document.getElementById("voucher-code").value = getNextVoucherCodeLocal();
+            fetch('/api/phieu-giam-gia/next-code')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.code) {
+                        document.getElementById("voucher-code").value = data.code;
+                    }
+                })
+                .catch(() => {});
             document.getElementById("form-panel-title").innerText = "Thêm mới phiếu giảm giá";
 
             selectedCustomerIds.clear();
@@ -881,6 +912,7 @@
 
                 // Điền thông tin cơ bản vào form
                 document.getElementById("voucher-id").value = voucher.id;
+                document.getElementById("voucher-code").value = voucher.maVoucher || "";
                 document.getElementById("voucher-name").value = voucher.tenVoucher;
 
                 // Chọn radio button hình thức giảm
@@ -984,6 +1016,7 @@
             event.preventDefault();
 
             const id = document.getElementById("voucher-id").value;
+            const maVoucher = document.getElementById("voucher-code").value.trim();
             const tenVoucher = document.getElementById("voucher-name").value.trim();
             const checkedLoaiGiam = document.querySelector('input[name="loaiGiamGia"]:checked');
             const loaiGiamGia = checkedLoaiGiam ? checkedLoaiGiam.value : "Phần trăm";
@@ -998,7 +1031,16 @@
             const ngayBatDauVal = document.getElementById("voucher-start-date").value;
             const ngayKetThucVal = document.getElementById("voucher-end-date").value;
 
-            // Kiểm tra ràng buộc phía client
+            if (!tenVoucher) {
+                Swal.fire('Lỗi', 'Vui lòng nhập tên phiếu giảm giá!', 'warning');
+                return;
+            }
+
+            if (!ngayBatDauVal || !ngayKetThucVal) {
+                Swal.fire('Lỗi', 'Vui lòng chọn thời gian bắt đầu và kết thúc!', 'warning');
+                return;
+            }
+
             if (new Date(ngayBatDauVal) > new Date(ngayKetThucVal)) {
                 alert("Lỗi: Ngày bắt đầu phải diễn ra trước hoặc cùng ngày với ngày kết thúc!");
                 return;
@@ -1028,6 +1070,7 @@
 
             // Chuẩn bị payload gửi đi
             const payload = {
+                maVoucher,
                 tenVoucher,
                 loaiGiamGia,
                 loaiPhieu,

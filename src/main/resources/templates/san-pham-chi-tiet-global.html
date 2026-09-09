@@ -45,11 +45,15 @@
         .status-active { background-color: #dcfce7; color: #16a34a; }
         .status-inactive { background-color: #fee2e2; color: #dc2626; }
         
-        .action-btn { width: 38px; height: 38px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; border: none; background: transparent; margin: 0 2px; font-size: 16px; cursor: pointer; transition: 0.2s; }
-        .action-btn:hover { background-color: #f1f5f9; }
-        .btn-view { color: #f59e0b; }
-        .btn-edit { color: #0284c7; }
-        .btn-delete { color: #ef4444; }
+        .action-btn { width: 36px; height: 36px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; margin: 0 2px; font-size: 16px; cursor: pointer; transition: 0.2s; text-decoration: none; }
+        .btn-view { background-color: #e0f2fe; color: #0284c7; border-color: #bae6fd; }
+        .btn-view:hover { background-color: #bae6fd; color: #0369a1; }
+        .btn-toggle { background-color: #fef3c7; color: #b45309; border-color: #fde68a; }
+        .btn-toggle:hover { background-color: #fde68a; color: #92400e; }
+        .btn-edit { background-color: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+        .btn-edit:hover { background-color: #ddd6fe; color: #5b21b6; }
+        .btn-delete { background-color: #fee2e2; color: #dc2626; border-color: #fecaca; }
+        .btn-delete:hover { background-color: #fecaca; color: #b91c1c; }
     </style>
 </head>
 <body>
@@ -161,7 +165,6 @@
                                 <th>Mã SPCT <i class="bi bi-chevron-expand"></i></th>
                                 <th>Tên Sản Phẩm <i class="bi bi-chevron-expand"></i></th>
                                 <th>Số Lượng <i class="bi bi-chevron-expand"></i></th>
-                                <th>Giá Nhập <i class="bi bi-chevron-expand"></i></th>
                                 <th class="text-center">Giảm Giá</th>
                                 <th>Giá Bán <i class="bi bi-chevron-expand"></i></th>
                                 <th>Kích Thước <i class="bi bi-chevron-expand"></i></th>
@@ -176,7 +179,7 @@
                                 th:data-mausac="${ct.mauSac != null ? ct.mauSac.tenMauSac : ''}"
                                 th:data-trangthai="${ct.trangThai}"
                                 th:data-gia="${ct.giaBan}"
-                                th:data-ten="${ct.sanPham.tenSanPham + ' ' + (ct.ma != null ? ct.ma : '')}"
+                                th:data-ten="${ct.sanPham.tenSanPham + ' ' + (ct.sanPham.maSanPham != null ? ct.sanPham.maSanPham : '') + ' ' + (ct.ma != null ? ct.ma : '')}"
                                 th:data-ma="${ct.ma}"
                                 th:data-soluong="${ct.soLuongTon}"
                                 th:data-chatlieu="${ct.sanPham.chatLieu != null ? ct.sanPham.chatLieu.id : ''}"
@@ -206,7 +209,6 @@
                                     <small class="text-muted" th:text="'[ ' + (${ct.coGiay != null ? ct.coGiay.sizeGiay : 'N/A'}) + ' - ' + (${ct.mauSac != null ? ct.mauSac.tenMauSac : 'N/A'}) + ' ]'">[ 36 - LightGoldenrodYellow ]</small>
                                 </td>
                                 <td th:text="${ct.soLuongTon}">121</td>
-                                <td th:text="${ct.giaNhap != null ? #numbers.formatDecimal(ct.giaNhap, 0, 'COMMA', 0, 'POINT') + ' VNĐ' : ''}"></td>
                                 <td class="text-center">
                                     <span th:if="${phanTramGiamMap != null and phanTramGiamMap.containsKey(ct.id)}" class="badge bg-danger px-2 py-1 shadow-sm" style="font-size: 0.85rem;" th:text="'-' + ${phanTramGiamMap.get(ct.id)} + '%'"></span>
                                     <span th:unless="${phanTramGiamMap != null and phanTramGiamMap.containsKey(ct.id)}" class="text-muted">-</span>
@@ -229,12 +231,12 @@
                                     <span th:if="${ct.trangThai == 1 and ct.soLuongTon <= 0}" class="status-badge status-inactive">Hết hàng</span>
                                     <span th:unless="${ct.trangThai == 1}" class="status-badge" style="background-color: #f1f5f9; color: #64748b;">Ngừng kinh doanh</span>
                                 </td>
-                                <td>
+                                <td class="text-nowrap align-middle">
                                     <a class="action-btn btn-view" title="Xem chi tiết"
                                        th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a class="action-btn toggle-status-btn me-1" style="background-color: #fffde7; color: #ffc107; border: none; border-radius: 6px; font-size: 1.1rem; padding: 4px 8px; display: inline-flex; justify-content: center; align-items: center;" title="Chuyển đổi trạng thái"
+                                    <a class="action-btn btn-toggle toggle-status-btn" title="Chuyển đổi trạng thái"
                                        th:data-id="${ct.id}" th:data-action="${ct.trangThai == 1 ? 'Ngừng kinh doanh' : 'Mở kinh doanh'}" href="javascript:void(0);">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </a>
@@ -248,6 +250,7 @@
                                        onclick="return confirm('Bạn có chắc chắn muốn xóa biến thể này không?');">
                                         <i class="bi bi-trash"></i>
                                     </a>
+                                </td>
 
                                 <!-- Modal Thư Viện Ảnh (Carousel) -->
                                 <div class="modal fade" th:id="'imageGalleryModal' + ${ct.id}" tabindex="-1" aria-hidden="true">
@@ -315,11 +318,17 @@
                                                             <img th:unless="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" src="/images/white.png" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc; background: #ffffff;">
                                                         </div>
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-medium">Giá Nhập (VNĐ)</label>
-                                                        <input type="text" class="form-control format-currency visible-gia-nhap" th:value="${ct.giaNhap != null ? #numbers.formatInteger(ct.giaNhap, 0, 'POINT') : ''}" th:oninput="|formatInputCurrency(this, 'hiddenGiaNhap_${ct.id}')|">
-                                                        <input type="hidden" name="giaNhap" th:id="'hiddenGiaNhap_' + ${ct.id}" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
+                                                    <div class="row g-2 mb-3">
+                                                        <div class="col-6">
+                                                            <label class="form-label fw-medium">Màu Sắc</label>
+                                                            <input type="text" class="form-control" th:value="${ct.mauSac != null ? ct.mauSac.tenMauSac : 'N/A'}" readonly style="background-color: #f8fafc; cursor: not-allowed; color: #64748b;">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label fw-medium">Kích Thước (Size)</label>
+                                                            <input type="text" class="form-control" th:value="${ct.coGiay != null ? ct.coGiay.sizeGiay : 'N/A'}" readonly style="background-color: #f8fafc; cursor: not-allowed; color: #64748b;">
+                                                        </div>
                                                     </div>
+                                                    <input type="hidden" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : '0'}">
                                                     <div class="mb-3">
                                                         <label class="form-label fw-medium">Giá Bán (VNĐ)</label>
                                                         <input type="text" class="form-control format-currency" th:value="${ct.giaBan != null ? #numbers.formatInteger(ct.giaBan, 0, 'POINT') : ''}" th:oninput="|formatInputCurrency(this, 'hiddenGiaBan_${ct.id}')|" required>
@@ -329,13 +338,7 @@
                                                         <label class="form-label fw-medium">Số Lượng Tồn</label>
                                                         <input type="number" class="form-control" name="soLuongTon" th:value="${ct.soLuongTon}" required>
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-medium">Trạng Thái</label>
-                                                        <select class="form-select" name="trangThai">
-                                                            <option value="1" th:selected="${ct.trangThai == 1}">Đang kinh doanh</option>
-                                                            <option value="0" th:selected="${ct.trangThai == 0}">Ngừng kinh doanh</option>
-                                                        </select>
-                                                    </div>
+                                                    <input type="hidden" name="trangThai" th:value="${ct.trangThai != null ? ct.trangThai : 1}">
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -368,7 +371,7 @@
              endPage=${pageData.totalPages <= 3 ? pageData.totalPages - 1 : actualStartPage + 2}">
     <!-- Nút Trước -->
     <li class="page-item" th:classappend="${pageData.first ? 'disabled' : ''}">
-        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number - 1}, size=${pageData.size}, keyword=${keyword})}">Trước</a>
+        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number - 1}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}">Trước</a>
     </li>
     <!-- Ellipsis Đầu -->
     <li class="page-item disabled" th:if="${actualStartPage > 0}">
@@ -376,7 +379,7 @@
     </li>
     <!-- Các số trang -->
     <li class="page-item" th:each="i : ${#numbers.sequence(actualStartPage, endPage)}" th:classappend="${pageData.number == i ? 'active' : ''}">
-        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${i}, size=${pageData.size}, keyword=${keyword})}" th:text="${i + 1}"></a>
+        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${i}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}" th:text="${i + 1}"></a>
     </li>
     <!-- Ellipsis Cuối -->
     <li class="page-item disabled" th:if="${endPage < pageData.totalPages - 1}">
@@ -384,7 +387,7 @@
     </li>
     <!-- Nút Sau -->
     <li class="page-item" th:classappend="${pageData.last ? 'disabled' : ''}">
-        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number + 1}, size=${pageData.size}, keyword=${keyword})}">Sau</a>
+        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number + 1}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}">Sau</a>
     </li>
 </ul>
                     </nav>
@@ -782,42 +785,6 @@
                 
                 document.getElementById(hiddenId).value = num;
             }
-            
-            // Real-time validation
-            let form = input.closest('form');
-            if (form) {
-                checkPriceValidity(form);
-            }
-        }
-
-        function checkPriceValidity(form) {
-            let giaNhapInput = form.querySelector('input[name="giaNhap"]');
-            let giaBanInput = form.querySelector('input[name="giaBan"]');
-            if (!giaNhapInput || !giaBanInput) return;
-            
-            let giaNhap = parseFloat(giaNhapInput.value) || 0;
-            let giaBan = parseFloat(giaBanInput.value) || 0;
-            
-            let submitBtn = form.querySelector('button[type="submit"]');
-            
-            let errorMsg = form.querySelector('.price-error-msg');
-            if (!errorMsg) {
-                errorMsg = document.createElement('div');
-                errorMsg.className = 'text-danger small mt-1 price-error-msg fw-bold';
-                
-                let visibleGiaNhap = form.querySelector('.visible-gia-nhap');
-                if (visibleGiaNhap) {
-                    visibleGiaNhap.parentElement.appendChild(errorMsg);
-                }
-            }
-            
-            if (giaNhap > 0 && giaNhap > giaBan) {
-                errorMsg.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Giá nhập không được lớn hơn giá bán!';
-                if (submitBtn) submitBtn.disabled = true;
-            } else {
-                errorMsg.innerHTML = '';
-                if (submitBtn) submitBtn.disabled = false;
-            }
         }
 
         function confirmSaveVariant(variantId) {
@@ -826,20 +793,6 @@
             
             if (!form.checkValidity()) {
                 form.reportValidity();
-                return;
-            }
-            let giaNhapStr = form.querySelector('input[name="giaNhap"]').value;
-            let giaBanStr = form.querySelector('input[name="giaBan"]').value;
-            let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
-            let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
-            
-            if (giaNhap > 0 && giaNhap > giaBan) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Giá nhập không được lớn hơn giá bán!',
-                    confirmButtonText: 'Đã hiểu'
-                });
                 return;
             }
             

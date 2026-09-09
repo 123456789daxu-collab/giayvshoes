@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý sản phẩm | VShoes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
@@ -40,6 +41,63 @@
         .card-filter .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
         .btn-refresh { width: 40px; height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #64748b; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 0.95rem; }
         .btn-refresh:hover { background: #f1f5f9; color: #1e293b; border-color: #94a3b8; }
+
+        /* Price slider */
+        .fi-price-val { color: #ef4444; font-weight: 700; margin-left: 4px; }
+        .fi-slider-wrap { display: flex; align-items: center; gap: 12px; height: 38px; }
+        .fi-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e2e8f0;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .fi-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0f2d4a;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(15, 45, 74, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .fi-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 6px rgba(0, 173, 239, 0.15), 0 2px 6px rgba(15, 45, 74, 0.4);
+        }
+        .fi-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #0f2d4a;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(15, 45, 74, 0.4);
+        }
+        .fi-reset-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .fi-reset-btn:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
 
         /* === ACTION BUTTONS === */
         .btn-excel { height: 40px; padding: 0 18px; font-size: 0.85rem; border-radius: 8px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease-in-out; }
@@ -127,20 +185,24 @@
             </div>
             <div class="card-body pt-3 pb-4">
                 <form method="GET" action="/san-pham" id="filterForm">
+                    <input type="hidden" name="sort" th:value="${sort}">
                     <div class="row g-3 align-items-end mb-4">
-                        <div class="col-md-7">
+                        <div class="col-md-5">
                             <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Tìm kiếm</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-white border-end-0 text-muted" style="border-radius: 6px 0 0 6px;"><i class="bi bi-search" style="font-size: 1rem;"></i></span>
                                 <input type="text" class="form-control border-start-0 ps-0 shadow-none py-2" name="keyword" th:value="${keyword}" placeholder="Tìm theo mã / tên sản phẩm..." style="border-radius: 0 6px 6px 0; font-size: 0.95rem;">
                             </div>
                         </div>
-                        <div class="col-md-5 text-end">
+                        <div class="col-md-7 text-end">
                             <a href="/san-pham" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
                                 <i class="bi bi-arrow-clockwise me-1"></i> Đặt lại
                             </a>
-                            <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
+                            <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai}, sort=${sort})}" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
                                 <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+                            </a>
+                            <a href="/san-pham/chi-tiet-global" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
+                                <i class="bi bi-grid-3x3-gap me-1"></i> Chi tiết sản phẩm
                             </a>
                             <a href="/san-pham/create" class="btn rounded-3 px-3 py-2 shadow-sm text-white" style="font-size: 0.95rem; font-weight: 500; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; box-shadow: 0 4px 12px rgba(0, 173, 239, 0.2); transition: all 0.2s;" onmouseover="this.style.background='#00adef'; this.style.boxShadow='0 6px 20px rgba(0, 173, 239, 0.35)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='linear-gradient(135deg, #0f2d4a 0%, #00adef 100%)'; this.style.boxShadow='0 4px 12px rgba(0, 173, 239, 0.2)'; this.style.transform='translateY(0)';">
                                 <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
@@ -148,28 +210,44 @@
                         </div>
                     </div>
                     
-                    <div class="row g-4">
-                        <div class="col-md-4">
+                    <div class="row g-3">
+                        <div class="col-md-3">
                             <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Thương hiệu</label>
                             <select class="form-select shadow-none py-2" name="idThuongHieu" onchange="document.getElementById('filterForm').submit()" style="font-size: 0.95rem; border-radius: 6px; color: #475569;">
                                 <option value="">Tất cả thương hiệu</option>
                                 <option th:each="th : ${listThuongHieu}" th:value="${th.id}" th:text="${th.tenThuongHieu}" th:selected="${idThuongHieu == th.id}"></option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Loại giày</label>
                             <select class="form-select shadow-none py-2" name="idLoaiGiay" onchange="document.getElementById('filterForm').submit()" style="font-size: 0.95rem; border-radius: 6px; color: #475569;">
                                 <option value="">Tất cả loại giày</option>
                                 <option th:each="lg : ${listLoaiGiay}" th:value="${lg.id}" th:text="${lg.tenLoaiGiay}" th:selected="${idLoaiGiay == lg.id}"></option>
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">Trạng thái</label>
                             <select class="form-select shadow-none py-2" name="trangThai" onchange="document.getElementById('filterForm').submit()" style="font-size: 0.95rem; border-radius: 6px; color: #475569;">
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="1" th:selected="${trangThai == 1}">Kinh doanh</option>
                                 <option value="0" th:selected="${trangThai == 0}">Ngừng kinh doanh</option>
                             </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-muted mb-1" style="font-size: 0.9rem; font-weight: 600;">
+                                Tổng tiền tối đa: <span id="priceSliderValue" class="fi-price-val" th:text="${maxPrice != null ? #numbers.formatDecimal(maxPrice, 0, 'POINT', 0, 'POINT') + ' đ' : '10.000.000 đ'}">10.000.000 đ</span>
+                            </label>
+                            <div class="fi-slider-wrap">
+                                <input type="range" id="priceSlider" name="maxPrice"
+                                       min="0" max="10000000" step="50000" 
+                                       th:value="${maxPrice != null ? maxPrice : 10000000}"
+                                       class="fi-slider"
+                                       oninput="onPriceSliderInput(this.value)"
+                                       onchange="document.getElementById('filterForm').submit()">
+                                <button type="button" class="fi-reset-btn" onclick="resetPriceSlider()" title="Đặt lại mức giá tối đa">
+                                    <i class="bi bi-arrow-clockwise" style="font-size: 1.15rem;"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -187,43 +265,58 @@
                         <thead>
                             <tr>
                                 <th class="text-muted fw-bold border-0 bg-transparent py-4 ps-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 5%;">STT</th>
-                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Mã SP</th>
-                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 25%;">Tên SP</th>
-                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Thương hiệu</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 13%;">Mã SP</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 22%;">Tên SP</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 12%;">Thương hiệu</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 14%;">
+                                    <a th:href="@{/san-pham(sort=${sort == 'price_asc' ? 'price_desc' : 'price_asc'}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai})}" class="text-decoration-none text-muted d-inline-flex align-items-center gap-1" title="Bấm để đổi sắp xếp giá (Thấp đến cao / Cao đến thấp)">
+                                        Giá bán
+                                        <i th:if="${sort == 'price_asc'}" class="bi bi-sort-numeric-down text-primary fw-bold" style="font-size: 1.05rem;"></i>
+                                        <i th:if="${sort == 'price_desc'}" class="bi bi-sort-numeric-down-alt text-primary fw-bold" style="font-size: 1.05rem;"></i>
+                                        <i th:if="${sort != 'price_asc' and sort != 'price_desc'}" class="bi bi-arrow-down-up" style="font-size: 0.85rem;"></i>
+                                    </a>
+                                </th>
                                 <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 10%;">Số lượng</th>
-                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Trạng thái</th>
-                                <th class="text-muted fw-bold border-0 bg-transparent py-4 text-center" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 15%;">Hành động</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 12%;">Trạng thái</th>
+                                <th class="text-muted fw-bold border-0 bg-transparent py-4 text-center" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; width: 12%;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody class="border-top-0">
                             <tr th:each="sp, stat : ${listSanPham}">
                                 <td class="ps-4 text-muted py-3" th:text="${(currentPage - 1) * 5 + stat.count}"></td>
-                                <td class="text-muted py-3" th:text="${sp.maSanPham}"></td>
-                                <td class="text-dark fw-medium py-3" th:text="${sp.tenSanPham}"></td>
+                                <td class="py-3">
+                                    <a th:href="@{/san-pham/chi-tiet-global(sanPhamId=${sp.id}, keyword=${sp.maSanPham})}" class="text-decoration-none fw-semibold" style="color: #00adef;" title="Xem chi tiết sản phẩm" th:text="${sp.maSanPham}"></a>
+                                </td>
+                                <td class="py-3">
+                                    <a th:href="@{/san-pham/chi-tiet-global(sanPhamId=${sp.id}, keyword=${sp.maSanPham})}" class="text-decoration-none fw-semibold text-dark" style="transition: color 0.2s;" onmouseover="this.style.color='#00adef'" onmouseout="this.style.color='#1e293b'" title="Xem chi tiết sản phẩm" th:text="${sp.tenSanPham}"></a>
+                                </td>
                                 <td class="text-muted py-3" th:text="${sp.thuongHieu != null ? sp.thuongHieu.tenThuongHieu : ''}"></td>
+                                <td class="py-3 fw-bold text-danger" style="font-size: 0.95rem;">
+                                    <span th:if="${sp.giaBan != null}" th:text="${#numbers.formatDecimal(sp.giaBan, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                    <span th:unless="${sp.giaBan != null}" class="text-muted fw-normal" style="font-size: 0.85rem;">-</span>
+                                </td>
                                 <td class="text-muted py-3" th:text="${sp.soLuong != null ? sp.soLuong : 0}"></td>
                                 <td class="py-3">
                                     <span th:if="${sp.trangThai == 1}" class="px-3 py-1 fw-medium" style="background-color: #e6f4ea; color: #1e8e3e; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #ceead6;">Kinh doanh</span>
                                     <span th:if="${sp.trangThai != 1}" class="px-3 py-1 fw-medium" style="background-color: #fce8e6; color: #d93025; border-radius: 6px; font-size: 0.85rem; display: inline-block; border: 1px solid #fad2cf;">Ngừng kinh doanh</span>
                                 </td>
                                 <td class="text-center align-middle py-3">
-                                    <a class="btn btn-light text-info me-2 px-3 py-2" 
-                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #f0f9ff; border: none; text-decoration: none;"
-                                        title="Xem chi tiết"
-                                        th:href="@{/san-pham/edit/{id}(id=${sp.id})}">
+                                    <a class="btn me-2 px-3 py-2" 
+                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;"
+                                        title="Chi tiết sản phẩm"
+                                        th:href="@{/san-pham/chi-tiet-global(sanPhamId=${sp.id}, keyword=${sp.maSanPham})}">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <button class="btn btn-light text-warning me-2 px-3 py-2" 
-                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #fffbeb; border: none;"
+                                    <button class="btn me-2 px-3 py-2" 
+                                        style="border-radius: 6px; font-size: 1.1rem; background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; display: inline-flex; align-items: center; justify-content: center;"
                                         title="Chuyển đổi trạng thái" 
                                         th:onclick="'confirmToggleStatus(' + ${sp.id} + ', ' + ${sp.trangThai} + ')'">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
-
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(listSanPham)}">
-                                <td colspan="7" class="text-center py-5 text-muted" style="font-size:0.85rem;">
+                                <td colspan="8" class="text-center py-5 text-muted" style="font-size:0.85rem;">
                                     <i class="bi bi-inbox fs-3 d-block mb-2 opacity-50"></i>
                                     Chưa có dữ liệu sản phẩm
                                 </td>
@@ -243,7 +336,7 @@
                         <ul class="pagination mb-0">
                             <!-- Nút Trước -->
                             <li class="page-item" th:classappend="${currentPage == 1 ? 'disabled' : ''}">
-                                <a class="page-link text-muted px-3" style="background-color: #f8f9fa; border-color: #dee2e6;" th:href="@{/san-pham(page=${currentPage - 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}">
+                                <a class="page-link text-muted px-3" style="background-color: #f8f9fa; border-color: #dee2e6;" th:href="@{/san-pham(page=${currentPage - 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai}, sort=${sort})}">
                                     Trước
                                 </a>
                             </li>
@@ -253,7 +346,7 @@
                                 <!-- Hiển thị trang 1, trang cuối, và các trang xung quanh trang hiện tại -->
                                 <th:block th:if="${i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1)}">
                                     <li class="page-item" th:classappend="${currentPage == i ? 'active' : ''}">
-                                        <a class="page-link" th:href="@{/san-pham(page=${i}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" th:text="${i}"
+                                        <a class="page-link" th:href="@{/san-pham(page=${i}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai}, sort=${sort})}" th:text="${i}"
                                            th:style="${currentPage == i ? 'background-color: #0ea5e9; border-color: #0ea5e9; color: white;' : 'color: #475569; border-color: #dee2e6;'}"></a>
                                     </li>
                                 </th:block>
@@ -275,7 +368,7 @@
 
                             <!-- Nút Sau -->
                             <li class="page-item" th:classappend="${currentPage == totalPages ? 'disabled' : ''}">
-                                <a class="page-link text-muted" th:href="@{/san-pham(page=${currentPage + 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, trangThai=${trangThai}, sort=${sort})}" style="border-color: #dee2e6;">
+                                <a class="page-link text-muted" th:href="@{/san-pham(page=${currentPage + 1}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai}, sort=${sort})}" style="border-color: #dee2e6;">
                                     Sau
                                 </a>
                             </li>
@@ -303,7 +396,7 @@
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
                             <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">MÃ SẢN PHẨM <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="maSanPham" id="maSanPham" placeholder="Nhập mã sản phẩm..." required style="height: 42px; border-radius: 8px;">
+                            <input type="text" class="form-control" name="maSanPham" id="maSanPham" placeholder="Mã tự sinh..." readonly required style="height: 42px; border-radius: 8px; background-color: #e2e8f0; color: #475569; font-weight: 600; cursor: not-allowed;">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">TÊN SẢN PHẨM <span class="text-danger">*</span></label>
@@ -331,15 +424,12 @@
 
                     <!-- Row 3 -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">GIÁ NHẬP (VNĐ) <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="giaNhap" id="giaNhap" placeholder="0" style="height: 42px; border-radius: 8px;">
-                        </div>
-                        <div class="col-md-4">
+                        <input type="hidden" name="giaNhap" id="giaNhap" value="0">
+                        <div class="col-md-6">
                             <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">GIÁ BÁN (VNĐ) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="giaBan" id="giaBan" placeholder="0" style="height: 42px; border-radius: 8px;">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">SỐ LƯỢNG NHẬP <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="soLuong" id="soLuong" placeholder="0" style="height: 42px; border-radius: 8px;">
                         </div>
@@ -378,7 +468,6 @@
         document.getElementById('tenSanPham').disabled = disabled;
         document.getElementById('thuongHieu').disabled = disabled;
         document.getElementById('loaiGiay').disabled = disabled;
-        document.getElementById('giaNhap').disabled = disabled;
         document.getElementById('giaBan').disabled = disabled;
         document.getElementById('soLuong').disabled = disabled;
         document.getElementById('moTaChiTiet').disabled = disabled;
@@ -389,11 +478,20 @@
     function openAddModal() {
         document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i> Thêm Sản Phẩm Mới';
         document.getElementById('productForm').action = '/san-pham/add';
-        document.getElementById('maSanPham').value = '';
+        document.getElementById('maSanPham').value = 'Đang tải...';
+        fetch('/san-pham/api/next-code')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.code) {
+                    document.getElementById('maSanPham').value = data.code;
+                }
+            })
+            .catch(() => {
+                document.getElementById('maSanPham').value = 'SP' + Math.random().toString(36).substring(2, 8).toUpperCase();
+            });
         document.getElementById('tenSanPham').value = '';
         document.getElementById('thuongHieu').value = '';
         document.getElementById('loaiGiay').value = '';
-        document.getElementById('giaNhap').value = '';
         document.getElementById('giaBan').value = '';
         document.getElementById('soLuong').value = '';
         document.getElementById('moTaChiTiet').value = '';
@@ -409,7 +507,6 @@
         document.getElementById('tenSanPham').value = btn.getAttribute('data-ten');
         document.getElementById('thuongHieu').value = btn.getAttribute('data-thuonghieu');
         document.getElementById('loaiGiay').value = btn.getAttribute('data-loaigiay');
-        document.getElementById('giaNhap').value = btn.getAttribute('data-gianhap') || '0';
         document.getElementById('giaBan').value = btn.getAttribute('data-giaban') || '0';
         document.getElementById('soLuong').value = btn.getAttribute('data-soluong') || '0';
         document.getElementById('moTaChiTiet').value = btn.getAttribute('data-mota') || '';
@@ -425,7 +522,6 @@
         document.getElementById('tenSanPham').value = btn.getAttribute('data-ten');
         document.getElementById('thuongHieu').value = btn.getAttribute('data-thuonghieu');
         document.getElementById('loaiGiay').value = btn.getAttribute('data-loaigiay');
-        document.getElementById('giaNhap').value = btn.getAttribute('data-gianhap') || '0';
         document.getElementById('giaBan').value = btn.getAttribute('data-giaban') || '0';
         document.getElementById('soLuong').value = btn.getAttribute('data-soluong') || '0';
         document.getElementById('moTaChiTiet').value = btn.getAttribute('data-mota') || '';
@@ -473,18 +569,35 @@
             e.preventDefault();
             return;
         }
-        const giaNhap = parseFloat(document.getElementById('giaNhap').value) || 0;
-        const giaBan = parseFloat(document.getElementById('giaBan').value) || 0;
+    });
+
+    function onPriceSliderInput(val) {
+        let num = parseInt(val) || 0;
+        let formatted = new Intl.NumberFormat('vi-VN').format(num) + ' đ';
+        let label = document.getElementById('priceSliderValue');
+        if (label) label.textContent = formatted;
         
-        if (giaNhap >= giaBan) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'warning',
-                title: 'Lỗi nhập liệu',
-                text: 'Giá bán phải lớn hơn giá nhập!',
-                confirmButtonColor: '#0ea5e9',
-                borderRadius: '12px'
-            });
+        let slider = document.getElementById('priceSlider');
+        if (slider) {
+            let max = parseInt(slider.max) || 10000000;
+            let percent = (num / max) * 100;
+            slider.style.background = `linear-gradient(to right, #0f2d4a 0%, #00adef ${percent}%, #e2e8f0 ${percent}%, #e2e8f0 100%)`;
+        }
+    }
+
+    function resetPriceSlider() {
+        let slider = document.getElementById('priceSlider');
+        if (slider) {
+            slider.value = 10000000;
+            onPriceSliderInput(10000000);
+            document.getElementById('filterForm').submit();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let slider = document.getElementById('priceSlider');
+        if (slider) {
+            onPriceSliderInput(slider.value);
         }
     });
 </script>

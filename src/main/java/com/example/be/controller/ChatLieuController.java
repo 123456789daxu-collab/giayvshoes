@@ -37,7 +37,22 @@ public class ChatLieuController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("nextMaChatLieu", generateNextMaChatLieu());
         return "chat-lieu";
+    }
+
+    private String generateNextMaChatLieu() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("CL");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (chatLieuRepository.existsByMaChatLieu(code));
+        return code;
     }
 
     @PostMapping("/add")
@@ -57,7 +72,7 @@ public class ChatLieuController {
 
         chatLieu.setTenChatLieu(tenTrimmed);
         if (chatLieu.getMaChatLieu() == null || chatLieu.getMaChatLieu().trim().isEmpty() || "(Tự động sinh)".equals(chatLieu.getMaChatLieu().trim())) {
-            chatLieu.setMaChatLieu("CL" + System.currentTimeMillis());
+            chatLieu.setMaChatLieu(generateNextMaChatLieu());
         }
         chatLieu.setTrangThai(true);
         try {

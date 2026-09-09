@@ -71,26 +71,27 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá với ID: " + id));
     }
 
-    private String generateMaCampaign() {
-        Optional<DotGiamGia> lastCampaign = dotGiamGiaRepository.findFirstByMaDotGiamGiaStartingWithOrderByMaDotGiamGiaDesc("DGG");
-        if (lastCampaign.isEmpty()) {
-            return "DGG001";
-        }
-        String lastCode = lastCampaign.get().getMaDotGiamGia();
-        try {
-            int num = Integer.parseInt(lastCode.substring(3));
-            return String.format("DGG%03d", num + 1);
-        } catch (NumberFormatException e) {
-            return "DGG" + System.currentTimeMillis();
-        }
+    @Override
+    public String generateNextMaCampaign() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("DGG");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (dotGiamGiaRepository.existsByMaDotGiamGia(code));
+        return code;
     }
 
     @Override
     @Transactional
     public DotGiamGia createCampaign(DotGiamGiaDto dto) {
         String code = dto.getMaDotGiamGia();
-        if (code == null || code.trim().isEmpty()) {
-            code = generateMaCampaign();
+        if (code == null || code.trim().isEmpty() || code.contains("Đang tải") || "(Tự động sinh)".equals(code.trim())) {
+            code = generateNextMaCampaign();
         } else {
             code = code.trim();
         }

@@ -35,6 +35,11 @@ public class SanPhamRestController {
         this.dotGiamGiaRepository = dotGiamGiaRepository;
     }
 
+    @GetMapping("/next-code")
+    public ResponseEntity<?> getNextCode() {
+        return ResponseEntity.ok(Map.of("code", sanPhamService.generateNextMaSanPham()));
+    }
+
     @GetMapping("/flash-sale")
     public ResponseEntity<Map<String, Object>> getFlashSaleData() {
         List<DotGiamGia> activeCampaigns = dotGiamGiaRepository.findActiveCampaigns();

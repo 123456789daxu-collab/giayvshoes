@@ -157,12 +157,7 @@
 
                                     <div class="form-group" style="margin-bottom: 0;">
                                         <label for="campaign-code" style="font-size: 12px; font-weight: 600; color: #475569;">Mã đợt <span class="required-star">*</span></label>
-                                        <div style="position: relative;">
-                                            <input type="text" id="campaign-code" class="input-control" placeholder="Hệ thống tự sinh" required style="border-radius: 6px; padding-right: 40px;">
-                                            <button type="button" onclick="generateRandomCode()" style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 2px 5px rgba(0, 173, 239, 0.3);" title="Tạo mã ngẫu nhiên">
-                                                <i data-lucide="refresh-cw" style="width: 18px; height: 18px;"></i>
-                                            </button>
-                                        </div>
+                                        <input type="text" id="campaign-code" class="input-control" placeholder="Mã tự sinh..." readonly required style="border-radius: 6px; background: #e2e8f0; color: #475569; font-weight: 600; cursor: not-allowed;">
                                     </div>
 
                                     <div class="form-group" style="margin-bottom: 0;">
@@ -317,6 +312,23 @@
         let cCurrentPage = 0;
         let cPageSize = 10;
         let cTotalPages = 1;
+        let allLoadedCampaigns = [];
+
+        function getNextCampaignCodeLocal() {
+            let maxNum = 0;
+            if (allLoadedCampaigns && allLoadedCampaigns.length > 0) {
+                allLoadedCampaigns.forEach(c => {
+                    if (c && c.maDotGiamGia) {
+                        const digits = String(c.maDotGiamGia).replace(/\D+/g, '');
+                        if (digits) {
+                            const num = parseInt(digits, 10);
+                            if (num < 1000000 && num > maxNum) maxNum = num;
+                        }
+                    }
+                });
+            }
+            return 'DGG' + String(maxNum + 1).padStart(3, '0');
+        }
 
         // CÁC BIẾN TOÀN CỤC CHO SẢN PHẨM SELECTION
         let prodCurrentPage = 0;
@@ -342,13 +354,18 @@
             return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
         }
 
-        function generateRandomCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = 'DGG';
-            for (let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
+        async function generateNextCampaignCode() {
+            try {
+                const res = await fetch('/api/dot-giam-gia/next-code');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.code) {
+                        document.getElementById("campaign-code").value = data.code;
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi lấy mã đợt giảm giá:", e);
             }
-            document.getElementById("campaign-code").value = code;
         }
 
         // =========================================================================
@@ -385,6 +402,9 @@
             tbody.innerHTML = "";
 
             const list = pageData.content || [];
+            if (list && list.length > 0) {
+                allLoadedCampaigns = list;
+            }
             cTotalPages = pageData.totalPages || 1;
             const totalElements = pageData.totalElements || 0;
 
@@ -631,7 +651,8 @@
         function openAddCampaignForm() {
             document.getElementById("campaign-form").reset();
             document.getElementById("campaign-id").value = "";
-            generateRandomCode();
+            document.getElementById("campaign-code").value = getNextCampaignCodeLocal();
+            generateNextCampaignCode();
             document.getElementById("form-panel-title").innerText = "Tạo đợt giảm giá";
             
             const descCharEl = document.getElementById("desc-char-count");

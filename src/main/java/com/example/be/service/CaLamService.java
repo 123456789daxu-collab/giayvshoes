@@ -26,6 +26,20 @@ public class CaLamService {
         return caLamRepository.findById(id).orElse(null);
     }
 
+    public String generateNextMaCa() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("CA");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (caLamRepository.existsByMaCa(code));
+        return code;
+    }
+
     public void deleteById(Long id) {
         caLamRepository.deleteById(id);
     }

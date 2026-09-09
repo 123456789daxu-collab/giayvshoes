@@ -15,4 +15,6 @@ public interface DotGiamGiaRepository extends JpaRepository<DotGiamGia, Long>, J
 
     @Query("SELECT d FROM DotGiamGia d WHERE d.trangThai = 1 AND d.ngayBatDau <= CURRENT_TIMESTAMP AND d.ngayKetThuc >= CURRENT_TIMESTAMP ORDER BY d.ngayKetThuc ASC")
     List<DotGiamGia> findActiveCampaigns();
+
+    boolean existsByMaDotGiamGia(String maDotGiamGia);
 }

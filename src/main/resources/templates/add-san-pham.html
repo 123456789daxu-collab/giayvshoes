@@ -90,11 +90,17 @@
                                 <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Thông tin cơ bản</h6>
                             </div>
                             <div class="card-body p-4 pt-2">
-                                <div class="mb-4">
-                                    <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Tên sản phẩm <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="tenSanPham" id="tenSanPham" placeholder="Nhập tên sản phẩm..." required style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px; transition: border-color 0.2s;">
-                                    <div id="tenSanPhamError" class="text-danger mt-1 fw-medium" style="display: none; font-size: 0.85rem;"><i class="bi bi-exclamation-circle me-1"></i>Tên sản phẩm đã tồn tại! Vui lòng chọn tên khác.</div>
-                                    <div id="tenSanPhamSpecialCharError" class="text-danger mt-1 fw-medium" style="display: none; font-size: 0.85rem;"><i class="bi bi-exclamation-circle me-1"></i>Tên sản phẩm không được chứa ký tự đặc biệt! Chỉ cho phép chữ cái, số và khoảng trắng.</div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Mã sản phẩm</label>
+                                        <input type="text" class="form-control" name="maSanPham" id="maSanPham" th:value="${nextMaSanPham}" placeholder="Mã tự sinh..." readonly style="border-radius: 6px; background-color: #e2e8f0; color: #475569; font-weight: 600; cursor: not-allowed; padding: 10px 14px;">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Tên sản phẩm <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="tenSanPham" id="tenSanPham" placeholder="Nhập tên sản phẩm..." required style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px; transition: border-color 0.2s;">
+                                        <div id="tenSanPhamError" class="text-danger mt-1 fw-medium" style="display: none; font-size: 0.85rem;"><i class="bi bi-exclamation-circle me-1"></i>Tên sản phẩm đã tồn tại! Vui lòng chọn tên khác.</div>
+                                        <div id="tenSanPhamSpecialCharError" class="text-danger mt-1 fw-medium" style="display: none; font-size: 0.85rem;"><i class="bi bi-exclamation-circle me-1"></i>Tên sản phẩm không được chứa ký tự đặc biệt! Chỉ cho phép chữ cái, số và khoảng trắng.</div>
+                                    </div>
                                 </div>
                                 <div class="mb-2">
                                     <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Mô tả sản phẩm</label>
@@ -160,18 +166,11 @@
                             </div>
                             <div class="card-body p-4 pt-2">
                                 <div class="row g-4">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Số lượng</label>
                                         <input type="text" class="form-control" id="globalSoLuong" placeholder="Ví dụ: 100" oninput="formatNumberInput(this)" style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px; text-align: left;">
                                     </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Giá nhập</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="globalGiaNhap" placeholder="0" oninput="formatNumberInput(this)" style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px; text-align: left;">
-                                            <span class="input-group-text bg-white text-muted" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;">VNĐ</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Giá bán</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="globalGiaBan" placeholder="0" oninput="formatNumberInput(this)" style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px; text-align: left;">
@@ -252,14 +251,13 @@
                                 <th>STT</th>
                                 <th style="text-align: left;">Tên Sản Phẩm</th>
                                 <th>Số lượng</th>
-                                <th>Giá Nhập</th>
                                 <th>Giá Bán</th>
                                 <th>Hành động</th>
                                 <th>Upload Ảnh</th>
                             </tr>
                         </thead>
                         <tbody id="variantTableBody">
-                            <tr><td colspan="7" style="height: 120px; border-bottom: none;"></td></tr>
+                            <tr><td colspan="6" style="height: 120px; border-bottom: none;"></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -355,7 +353,7 @@
                 }
             });
 
-            // Validate Giá nhập phải nhỏ hơn giá bán
+            // Validate submit form
             document.getElementById('productForm').addEventListener('submit', function(e) {
                 // Kiểm tra ký tự đặc biệt trong tên sản phẩm
                 const tenSP = document.getElementById('tenSanPham').value;
@@ -368,30 +366,12 @@
                 // Không chặn submit khi trùng tên nữa, để backend kiểm tra phân loại
 
 
-                const importPrices = document.getElementsByName('variantImportPrices');
                 const prices = document.getElementsByName('variantPrices');
                 
-                if (importPrices.length === 0) {
+                if (prices.length === 0) {
                     e.preventDefault();
                     Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Vui lòng tạo ít nhất 1 biến thể!', showConfirmButton: false, timer: 3000 });
                     return false;
-                }
-                
-                for (let i = 0; i < importPrices.length; i++) {
-                    let giaNhap = parseFloat(importPrices[i].value) || 0;
-                    let giaBan = parseFloat(prices[i].value) || 0;
-                    if (giaNhap >= giaBan) {
-                        e.preventDefault();
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'error',
-                            title: 'Giá nhập phải nhỏ hơn giá bán ở tất cả các biến thể!',
-                            showConfirmButton: false,
-                            timer: 3000
-                        });
-                        return false;
-                    }
                 }
 
                 // If validation passes, show confirmation modal
@@ -440,28 +420,14 @@
                 }
 
                 let globalSoLuong = document.getElementById('globalSoLuong') ? document.getElementById('globalSoLuong').value.trim() : '';
-                let globalGiaNhap = document.getElementById('globalGiaNhap') ? document.getElementById('globalGiaNhap').value.trim() : '';
                 let globalGiaBan = document.getElementById('globalGiaBan') ? document.getElementById('globalGiaBan').value.trim() : '';
                 
                 // Allow empty, but if provided, must not contain letters/special chars (only numbers and commas)
                 if ((globalSoLuong && /[^0-9,]/.test(globalSoLuong)) || 
-                    (globalGiaNhap && /[^0-9,]/.test(globalGiaNhap)) || 
                     (globalGiaBan && /[^0-9,]/.test(globalGiaBan))) {
                     Swal.fire({
                         toast: true, position: 'top-end', icon: 'error',
                         title: 'Thiết lập chung không được chứa chữ cái hay ký tự đặc biệt!',
-                        showConfirmButton: false, timer: 3000
-                    });
-                    return;
-                }
-
-                let giaNhapNum = parseFloat(globalGiaNhap.replace(/,/g, '')) || 0;
-                let giaBanNum = parseFloat(globalGiaBan.replace(/,/g, '')) || 0;
-                
-                if (giaNhapNum > 0 && giaNhapNum >= giaBanNum) {
-                    Swal.fire({
-                        toast: true, position: 'top-end', icon: 'error',
-                        title: 'Giá nhập phải nhỏ hơn giá bán!',
                         showConfirmButton: false, timer: 3000
                     });
                     return;
@@ -490,21 +456,18 @@
             const tbody = document.getElementById('variantTableBody');
             
             if(selectedColors.length === 0 || selectedSizes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="height: 120px; border-bottom: none;"></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="height: 120px; border-bottom: none;"></td></tr>';
                 return;
             }
 
             let globalSoLuong = document.getElementById('globalSoLuong') ? document.getElementById('globalSoLuong').value : '';
-            let globalGiaNhap = document.getElementById('globalGiaNhap') ? document.getElementById('globalGiaNhap').value : '';
             let globalGiaBan = document.getElementById('globalGiaBan') ? document.getElementById('globalGiaBan').value : '';
             
             let globalSoLuongRaw = globalSoLuong.replace(/,/g, '') || '0';
-            let globalGiaNhapRaw = globalGiaNhap.replace(/,/g, '') || '0';
             let globalGiaBanRaw = globalGiaBan.replace(/,/g, '') || '0';
             
             // Format these values with commas for display in the table
             let dispSoLuong = globalSoLuongRaw !== '0' ? globalSoLuongRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0';
-            let dispGiaNhap = globalGiaNhapRaw !== '0' ? globalGiaNhapRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0';
             let dispGiaBan = globalGiaBanRaw !== '0' ? globalGiaBanRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0';
 
             tbody.innerHTML = '';
@@ -522,7 +485,7 @@
                             <input type="hidden" name="variantColors" value="${colorObj.id}">
                             <input type="hidden" name="variantImages" class="image-color-${colorObj.id}" value="">
                             <input type="hidden" name="variantQuantities" class="qty-${colorObj.id}" value="${globalSoLuongRaw}">
-                            <input type="hidden" name="variantImportPrices" class="import-price-${colorObj.id}" value="${globalGiaNhapRaw}">
+                            <input type="hidden" name="variantImportPrices" class="import-price-${colorObj.id}" value="0">
                             <input type="hidden" name="variantPrices" class="price-${colorObj.id}" value="${globalGiaBanRaw}">
                         </div>
                     `;
@@ -540,12 +503,6 @@
                     <td style="vertical-align: middle;">
                         <div class="input-group flex-nowrap" style="width: 120px; margin: 0 auto;">
                             <input type="text" class="form-control m-0 text-center format-number" value="${dispSoLuong}" required oninput="formatNumberInputGroup(this, 'qty-${colorObj.id}')">
-                        </div>
-                    </td>
-                    <td style="vertical-align: middle;">
-                        <div class="input-group flex-nowrap" style="width: 190px; margin: 0 auto;">
-                            <input type="text" class="form-control m-0 text-center format-currency input-import-${colorObj.id}" value="${dispGiaNhap}" required oninput="formatNumberInputGroup(this, 'import-price-${colorObj.id}')">
-                            <span class="input-group-text">VNĐ</span>
                         </div>
                     </td>
                     <td style="vertical-align: middle;">
@@ -962,7 +919,6 @@
                         <tr>
                             <th class="py-3 border-0 fw-semibold">Kích cỡ</th>
                             <th class="py-3 border-0 fw-semibold">Số lượng</th>
-                            <th class="py-3 border-0 fw-semibold">Giá nhập</th>
                             <th class="py-3 border-0 fw-semibold">Giá bán</th>
                             <th class="py-3 border-0 fw-semibold">Hành động</th>
                         </tr>
@@ -975,18 +931,15 @@
                 let sName = g.dataset.sizeName;
                 
                 let qty = g.querySelector('input[name="variantQuantities"]').value;
-                let importPrice = g.querySelector('input[name="variantImportPrices"]').value;
                 let price = g.querySelector('input[name="variantPrices"]').value;
                 
                 let dispQty = qty.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                let dispImportPrice = importPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 let dispPrice = price.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
                 
                 listHtml += `
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td class="fw-bold text-dark py-3">${sName}</td>
                             <td class="text-dark py-3">${dispQty}</td>
-                            <td class="text-dark py-3">${dispImportPrice} đ</td>
                             <td class="text-dark py-3">${dispPrice} đ</td>
                             <td class="py-3">
                                 <button type="button" class="btn btn-sm btn-outline-dark rounded-circle shadow-none" style="width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#1e293b'; this.style.color='#fff';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#1e293b';" onclick="removeSpecificSize('${colorId}', '${sId}')"><i class="bi bi-trash3"></i></button>
@@ -1066,6 +1019,28 @@
                 }
             });
         };
+
+        // Auto-fetch maSanPham if empty
+        document.addEventListener("DOMContentLoaded", function() {
+            const maSpInput = document.getElementById("maSanPham");
+            if (maSpInput && (!maSpInput.value || maSpInput.value.trim() === '' || maSpInput.value.trim() === 'null')) {
+                fetch('/api/san-pham/next-code')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.code) {
+                            maSpInput.value = data.code;
+                        }
+                    })
+                    .catch(() => {
+                        fetch('/san-pham/api/next-code')
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data && data.code) maSpInput.value = data.code;
+                            })
+                            .catch(() => {});
+                    });
+            }
+        });
     </script>
 </body>
 </html>

@@ -16,6 +16,7 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query("SELECT s FROM SanPhamChiTiet s " +
            "WHERE (:keyword IS NULL OR :keyword = '' " +
            "  OR LOWER(s.sanPham.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "  OR LOWER(s.sanPham.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "  OR LOWER(s.ma) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<SanPhamChiTiet> searchGlobal(@Param("keyword") String keyword, Pageable pageable);
     

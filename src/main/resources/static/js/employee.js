@@ -245,12 +245,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    function getNextEmployeeCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = 'NV';
+        for (let i = 0; i < 6; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
     // 3. Open Form for Adding Employee
     btnAdd.onclick = () => {
         isEditing = false;
         document.getElementById("formTitle").textContent = "Thêm nhân viên mới";
         form.reset();
         document.getElementById("empId").value = "";
+        document.getElementById("empCode").value = getNextEmployeeCode();
+        fetch("/api/nhan-vien/next-code")
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.maNhanVien) {
+                    document.getElementById("empCode").value = data.maNhanVien;
+                }
+            })
+            .catch(() => {});
         
         // Hide status field when adding new employee
         document.getElementById("statusGroup").style.display = "none";
@@ -454,20 +472,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         
-        if (!cccd) {
-            window.showToast("Vui lòng không để trống CCCD!", "warning");
-            return;
-        }
-        const cccdRegex = /^[0-9]{12}$/;
-        if (!cccdRegex.test(cccd)) {
-            window.showToast("CCCD phải bao gồm đúng 12 chữ số!", "warning");
-            return;
-        }
-        const isDuplicateCccd = allEmployees.some(emp => emp.cccd === cccd && String(emp.id) !== String(id));
-        if (isDuplicateCccd) {
-            window.showToast("CCCD này đã được sử dụng bởi nhân viên khác!", "warning");
-            return;
-        }
+        // CCCD is optional and does not block employee creation
+        const validCccd = (cccd && /^[0-9]{12}$/.test(cccd)) ? cccd : null;
 
         if (!dob) {
             window.showToast("Vui lòng không để trống Ngày sinh!", "warning");
@@ -501,12 +507,13 @@ document.addEventListener("DOMContentLoaded", () => {
         
         // Build request payload matching NhanVien entity
         const payload = {
+            maNhanVien: document.getElementById("empCode").value.trim() || null,
             hoTen: document.getElementById("empName").value.trim(),
             email: email,
             soDienThoai: phone,
             matKhau: password || null,
             chucVu: roleValue,
-            cccd: document.getElementById("empCccd").value.trim(),
+            cccd: validCccd,
             trangThai: Number(document.getElementById("empStatus").value),
             gioiTinh: gioiTinh,
             ngaySinh: document.getElementById("empDob").value || null,
@@ -613,6 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (nv) {
                     document.getElementById("formTitle").textContent = "Sửa thông tin nhân viên";
                     document.getElementById("empId").value = nv.id;
+                    document.getElementById("empCode").value = nv.maNhanVien || "";
                     document.getElementById("empName").value = nv.hoTen || "";
                     document.getElementById("empEmail").value = nv.email || "";
                     document.getElementById("empPhone").value = nv.soDienThoai || "";

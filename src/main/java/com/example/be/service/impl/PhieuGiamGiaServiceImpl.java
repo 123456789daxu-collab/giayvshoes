@@ -69,26 +69,27 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá với ID: " + id));
     }
 
-    private String generateMaVoucher() {
-        Optional<PhieuGiamGia> lastVoucher = phieuGiamGiaRepository.findFirstByMaVoucherStartingWithOrderByMaVoucherDesc("PGG");
-        if (lastVoucher.isEmpty()) {
-            return "PGG001";
-        }
-        String lastCode = lastVoucher.get().getMaVoucher();
-        try {
-            int num = Integer.parseInt(lastCode.substring(3));
-            return String.format("PGG%03d", num + 1);
-        } catch (NumberFormatException e) {
-            return "PGG" + System.currentTimeMillis();
-        }
+    @Override
+    public String generateNextMaVoucher() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("PGG");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (phieuGiamGiaRepository.existsByMaVoucher(code));
+        return code;
     }
 
     @Override
     @Transactional
     public PhieuGiamGia createVoucher(PhieuGiamGiaDto dto) {
         String code = dto.getMaVoucher();
-        if (code == null || code.trim().isEmpty()) {
-            code = generateMaVoucher();
+        if (code == null || code.trim().isEmpty() || code.contains("Đang tải") || "(Tự động sinh)".equals(code.trim())) {
+            code = generateNextMaVoucher();
         } else {
             code = code.trim();
         }

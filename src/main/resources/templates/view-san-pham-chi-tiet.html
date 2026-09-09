@@ -196,34 +196,24 @@
                     <div class="mb-4">
                         <h6 class="mb-3 text-muted fw-bold text-uppercase" style="font-size: 12px; letter-spacing: 1px;"><i class="bi bi-box-seam me-2"></i>Phân loại biến thể</h6>
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <span class="info-label">Màu sắc</span>
                                 <input type="text" class="form-control-custom readonly-field" th:value="${ct.mauSac != null ? ct.mauSac.tenMauSac : ''}" readonly>
                                 <input type="hidden" name="idMauSac" th:value="${ct.mauSac != null ? ct.mauSac.id : ''}">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <span class="info-label">Kích cỡ (size)</span>
                                 <input type="text" class="form-control-custom readonly-field" th:value="${ct.coGiay != null ? ct.coGiay.sizeGiay : ''}" readonly>
                                 <input type="hidden" name="idCoGiay" th:value="${ct.coGiay != null ? ct.coGiay.id : ''}">
                             </div>
-                            <div class="col-md-4">
-                                <span class="info-label">Trạng thái</span>
-                                <select class="form-select-custom text-dark" name="trangThai" required>
-                                    <option value="1" th:selected="${ct.trangThai == 1}">Đang kinh doanh</option>
-                                    <option value="0" th:selected="${ct.trangThai == 0}">Ngừng kinh doanh</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <span class="info-label">Giá nhập (vnđ)</span>
-                                <input type="text" class="form-control-custom text-dark format-currency" th:value="${ct.giaNhap != null ? #numbers.formatInteger(ct.giaNhap, 0, 'POINT') : ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); this.nextElementSibling.value = this.value.replace(/,/g, '');">
-                                <input type="hidden" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : ''}">
-                            </div>
-                            <div class="col-md-4">
+                            <input type="hidden" name="trangThai" th:value="${ct.trangThai != null ? ct.trangThai : 1}">
+                            <input type="hidden" name="giaNhap" th:value="${ct.giaNhap != null ? ct.giaNhap.intValue() : '0'}">
+                            <div class="col-md-6">
                                 <span class="info-label">Giá bán (vnđ)</span>
                                 <input type="text" class="form-control-custom text-dark format-currency" th:value="${ct.giaBan != null ? #numbers.formatInteger(ct.giaBan, 0, 'POINT') : ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ','); this.nextElementSibling.value = this.value.replace(/,/g, '');" required>
                                 <input type="hidden" name="giaBan" th:value="${ct.giaBan != null ? ct.giaBan.intValue() : ''}">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <span class="info-label">Số lượng tồn</span>
                                 <input type="number" class="form-control-custom text-dark" name="soLuongTon" th:value="${ct.soLuongTon}" required>
                             </div>
@@ -326,23 +316,6 @@
         document.getElementById('updateVariantForm').addEventListener('submit', function(e) {
             e.preventDefault(); // Ngăn chặn submit ngay lập tức
             let form = this;
-            
-            let giaNhapStr = form.querySelector('input[name="giaNhap"]').value;
-            let giaBanStr = form.querySelector('input[name="giaBan"]').value;
-            let giaNhap = giaNhapStr ? parseFloat(giaNhapStr) : 0;
-            let giaBan = giaBanStr ? parseFloat(giaBanStr) : 0;
-            
-            if (giaNhap >= giaBan) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: 'Giá nhập phải nhỏ hơn giá bán!',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                return;
-            }
             
             Swal.fire({
                 title: 'Xác nhận lưu?',

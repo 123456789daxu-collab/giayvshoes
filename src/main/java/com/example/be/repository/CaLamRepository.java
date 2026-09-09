@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CaLamRepository extends JpaRepository<CaLam, Long> {
+    boolean existsByMaCa(String maCa);
 }

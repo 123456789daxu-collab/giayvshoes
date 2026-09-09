@@ -16,4 +16,6 @@ public interface DanhMucRepository extends JpaRepository<DanhMuc, Long> {
     Page<DanhMuc> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
 
     Optional<DanhMuc> findByTenDanhMucIgnoreCase(String tenDanhMuc);
+
+    boolean existsByMaDanhMuc(String maDanhMuc);
 }

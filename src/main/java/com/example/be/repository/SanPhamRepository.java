@@ -18,12 +18,16 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
            "AND (:trangThai IS NULL OR s.trangThai = :trangThai) " +
            "AND (:soLuongTon IS NULL OR s.soLuong <= :soLuongTon) " +
            "AND (:idThuongHieu IS NULL OR th.id = :idThuongHieu) " +
-           "AND (:idLoaiGiay IS NULL OR lg.id = :idLoaiGiay)")
+           "AND (:idLoaiGiay IS NULL OR lg.id = :idLoaiGiay) " +
+           "AND (:minPrice IS NULL OR s.giaBan >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR s.giaBan <= :maxPrice)")
     Page<SanPham> search(@Param("keyword") String keyword, 
                          @Param("trangThai") Integer trangThai, 
                          @Param("soLuongTon") Integer soLuongTon, 
                          @Param("idThuongHieu") Long idThuongHieu, 
                          @Param("idLoaiGiay") Long idLoaiGiay, 
+                         @Param("minPrice") java.math.BigDecimal minPrice,
+                         @Param("maxPrice") java.math.BigDecimal maxPrice,
                          Pageable pageable);
     
     boolean existsByTenSanPham(String tenSanPham);

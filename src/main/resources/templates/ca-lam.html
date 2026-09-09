@@ -384,7 +384,7 @@
                 <div style="display: flex; flex-direction: column; gap: 15px;">
                     <div>
                         <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Mã ca *</label>
-                        <input type="text" id="maCa" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background: #f8fafc;" placeholder="VD: CA_SANG">
+                        <input type="text" id="maCa" readonly required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none; background-color: #e2e8f0; color: #475569; font-weight: 600; cursor: not-allowed;" placeholder="Tự động sinh">
                     </div>
                     <div>
                         <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Tên ca *</label>
@@ -578,6 +578,22 @@
             });
         };
 
+        function getNextCaCodeLocal() {
+            let maxNum = 0;
+            if (allCaLams && allCaLams.length > 0) {
+                allCaLams.forEach(c => {
+                    if (c && c.maCa) {
+                        const digits = String(c.maCa).replace(/\D+/g, '');
+                        if (digits) {
+                            const num = parseInt(digits, 10);
+                            if (num < 1000000 && num > maxNum) maxNum = num;
+                        }
+                    }
+                });
+            }
+            return 'CA' + String(maxNum + 1).padStart(3, '0');
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             lucide.createIcons();
             loadCaLam();
@@ -595,6 +611,15 @@
                 document.getElementById('modalCaLam').style.display = 'flex';
                 document.getElementById('formCaLam').reset();
                 document.getElementById('caLamId').value = '';
+                document.getElementById('maCa').value = getNextCaCodeLocal();
+                fetch('/api/ca-lam/next-code')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.code) {
+                            document.getElementById('maCa').value = data.code;
+                        }
+                    })
+                    .catch(() => {});
             });
 
             // Form Submit

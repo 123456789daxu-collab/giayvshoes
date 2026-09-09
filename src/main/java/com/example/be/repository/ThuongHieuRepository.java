@@ -16,4 +16,6 @@ public interface ThuongHieuRepository extends JpaRepository<ThuongHieu, Long> {
     Page<ThuongHieu> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
 
     Optional<ThuongHieu> findByTenThuongHieuIgnoreCase(String tenThuongHieu);
+
+    boolean existsByMaThuongHieu(String maThuongHieu);
 }

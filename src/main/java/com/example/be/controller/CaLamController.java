@@ -27,8 +27,16 @@ public class CaLamController {
         return caLam != null ? ResponseEntity.ok(caLam) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/next-code")
+    public ResponseEntity<?> getNextCode() {
+        return ResponseEntity.ok(java.util.Map.of("code", caLamService.generateNextMaCa()));
+    }
+
     @PostMapping
     public ResponseEntity<CaLam> create(@RequestBody CaLam caLam) {
+        if (caLam.getMaCa() == null || caLam.getMaCa().trim().isEmpty() || "(Tự động sinh)".equals(caLam.getMaCa().trim())) {
+            caLam.setMaCa(caLamService.generateNextMaCa());
+        }
         return ResponseEntity.ok(caLamService.save(caLam));
     }
 

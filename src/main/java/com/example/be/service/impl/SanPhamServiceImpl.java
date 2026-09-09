@@ -21,8 +21,8 @@ public class SanPhamServiceImpl implements SanPhamService {
     private SanPhamRepository sanPhamRepository;
 
     @Override
-    public Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, Pageable pageable) {
-        return sanPhamRepository.search(keyword, trangThai, soLuongTon, idThuongHieu, idLoaiGiay, pageable);
+    public Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice, Pageable pageable) {
+        return sanPhamRepository.search(keyword, trangThai, soLuongTon, idThuongHieu, idLoaiGiay, minPrice, maxPrice, pageable);
     }
 
     @Override
@@ -48,6 +48,21 @@ public class SanPhamServiceImpl implements SanPhamService {
     @Override
     public boolean existsByMaSanPham(String maSanPham) {
         return sanPhamRepository.existsByMaSanPham(maSanPham);
+    }
+
+    @Override
+    public String generateNextMaSanPham() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("SP");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (sanPhamRepository.existsByMaSanPham(code));
+        return code;
     }
 
     @Override

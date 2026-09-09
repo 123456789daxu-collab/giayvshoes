@@ -17,4 +17,6 @@ public interface MauSacRepository extends JpaRepository<MauSac, Long> {
     Page<MauSac> search(@Param("keyword") String keyword, @Param("trangThai") Boolean trangThai, Pageable pageable);
 
     Optional<MauSac> findByTenMauSacIgnoreCase(String tenMauSac);
+
+    boolean existsByMaMauSac(String maMauSac);
 }

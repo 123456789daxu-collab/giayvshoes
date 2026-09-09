@@ -37,7 +37,22 @@ public class KichThuocController {
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
+        model.addAttribute("nextMaCoGiay", generateNextMaCoGiay());
         return "kich-thuoc";
+    }
+
+    private String generateNextMaCoGiay() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("CG");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (coGiayRepository.existsByMaCoGiay(code));
+        return code;
     }
 
     @PostMapping("/add")
@@ -55,7 +70,7 @@ public class KichThuocController {
         }
 
         if (coGiay.getMaCoGiay() == null || coGiay.getMaCoGiay().trim().isEmpty() || "(Tự động sinh)".equals(coGiay.getMaCoGiay().trim())) {
-            coGiay.setMaCoGiay("SIZE" + System.currentTimeMillis());
+            coGiay.setMaCoGiay(generateNextMaCoGiay());
         }
         coGiay.setTrangThai(true);
         try {

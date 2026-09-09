@@ -54,17 +54,17 @@ public class KhachHangServiceImpl implements KhachHangService {
 
     @Override
     public String getNextMaKhachHang() {
-        Page<String> page = khachHangRepository.findMaxMaKhachHang(PageRequest.of(0, 1));
-        if (page.isEmpty() || page.getContent().isEmpty()) {
-            return "KH001";
-        }
-        String lastCode = page.getContent().get(0);
-        try {
-            int num = Integer.parseInt(lastCode.substring(2));
-            return String.format("KH%03d", num + 1);
-        } catch (NumberFormatException e) {
-            return "KH" + System.currentTimeMillis();
-        }
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder sb = new StringBuilder("KH");
+            for (int i = 0; i < 6; i++) {
+                sb.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            code = sb.toString();
+        } while (khachHangRepository.findByMaKhachHang(code).isPresent());
+        return code;
     }
 
     @Override

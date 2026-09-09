@@ -20,6 +20,8 @@ public interface DotGiamGiaService {
     
     DotGiamGia findById(Long id);
     
+    String generateNextMaCampaign();
+    
     DotGiamGia createCampaign(DotGiamGiaDto dto);
     
     DotGiamGia updateCampaign(Long id, DotGiamGiaDto dto);
