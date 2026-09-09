@@ -41,18 +41,11 @@ public class ThuongHieuController {
         return "thuong-hieu";
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     private String generateNextMaThuongHieu() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("TH");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (thuongHieuRepository.existsByMaThuongHieu(code));
-        return code;
+        return maGeneratorService.generateMaThuongHieu();
     }
 
     @PostMapping("/add")
@@ -101,6 +94,7 @@ public class ThuongHieuController {
 
         thuongHieu.setId(id);
         thuongHieu.setTenThuongHieu(tenTrimmed);
+        thuongHieu.setTrangThai(existing.get().getTrangThai());
         try {
             thuongHieuRepository.save(thuongHieu);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

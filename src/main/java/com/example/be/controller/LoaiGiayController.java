@@ -41,18 +41,11 @@ public class LoaiGiayController {
         return "de-giay";
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     private String generateNextMaLoaiGiay() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("LG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (loaiGiayRepository.existsByMaLoaiGiay(code));
-        return code;
+        return maGeneratorService.generateMaLoaiGiay();
     }
 
     @PostMapping("/add")
@@ -101,6 +94,7 @@ public class LoaiGiayController {
 
         loaiGiay.setId(id);
         loaiGiay.setTenLoaiGiay(tenTrimmed);
+        loaiGiay.setTrangThai(existing.get().getTrangThai());
         try {
             loaiGiayRepository.save(loaiGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

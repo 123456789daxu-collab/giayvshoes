@@ -41,18 +41,11 @@ public class KichThuocController {
         return "kich-thuoc";
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     private String generateNextMaCoGiay() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("CG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (coGiayRepository.existsByMaCoGiay(code));
-        return code;
+        return maGeneratorService.generateMaCoGiay();
     }
 
     @PostMapping("/add")
@@ -97,6 +90,7 @@ public class KichThuocController {
         }
 
         coGiay.setId(id);
+        coGiay.setTrangThai(existing.get().getTrangThai());
         try {
             coGiayRepository.save(coGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

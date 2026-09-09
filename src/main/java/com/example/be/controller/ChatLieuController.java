@@ -41,18 +41,11 @@ public class ChatLieuController {
         return "chat-lieu";
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     private String generateNextMaChatLieu() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("CL");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (chatLieuRepository.existsByMaChatLieu(code));
-        return code;
+        return maGeneratorService.generateMaChatLieu();
     }
 
     @PostMapping("/add")
@@ -101,6 +94,7 @@ public class ChatLieuController {
 
         chatLieu.setId(id);
         chatLieu.setTenChatLieu(tenTrimmed);
+        chatLieu.setTrangThai(existing.get().getTrangThai());
         try {
             chatLieuRepository.save(chatLieu);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

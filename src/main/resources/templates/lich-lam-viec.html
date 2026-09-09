@@ -531,6 +531,8 @@
                 document.getElementById('quickAddModal').style.display = 'none';
             };
 
+            /*
+            // KHONG DUNG XOA CUNG
             window.deleteLichLamViec = function(id) {
                 Swal.fire({
                     title: 'Xác nhận xóa?',
@@ -560,6 +562,7 @@
                     }
                 });
             };
+            */
 
             document.getElementById('quickAddForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -646,14 +649,11 @@
                         contentHtml += `<div class="cdv-event-add" onclick="openQuickAddModal('${localDateStr}', '${shift.id}')" title="Thêm nhân viên">+</div>`;
                         shiftEvents.forEach(e => {
                             contentHtml += `
-                                <div class="cdv-event-card" style="position: relative; padding-right: 30px;">
+                                <div class="cdv-event-card" style="position: relative; padding-right: 12px;">
                                     <div class="event-circle" style="width: 24px; height: 24px; font-size: 12px; margin: 0;">${e.extendedProps.initials}</div>
                                     <div style="font-size: 13px; font-weight: 500;">
                                         <div style="margin-bottom: 2px;">${e.extendedProps.tenNV}</div>
                                         <div style="font-size: 11px; color: #64748b;">${e.extendedProps.maNhanVien || ''}</div>
-                                    </div>
-                                    <div onclick="deleteLichLamViec(${e.id})" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #ef4444; padding: 4px;" title="Xóa lịch làm việc">
-                                        <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
                                     </div>
                                 </div>
                             `;
@@ -826,7 +826,6 @@
                         return `
                         <div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
                             <span style="font-size: 14px; font-weight: 500; color: #1e293b;">${name}</span>
-                            <button class="fi-btn fi-btn-danger" style="padding: 4px 12px; font-size: 12px;" onclick="deleteLichLamViec(${r.id})">Xóa</button>
                         </div>
                         `;
                     }).join('');

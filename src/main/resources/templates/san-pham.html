@@ -441,14 +441,8 @@
                         <textarea class="form-control" name="moTaChiTiet" id="moTaChiTiet" rows="3" placeholder="Nhập mô tả về giày, chất liệu, tính năng..." style="border-radius: 8px; resize: none;"></textarea>
                     </div>
 
-                    <!-- Row 5 -->
-                    <div class="mb-2">
-                        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">TRẠNG THÁI BÁN</label>
-                        <select class="form-select" name="trangThai" id="trangThai" style="height: 42px; border-radius: 8px;">
-                            <option value="1">Đang kinh doanh</option>
-                            <option value="0">Ngừng kinh doanh</option>
-                        </select>
-                    </div>
+                    <!-- Hidden trangThai field -->
+                    <input type="hidden" name="trangThai" id="trangThai" value="1">
                 </div>
                 <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #f1f5f9;">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 500; padding: 8px 24px; background-color: #64748b; border: none;">Hủy bỏ</button>
@@ -476,7 +470,7 @@
     }
 
     function openAddModal() {
-        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i> Thêm Sản Phẩm Mới';
+        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-plus-circle me-2"></i> Thêm mới Sản Phẩm';
         document.getElementById('productForm').action = '/san-pham/add';
         document.getElementById('maSanPham').value = 'Đang tải...';
         fetch('/san-pham/api/next-code')
@@ -501,9 +495,10 @@
 
     function openEditModal(btn) {
         const id = btn.getAttribute('data-id');
-        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-pencil-square me-2"></i> Cập Nhật Sản Phẩm';
+        const maSp = btn.getAttribute('data-ma') || '';
+        document.getElementById('productModalLabel').innerHTML = '<i class="bi bi-pencil-square me-2"></i> Chỉnh sửa Sản Phẩm' + (maSp ? ' - Mã: ' + maSp : '');
         document.getElementById('productForm').action = '/san-pham/edit/' + id;
-        document.getElementById('maSanPham').value = btn.getAttribute('data-ma');
+        document.getElementById('maSanPham').value = maSp;
         document.getElementById('tenSanPham').value = btn.getAttribute('data-ten');
         document.getElementById('thuongHieu').value = btn.getAttribute('data-thuonghieu');
         document.getElementById('loaiGiay').value = btn.getAttribute('data-loaigiay');
@@ -530,6 +525,8 @@
         new bootstrap.Modal(document.getElementById('productModal')).show();
     }
 
+    /*
+    // KHONG DUNG XOA CUNG (SU DUNG confirmToggleStatus)
     function confirmDelete(id) {
         Swal.fire({
             title: 'Xóa sản phẩm?',
@@ -543,6 +540,7 @@
             borderRadius: '12px'
         }).then(r => { if (r.isConfirmed) window.location.href = '/san-pham/delete/' + id; });
     }
+    */
 
     function confirmToggleStatus(id, currentStatus) {
         let title = currentStatus === 1 ? 'Ngừng kinh doanh?' : 'Kinh doanh lại?';

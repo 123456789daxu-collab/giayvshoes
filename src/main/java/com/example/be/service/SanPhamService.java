@@ -10,7 +10,8 @@ public interface SanPhamService {
     Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice, Pageable pageable);
     SanPham findById(Long id);
     SanPham save(SanPham sanPham);
-    void deleteById(Long id);
+    // KHONG DUNG XOA CUNG (SOFT DELETE / TOGGLE STATUS ONLY)
+    // void deleteById(Long id);
     boolean existsByTenSanPham(String tenSanPham);
     SanPham findByTenSanPham(String tenSanPham);
     boolean existsByMaSanPham(String maSanPham);
@@ -21,6 +22,6 @@ public interface SanPhamService {
     Page<SanPham> searchFilter(String keyword, Long idThuongHieu, Long idLoaiGiay, Integer trangThai, String sort, int pageNo, int pageSize);
     SanPham getById(Long id);
     SanPham update(Long id, SanPham sanPham);
-    void delete(Long id);
+    // void delete(Long id);
     void toggleStatus(Long id);
 }

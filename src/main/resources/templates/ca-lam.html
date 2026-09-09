@@ -372,7 +372,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="clock" style="width: 20px; height: 20px; color: #ef4444;"></i>
-                    Thông tin Ca Làm
+                    <span id="modalCaLamTitleText">Thông tin Ca Làm</span>
                 </h3>
                 <button onclick="document.getElementById('modalCaLam').style.display='none'" style="background: none; border: none; cursor: pointer; color: #64748b;">
                     <i data-lucide="x" style="width: 20px; height: 20px;"></i>
@@ -400,13 +400,7 @@
                             <input type="time" id="thoiGianKetThuc" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
                         </div>
                     </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Trạng thái</label>
-                        <select id="trangThai" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
-                            <option value="1">Hoạt động</option>
-                            <option value="0">Ngưng</option>
-                        </select>
-                    </div>
+                    <input type="hidden" id="trangThai" value="1">
                 </div>
                 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
@@ -473,11 +467,8 @@
                         </td>
                         <td style="text-align: center;">
                             <div style="display: flex; justify-content: center; gap: 8px;">
-                                <button class="action-btn" onclick="editCaLam(${item.id})" title="Xem/Sửa">
-                                    <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
-                                </button>
-                                <button class="action-btn" onclick="deleteCaLam(${item.id})" style="color: #ef4444; border-color: #fca5a5;" title="Xóa">
-                                    <i data-lucide="trash-2" style="width: 20px; height: 20px;"></i>
+                                <button class="action-btn" onclick="editCaLam(${item.id})" title="Chỉnh sửa ca làm việc">
+                                    <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>
                                 </button>
                             </div>
                         </td>
@@ -525,6 +516,8 @@
         window.editCaLam = function(id) {
             const item = allCaLams.find(c => c.id === id);
             if (item) {
+                const titleEl = document.getElementById('modalCaLamTitleText');
+                if (titleEl) titleEl.innerText = "Chỉnh sửa Ca làm việc" + (item.maCa ? " - Mã: " + item.maCa : "");
                 document.getElementById('caLamId').value = item.id;
                 document.getElementById('maCa').value = item.maCa;
                 document.getElementById('tenCa').value = item.tenCa;
@@ -536,9 +529,6 @@
         };
 
         window.toggleCaLamStatus = function(id, currentStatus) {
-            // Optimistic update for now, ideally call API to update status
-            // As CaLam doesn't have toggle status endpoint out of the box in this setup
-            // I will just re-save it with inverted status
             const item = allCaLams.find(c => c.id === id);
             if (item) {
                 item.trangThai = currentStatus === 1 ? 0 : 1;
@@ -550,6 +540,8 @@
             }
         };
 
+        /*
+        // KHONG DUNG XOA CUNG (SU DUNG toggleCaLamStatus HOAC SUA CA LAM)
         window.deleteCaLam = function(id) {
             Swal.fire({
                 title: 'Xác nhận xóa?',
@@ -577,6 +569,7 @@
                 }
             });
         };
+        */
 
         function getNextCaCodeLocal() {
             let maxNum = 0;
@@ -608,6 +601,8 @@
 
             // Add button
             document.getElementById('btnThemCa').addEventListener('click', () => {
+                const titleEl = document.getElementById('modalCaLamTitleText');
+                if (titleEl) titleEl.innerText = "Thêm mới Ca làm việc";
                 document.getElementById('modalCaLam').style.display = 'flex';
                 document.getElementById('formCaLam').reset();
                 document.getElementById('caLamId').value = '';

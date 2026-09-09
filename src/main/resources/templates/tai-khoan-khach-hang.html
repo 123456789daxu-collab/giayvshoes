@@ -566,7 +566,7 @@
                             <button class="action-icon-btn view" title="Xem chi tiết" onclick="openDetailModal(${customer.id})" style="width: 28px; height: 28px;">
                                 <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i>
                             </button>
-                            <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCustomerModal(${customer.id})" style="width: 28px; height: 28px;">
+                            <button class="action-icon-btn edit" title="Chỉnh sửa khách hàng" onclick="openEditCustomerModal(${customer.id})" style="width: 28px; height: 28px;">
                                 <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
                             </button>
                             <label class="switch-control" title="Bật/Tắt trạng thái" style="width: 36px; height: 18px; margin-left: 2px;">
@@ -756,7 +756,7 @@
             document.getElementById("cust-id").value = "";
             document.getElementById("cust-code").value = getNextCustomerCodeLocal();
             document.getElementById("cust-code").readOnly = true;
-            document.getElementById("customer-modal-title").innerText = "Thêm Khách Hàng Mới";
+            document.getElementById("customer-modal-title").innerText = "Thêm mới Khách hàng";
             document.getElementById("initial-address-section").style.display = "block";
             document.getElementById("status-group").style.display = "none";
             document.getElementById("cust-status").value = "1";
@@ -787,20 +787,21 @@
                 const customer = await response.json();
 
                 document.getElementById("cust-id").value = customer.id;
-                document.getElementById("cust-code").value = customer.maKhachHang || "";
+                const code = customer.maKhachHang || "";
+                document.getElementById("cust-code").value = code;
                 document.getElementById("cust-code").readOnly = true;
                 document.getElementById("cust-name").value = customer.hoTen;
                 document.getElementById("cust-phone").value = customer.soDienThoai;
                 document.getElementById("cust-email").value = customer.email || "";
                 document.getElementById("cust-gender").value = String(customer.gioiTinh);
                 document.getElementById("cust-dob").value = customer.ngaySinh || "";
-                document.getElementById("cust-status").value = String(customer.trangThai);
-                document.getElementById("status-group").style.display = "block";
+                document.getElementById("cust-status").value = String(customer.trangThai != null ? customer.trangThai : 1);
+                document.getElementById("status-group").style.display = "none";
 
                 // Ẩn phần điền địa chỉ ban đầu khi Sửa thông tin chính
                 document.getElementById("initial-address-section").style.display = "none";
 
-                document.getElementById("customer-modal-title").innerText = "Chỉnh Sửa Khách Hàng";
+                document.getElementById("customer-modal-title").innerText = "Chỉnh sửa Khách hàng" + (code ? " - Mã: " + code : "");
                 
                 document.getElementById("list-panel").classList.remove("active");
                 document.getElementById("form-panel").classList.add("active");

@@ -71,19 +71,12 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá với ID: " + id));
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     @Override
     public String generateNextMaCampaign() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("DGG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (dotGiamGiaRepository.existsByMaDotGiamGia(code));
-        return code;
+        return maGeneratorService.generateMaDotGiamGia();
     }
 
     @Override
@@ -217,12 +210,15 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
         return dotGiamGiaRepository.save(campaign);
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG toggleStatus DE DOI TRANG THAI)
+    /*
     @Override
     @Transactional
     public void deleteCampaign(Long id) {
         chiTietDotGiamGiaRepository.deleteByDotGiamGiaId(id);
         dotGiamGiaRepository.deleteById(id);
     }
+    */
 
     @Override
     public List<Long> getProductDetailIdsByCampaignId(Long campaignId) {
@@ -296,7 +292,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
         // 1. Fetch paginated active products
         Page<SanPham> sanPhamPage = sanPhamRepository.search(
                 (search != null && !search.trim().isEmpty()) ? search.trim() : null, 
-                1, null, null, null, pageable);
+                1, null, null, null, null, null, pageable);
 
         // 2. Map to DTOs and fetch active variants
         return sanPhamPage.map(sp -> {

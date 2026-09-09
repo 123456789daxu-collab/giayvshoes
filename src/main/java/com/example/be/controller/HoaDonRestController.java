@@ -78,11 +78,14 @@ public class HoaDonRestController {
         }
     }
 
+    // KHONG DUNG XOA CUNG HOA DON (SU DUNG CHUYEN TRANG THAI HOA DON)
+    /*
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         hoaDonService.delete(id);
         return ResponseEntity.ok().build();
     }
+    */
 
     @GetMapping("/{id}/items")
     public ResponseEntity<List<java.util.Map<String, Object>>> getItems(@PathVariable Long id) {

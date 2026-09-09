@@ -452,7 +452,7 @@
                 const hanhDongTd = `
                     <td style="text-align: center;">
                         <div class="btn-actions-cell" style="justify-content: center; gap: 20px;">
-                            <button type="button" class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCampaignForm(${campaign.id})">
+                            <button type="button" class="action-icon-btn edit" title="Chỉnh sửa đợt giảm giá" onclick="openEditCampaignForm(${campaign.id})">
                                 <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                             </button>
                         </div>
@@ -592,6 +592,8 @@
             }
         }
 
+        /*
+        // KHONG DUNG XOA CUNG (SU DUNG toggleCampaignActive)
         async function deleteCampaign(id) {
             const result = await Swal.fire({
                 title: 'Xóa đợt giảm giá?',
@@ -620,6 +622,7 @@
                 }
             }
         }
+        */
 
         function exportCampaignsExcel() {
             const search = document.getElementById("filter-search").value;
@@ -653,7 +656,7 @@
             document.getElementById("campaign-id").value = "";
             document.getElementById("campaign-code").value = getNextCampaignCodeLocal();
             generateNextCampaignCode();
-            document.getElementById("form-panel-title").innerText = "Tạo đợt giảm giá";
+            document.getElementById("form-panel-title").innerText = "Thêm mới Đợt giảm giá";
             
             const descCharEl = document.getElementById("desc-char-count");
             if (descCharEl) descCharEl.innerText = "0/500";
@@ -724,7 +727,7 @@
                 
                 if (typeof renderSelectedVariantsTable === 'function') renderSelectedVariantsTable();
 
-                document.getElementById("form-panel-title").innerText = `Cập nhật đợt giảm giá: ${campaign.maDotGiamGia}`;
+                document.getElementById("form-panel-title").innerText = `Chỉnh sửa Đợt giảm giá - Mã: ${campaign.maDotGiamGia || ''}`;
 
                 // Nạp bảng sản phẩm chi tiết
                 prodCurrentPage = 0;

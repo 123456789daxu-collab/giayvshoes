@@ -562,7 +562,7 @@
                 const hanhDongTd = `
                     <td style="text-align: center;">
                         <div class="btn-actions-cell" style="justify-content: center;">
-                            <button class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditVoucherForm(${voucher.id})">
+                            <button class="action-icon-btn edit" title="Chỉnh sửa phiếu giảm giá" onclick="openEditVoucherForm(${voucher.id})">
                                 <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                             </button>
                             ${switchHtml}
@@ -877,7 +877,7 @@
                     }
                 })
                 .catch(() => {});
-            document.getElementById("form-panel-title").innerText = "Thêm mới phiếu giảm giá";
+            document.getElementById("form-panel-title").innerText = "Thêm mới Phiếu giảm giá";
 
             selectedCustomerIds.clear();
             document.getElementById("cust-selected-label").innerText = "0";
@@ -971,7 +971,7 @@
                 toggleDiscountType();
                 toggleVoucherType();
 
-                document.getElementById("form-panel-title").innerText = `Cập nhật phiếu giảm giá: ${voucher.maVoucher}`;
+                document.getElementById("form-panel-title").innerText = `Chỉnh sửa Phiếu giảm giá - Mã: ${voucher.maVoucher || ''}`;
 
                 // Chuyển panel
                 document.getElementById("list-panel").classList.remove("active");

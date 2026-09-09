@@ -44,9 +44,12 @@ public class LichLamViecController {
         return ResponseEntity.notFound().build();
     }
 
+    // KHONG DUNG XOA CUNG (CAP NHAT LICH LAM VIEC / TRANG THAI)
+    /*
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         lichLamViecService.deleteById(id);
         return ResponseEntity.ok().build();
     }
+    */
 }

@@ -102,7 +102,7 @@
                                 </td>
                                 <td style="text-align: center; padding: 16px;">
                                     <div class="action-buttons" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-                                        <button class="btn-icon" title="Chỉnh sửa" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${item.id}" style="border: none; background: none; padding: 0;">
+                                        <button class="btn-icon" title="Chỉnh sửa chất liệu" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${item.id}" style="border: none; background: none; padding: 0;">
                                             <i data-lucide="pencil" style="width: 20px; height: 20px; color: #64748b;"></i>
                                         </button>
                                         <button type="button" title="Đổi trạng thái" th:onclick="'confirmToggleStatus(\'/chat-lieu/delete/' + ${item.id} + '\')'" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='#ffffff'">
@@ -133,7 +133,7 @@
                 <div class="modal-content text-start">
                     <form th:action="@{'/chat-lieu/update/' + ${item.id}}" method="POST">
                         <div class="modal-header">
-                            <h5 class="modal-title fw-bold">Chỉnh Sửa Chất Liệu</h5>
+                            <h5 class="modal-title fw-bold" th:text="'Chỉnh Sửa Chất Liệu - Mã: ' + ${item.maChatLieu}">Chỉnh Sửa Chất Liệu</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -145,13 +145,7 @@
                                 <label class="form-label fw-medium">Tên Chất Liệu</label>
                                 <input type="text" class="form-control" name="tenChatLieu" th:value="${item.tenChatLieu}" required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Trạng Thái</label>
-                                <select class="form-select" name="trangThai">
-                                    <option value="true" th:selected="${item.trangThai == true}">Đang sử dụng</option>
-                                    <option value="false" th:selected="${item.trangThai == false}">Ngừng sử dụng</option>
-                                </select>
-                            </div>
+                            <input type="hidden" name="trangThai" th:value="${item.trangThai}">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -180,12 +174,6 @@
                         <div class="mb-3">
                             <label class="form-label fw-medium">Tên Chất Liệu</label>
                             <input type="text" class="form-control" name="tenChatLieu" placeholder="Nhập tên chất liệu" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Trạng Thái</label>
-                            <select class="form-select bg-light" disabled>
-                                <option value="true" selected>Đang sử dụng</option>
-                            </select>
                             <input type="hidden" name="trangThai" value="true">
                         </div>
                     </div>

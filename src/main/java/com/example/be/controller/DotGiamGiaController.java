@@ -138,6 +138,8 @@ public class DotGiamGiaController {
         }
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG /api/dot-giam-gia/{id}/trang-thai DE DOI TRANG THAI)
+    /*
     // Xóa đợt giảm giá
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCampaign(@PathVariable("id") Long id) {
@@ -148,6 +150,7 @@ public class DotGiamGiaController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    */
 
     // 7. Lấy danh sách sản phẩm chi tiết kèm phân trang để chọn
     @GetMapping("/san-pham-chi-tiet")

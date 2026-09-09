@@ -34,6 +34,8 @@ public class HoaDonService {
     private final SanPhamRepository sanPhamRepository;
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private EmailService emailService;
+    @org.springframework.beans.factory.annotation.Autowired
+    private MaGeneratorService maGeneratorService;
 
 
     public HoaDonService(HoaDonRepository hoaDonRepository,
@@ -308,7 +310,7 @@ public class HoaDonService {
     public HoaDonDTO create(HoaDon hoaDon) {
         hoaDon.setNgayTao(LocalDateTime.now());
         if (hoaDon.getMaHoaDon() == null || hoaDon.getMaHoaDon().isEmpty()) {
-            hoaDon.setMaHoaDon("HD" + System.currentTimeMillis());
+            hoaDon.setMaHoaDon(maGeneratorService.generateMaHoaDon());
         }
         if (hoaDon.getSdtNguoiNhan() != null && !hoaDon.getSdtNguoiNhan().trim().isEmpty()) {
             String sdt = hoaDon.getSdtNguoiNhan().trim();
@@ -405,9 +407,12 @@ public class HoaDonService {
         }
     }
 
+    // KHONG DUNG XOA CUNG HOA DON
+    /*
     public void delete(Long id) {
         hoaDonRepository.deleteById(id);
     }
+    */
 
     /**
      * Cập nhật thông tin nhận hàng, trạng thái và ghi chú.
@@ -642,7 +647,7 @@ public class HoaDonService {
     public HoaDonDTO createFromBanHang(Map<String, Object> payload) {
         // ---- Build HoaDon ----
         HoaDon hd = new HoaDon();
-        hd.setMaHoaDon("HD" + System.currentTimeMillis());
+        hd.setMaHoaDon(maGeneratorService.generateMaHoaDon());
         hd.setNgayTao(LocalDateTime.now());
 
         // Loại hóa đơn
@@ -1059,14 +1064,30 @@ public class HoaDonService {
                     spct = sanPhamChiTietRepository.findById(spct.getId()).orElse(spct);
                     int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                     int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
-                    if (stock < qty) {
-                        String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
-                        String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
-                        String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
-                        String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
-                                ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
-                                : "";
+                    boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
+                    boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
 
+                    String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
+                    String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
+                    String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
+                    String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
+                            ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
+                            : "";
+
+                    if (!isProductActive || !isVariantActive) {
+                        // Ghi lịch sử thất bại do ngừng kinh doanh
+                        LichSuHoaDon historyFail = LichSuHoaDon.builder()
+                                .hoaDon(hd)
+                                .hanhDong("VNPay thanh toán thất bại (Sản phẩm ngừng kinh doanh)")
+                                .ngayTao(LocalDateTime.now())
+                                .ghiChu("Giao dịch VNPay " + transNo + " thất bại do sản phẩm '" + tenSp + variant + "' đã ngừng kinh doanh")
+                                .build();
+                        lichSuHoaDonRepository.save(historyFail);
+
+                        throw new IllegalStateException("Sản phẩm '" + tenSp + variant + "' đã ngừng kinh doanh, không thể hoàn tất thanh toán!");
+                    }
+
+                    if (stock < qty) {
                         // Ghi lịch sử thất bại do thiếu hàng
                         LichSuHoaDon historyFail = LichSuHoaDon.builder()
                                 .hoaDon(hd)

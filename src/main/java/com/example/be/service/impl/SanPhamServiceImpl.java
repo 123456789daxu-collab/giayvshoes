@@ -30,10 +30,13 @@ public class SanPhamServiceImpl implements SanPhamService {
         return sanPhamRepository.findById(id).orElse(null);
     }
 
+    // KHONG DUNG XOA CUNG (SOFT DELETE / TOGGLE STATUS ONLY)
+    /*
     @Override
     public void deleteById(Long id) {
         sanPhamRepository.deleteById(id);
     }
+    */
 
     @Override
     public boolean existsByTenSanPham(String tenSanPham) {
@@ -45,6 +48,9 @@ public class SanPhamServiceImpl implements SanPhamService {
         return sanPhamRepository.findByTenSanPham(tenSanPham);
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     @Override
     public boolean existsByMaSanPham(String maSanPham) {
         return sanPhamRepository.existsByMaSanPham(maSanPham);
@@ -52,17 +58,7 @@ public class SanPhamServiceImpl implements SanPhamService {
 
     @Override
     public String generateNextMaSanPham() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("SP");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (sanPhamRepository.existsByMaSanPham(code));
-        return code;
+        return maGeneratorService.generateMaSanPham();
     }
 
     @Override
@@ -107,7 +103,7 @@ public class SanPhamServiceImpl implements SanPhamService {
         
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sortObj);
         String kw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
-        return sanPhamRepository.search(kw, trangThai, null, idThuongHieu, idLoaiGiay, pageable);
+        return sanPhamRepository.search(kw, trangThai, null, idThuongHieu, idLoaiGiay, null, null, pageable);
     }
 
     @Override
@@ -145,10 +141,13 @@ public class SanPhamServiceImpl implements SanPhamService {
         return null;
     }
 
+    // KHONG DUNG XOA CUNG (SOFT DELETE / TOGGLE STATUS ONLY)
+    /*
     @Override
     public void delete(Long id) {
         sanPhamRepository.deleteById(id);
     }
+    */
 
     @Override
     public void toggleStatus(Long id) {

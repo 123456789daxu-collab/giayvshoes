@@ -41,18 +41,11 @@ public class MauSacController {
         return "mau-sac";
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     private String generateNextMaMauSac() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("MS");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (mauSacRepository.existsByMaMauSac(code));
-        return code;
+        return maGeneratorService.generateMaMauSac();
     }
 
     @PostMapping("/add")
@@ -101,6 +94,7 @@ public class MauSacController {
 
         mauSac.setId(id);
         mauSac.setTenMauSac(tenTrimmed);
+        mauSac.setTrangThai(existing.get().getTrangThai());
         try {
             mauSacRepository.save(mauSac);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

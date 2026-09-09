@@ -257,15 +257,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Open Form for Adding Employee
     btnAdd.onclick = () => {
         isEditing = false;
-        document.getElementById("formTitle").textContent = "Thêm nhân viên mới";
+        document.getElementById("formTitle").textContent = "Thêm mới Nhân viên";
         form.reset();
         document.getElementById("empId").value = "";
         document.getElementById("empCode").value = getNextEmployeeCode();
         fetch("/api/nhan-vien/next-code")
             .then(res => res.json())
             .then(data => {
-                if (data && data.maNhanVien) {
-                    document.getElementById("empCode").value = data.maNhanVien;
+                if (data && (data.code || data.maNhanVien)) {
+                    document.getElementById("empCode").value = data.code || data.maNhanVien;
                 }
             })
             .catch(() => {});
@@ -618,9 +618,10 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .then(nv => {
                 if (nv) {
-                    document.getElementById("formTitle").textContent = "Sửa thông tin nhân viên";
+                    const code = nv.maNhanVien || "";
+                    document.getElementById("formTitle").textContent = "Chỉnh sửa Nhân viên" + (code ? " - Mã: " + code : "");
                     document.getElementById("empId").value = nv.id;
-                    document.getElementById("empCode").value = nv.maNhanVien || "";
+                    document.getElementById("empCode").value = code;
                     document.getElementById("empName").value = nv.hoTen || "";
                     document.getElementById("empEmail").value = nv.email || "";
                     document.getElementById("empPhone").value = nv.soDienThoai || "";
@@ -650,11 +651,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (window.addressHelper) window.addressHelper.updateHiddenAddress();
                     }
                     
-                    // Show and set status field when editing
-                    document.getElementById("statusGroup").style.display = "block";
+                    // Hide status field when editing (status is toggled via switch outside)
+                    document.getElementById("statusGroup").style.display = "none";
                     const btnDel = document.getElementById("btnDeleteEmployee");
                     if (btnDel) btnDel.style.display = "inline-flex";
-                    document.getElementById("empStatus").value = String(nv.trangThai);
+                    document.getElementById("empStatus").value = String(nv.trangThai != null ? nv.trangThai : 1);
                     
                     // Set Gender
                     if (nv.gioiTinh === false) {
@@ -831,7 +832,7 @@ function renderTable() {
             </td>
             <td style="text-align: center;">
                 <div class="btn-actions-cell" style="justify-content: center;">
-                    <button type="button" class="action-icon-btn edit" onclick="editEmployee(${nv.id})" title="Xem/Sửa">
+                    <button type="button" class="action-icon-btn edit" onclick="editEmployee(${nv.id})" title="Chỉnh sửa nhân viên">
                         <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
                     </button>
                     <label class="switch-control" title="Thay đổi trạng thái">

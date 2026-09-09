@@ -129,6 +129,7 @@ function renderCheckoutSummary() {
     if (!container) return;
 
     const hasStopped = state.checkoutItems.some(item => item.isStopped);
+    const outOfStockItem = state.checkoutItems.find(item => (item.soLuongTon != null && item.soLuongTon < item.qty) || (item.soLuongTon != null && item.soLuongTon <= 0));
     const orderBtn = $('btnOrderComplete');
 
     let warningHtml = '';
@@ -145,6 +146,19 @@ function renderCheckoutSummary() {
             orderBtn.style.cursor = 'not-allowed';
             orderBtn.textContent = 'Sản phẩm đã ngừng bán';
         }
+    } else if (outOfStockItem) {
+        warningHtml = `
+            <div style="background:#fffbeb; border:1.5px solid #f59e0b; border-radius:10px; padding:12px 16px; margin-bottom:16px; color:#b45309; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">⚠️</span>
+                <span>Sản phẩm <strong>"${outOfStockItem.tenSanPham}"</strong> không đủ số lượng trong kho (kho còn <strong>${outOfStockItem.soLuongTon || 0}</strong>, bạn đang chọn <strong>${outOfStockItem.qty}</strong>). Vui lòng quay lại giỏ hàng để điều chỉnh!</span>
+            </div>
+        `;
+        if (orderBtn) {
+            orderBtn.disabled = true;
+            orderBtn.style.background = '#94a3b8';
+            orderBtn.style.cursor = 'not-allowed';
+            orderBtn.textContent = 'Số lượng trong kho không đủ';
+        }
     } else if (orderBtn) {
         orderBtn.disabled = false;
         orderBtn.style.background = 'var(--primary)';
@@ -154,12 +168,13 @@ function renderCheckoutSummary() {
     
     container.innerHTML = warningHtml + state.checkoutItems.map(item => {
         const isStopped = item.isStopped === true || (item.trangThai != null && item.trangThai != 1);
+        const isOutOfStock = !isStopped && ((item.soLuongTon != null && item.soLuongTon < item.qty) || (item.soLuongTon != null && item.soLuongTon <= 0));
         const itemTotal = item.qty * (parseFloat(item.giaBan) || 0);
         const code = item.ma || `CTSP${String(item.id).padStart(5, '0')}`;
         const imgUrl = getImageUrl(item.hinhAnh, item.id || 0);
         
         return `
-            <div class="summary-item-row" style="${isStopped ? 'background:#fff5f5; opacity:0.85; border-radius:8px; padding:8px;' : ''}">
+            <div class="summary-item-row" style="${isStopped ? 'background:#fff5f5; opacity:0.85; border-radius:8px; padding:8px;' : (isOutOfStock ? 'background:#fffbeb; border-radius:8px; padding:8px;' : '')}">
                 <div class="summary-item-img">
                     <img src="${imgUrl}" alt="${item.tenSanPham}" onerror="this.src='${getImageUrl(null, item.id || 0)}'">
                 </div>
@@ -168,6 +183,7 @@ function renderCheckoutSummary() {
                     <div class="summary-item-meta">Màu: ${item.mauSac || '—'} / Size: ${item.sizeGiay || '—'}</div>
                     <div class="summary-item-code">Mã: ${code}</div>
                     ${isStopped ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; margin-top:3px; width:fit-content;">⛔ ĐÃ NGỪNG BÁN</div>` : ''}
+                    ${isOutOfStock ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; margin-top:3px; width:fit-content;">⚠️ KHO CÒN: ${item.soLuongTon || 0} (BẠN CHỌN: ${item.qty})</div>` : ''}
                 </div>
                 <div class="summary-item-right">
                     <div class="summary-item-price" style="${isStopped ? 'color:#94a3b8;' : ''}">${formatPrice(item.giaBan)}</div>
@@ -610,9 +626,22 @@ function setupCheckoutBtn() {
 }
 
 async function submitOrder() {
+    // Luôn đồng bộ tồn kho và giá mới nhất từ máy chủ trước khi tiến hành đặt hàng / VNPay
+    await syncCheckoutItemsPricesWithBackend();
+
     const stoppedItem = state.checkoutItems.find(i => i.isStopped);
     if (stoppedItem) {
         showToast(`❌ Sản phẩm "${stoppedItem.tenSanPham}" đã ngừng kinh doanh. Không thể đặt hàng!`, 'error');
+        renderCheckoutSummary();
+        return;
+    }
+
+    const outOfStockItem = state.checkoutItems.find(i => (i.soLuongTon != null && i.soLuongTon < i.qty) || (i.soLuongTon != null && i.soLuongTon <= 0));
+    if (outOfStockItem) {
+        showToast(`❌ Sản phẩm "${outOfStockItem.tenSanPham}" không đủ tồn kho (kho còn: ${outOfStockItem.soLuongTon || 0}, bạn chọn: ${outOfStockItem.qty})! Vui lòng điều chỉnh lại giỏ hàng.`, 'error');
+        renderCheckoutSummary();
+        $('btnOrderComplete').disabled = false;
+        $('btnOrderComplete').textContent = 'Đặt Hàng';
         return;
     }
 

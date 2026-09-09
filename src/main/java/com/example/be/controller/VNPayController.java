@@ -91,35 +91,38 @@ public class VNPayController {
                 }
             }
 
-            if (hd != null) {
-                List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hd.getId());
-                if (details != null && !details.isEmpty()) {
-                    for (ChiTietHoaDon ct : details) {
-                        SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-                        if (spct != null) {
-                            spct = sanPhamChiTietRepository.findById(spct.getId()).orElse(spct);
-                            int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
-                            int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
+            if (hd == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Không tìm thấy thông tin đơn hàng với mã: " + orderId));
+            }
 
-                            boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
-                            boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
+            List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hd.getId());
+            if (details != null && !details.isEmpty()) {
+                for (ChiTietHoaDon ct : details) {
+                    SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+                    if (spct != null) {
+                        spct = sanPhamChiTietRepository.findById(spct.getId()).orElse(spct);
+                        int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
+                        int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
 
-                            String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
-                            String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
-                            String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
-                            String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
-                                    ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
-                                    : "";
+                        boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
+                        boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
 
-                            if (!isProductActive || !isVariantActive) {
-                                return ResponseEntity.badRequest()
-                                        .body(Map.of("error", "Sản phẩm '" + tenSp + variant + "' đã ngừng kinh doanh, không thể thanh toán!"));
-                            }
+                        String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
+                        String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
+                        String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
+                        String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
+                                ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
+                                : "";
 
-                            if (stock < qty) {
-                                return ResponseEntity.badRequest()
-                                        .body(Map.of("error", "Sản phẩm '" + tenSp + variant + "' không đủ số lượng trong kho (kho còn: " + stock + ", cần: " + qty + ")! Vui lòng chọn sản phẩm khác."));
-                            }
+                        if (!isProductActive || !isVariantActive) {
+                            return ResponseEntity.badRequest()
+                                    .body(Map.of("error", "Sản phẩm '" + tenSp + variant + "' đã ngừng kinh doanh, không thể thanh toán!"));
+                        }
+
+                        if (stock < qty) {
+                            return ResponseEntity.badRequest()
+                                    .body(Map.of("error", "Sản phẩm '" + tenSp + variant + "' không đủ số lượng trong kho (kho còn: " + stock + ", cần: " + qty + ")! Vui lòng chọn sản phẩm khác."));
                         }
                     }
                 }

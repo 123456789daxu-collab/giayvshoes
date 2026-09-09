@@ -69,19 +69,12 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu giảm giá với ID: " + id));
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     @Override
     public String generateNextMaVoucher() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("PGG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (phieuGiamGiaRepository.existsByMaVoucher(code));
-        return code;
+        return maGeneratorService.generateMaPhieuGiamGia();
     }
 
     @Override

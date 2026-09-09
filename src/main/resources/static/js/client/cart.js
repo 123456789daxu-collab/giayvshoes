@@ -309,10 +309,17 @@ function setupActions() {
             return;
         }
         
-        // Filter checked items and ensure none are stopped
+        // Filter checked items and ensure none are stopped or out of stock
         const stoppedSelected = state.cart.filter(item => state.checkedIds.includes(item.id) && item.isStopped);
         if (stoppedSelected.length > 0) {
             showToast(`❌ Sản phẩm "${stoppedSelected[0].tenSanPham}" đã ngừng kinh doanh. Vui lòng xóa trước khi thanh toán!`, 'error');
+            return;
+        }
+
+        const outOfStockSelected = state.cart.filter(item => state.checkedIds.includes(item.id) && ((item.soLuongTon != null && item.soLuongTon < item.qty) || (item.soLuongTon != null && item.soLuongTon <= 0)));
+        if (outOfStockSelected.length > 0) {
+            const first = outOfStockSelected[0];
+            showToast(`❌ Sản phẩm "${first.tenSanPham}" không đủ số lượng trong kho (kho còn: ${first.soLuongTon || 0}, bạn chọn: ${first.qty})!`, 'error');
             return;
         }
 

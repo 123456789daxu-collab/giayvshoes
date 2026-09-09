@@ -41,18 +41,11 @@ public class DanhMucController {
         return "the-loai";
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     private String generateNextMaDanhMuc() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("DM");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (danhMucRepository.existsByMaDanhMuc(code));
-        return code;
+        return maGeneratorService.generateMaDanhMuc();
     }
 
     @PostMapping("/add")
@@ -101,6 +94,7 @@ public class DanhMucController {
 
         danhMuc.setId(id);
         danhMuc.setTenDanhMuc(tenTrimmed);
+        danhMuc.setTrangThai(existing.get().getTrangThai());
         try {
             danhMucRepository.save(danhMuc);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");

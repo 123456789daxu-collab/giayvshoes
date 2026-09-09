@@ -155,6 +155,8 @@ public class SanPhamController {
         return "redirect:/san-pham";
     }
 
+    // KHONG DUNG XOA CUNG BIEN THE (SU DUNG /toggle-status-variant/{id} DE CHUYEN TRANG THAI SANG NGUNG KINH DOANH)
+    /*
     @GetMapping("/delete-variant/{id}")
     public String deleteVariant(@PathVariable Long id, 
                                 @org.springframework.web.bind.annotation.RequestHeader(value = "Referer", required = false) String referer,
@@ -176,6 +178,7 @@ public class SanPhamController {
         }
         return "redirect:/san-pham";
     }
+    */
 
     @GetMapping("/chi-tiet-global")
     public String chiTietGlobal(Model model, 
@@ -666,6 +669,8 @@ public class SanPhamController {
         return "redirect:/san-pham";
     }
 
+    // KHONG DUNG XOA CUNG SAN PHAM (SU DUNG /toggle-status/{id} DE CHUYEN TRANG THAI SANG NGUNG KINH DOANH)
+    /*
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -678,6 +683,7 @@ public class SanPhamController {
         }
         return "redirect:/san-pham";
     }
+    */
 
     @GetMapping("/toggle-status/{id}")
     public String toggleStatus(@PathVariable Long id, 

@@ -32,79 +32,31 @@ public class ThuocTinhRestController {
         return !name.trim().matches("^[\\p{L}\\d\\s]+$");
     }
 
-    private static final String RANDOM_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private static final java.security.SecureRandom RANDOM = new java.security.SecureRandom();
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
 
     private String generateNextMaDanhMuc() {
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("DM");
-            for (int i = 0; i < 6; i++) {
-                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-            }
-            code = sb.toString();
-        } while (danhMucRepository.existsByMaDanhMuc(code));
-        return code;
+        return maGeneratorService.generateMaDanhMuc();
     }
 
     private String generateNextMaLoaiGiay() {
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("LG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-            }
-            code = sb.toString();
-        } while (loaiGiayRepository.existsByMaLoaiGiay(code));
-        return code;
+        return maGeneratorService.generateMaLoaiGiay();
     }
 
     private String generateNextMaThuongHieu() {
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("TH");
-            for (int i = 0; i < 6; i++) {
-                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-            }
-            code = sb.toString();
-        } while (thuongHieuRepository.existsByMaThuongHieu(code));
-        return code;
+        return maGeneratorService.generateMaThuongHieu();
     }
 
     private String generateNextMaChatLieu() {
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("CL");
-            for (int i = 0; i < 6; i++) {
-                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-            }
-            code = sb.toString();
-        } while (chatLieuRepository.existsByMaChatLieu(code));
-        return code;
+        return maGeneratorService.generateMaChatLieu();
     }
 
     private String generateNextMaMauSac() {
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("MS");
-            for (int i = 0; i < 6; i++) {
-                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-            }
-            code = sb.toString();
-        } while (mauSacRepository.existsByMaMauSac(code));
-        return code;
+        return maGeneratorService.generateMaMauSac();
     }
 
     private String generateNextMaCoGiay() {
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("CG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(RANDOM_CHARS.charAt(RANDOM.nextInt(RANDOM_CHARS.length())));
-            }
-            code = sb.toString();
-        } while (coGiayRepository.existsByMaCoGiay(code));
-        return code;
+        return maGeneratorService.generateMaCoGiay();
     }
 
     @PostMapping("/add-danh-muc")
