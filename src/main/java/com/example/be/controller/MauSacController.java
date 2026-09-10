@@ -3,7 +3,7 @@ package com.example.be.controller;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.be.entity.MauSac;
-import com.example.be.repository.MauSacRepository;
+import com.example.be.service.ThuocTinhService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class MauSacController {
 
     @Autowired
-    private MauSacRepository mauSacRepository;
+    private ThuocTinhService thuocTinhService;
+
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
 
     @GetMapping
     public String index(Model model, 
@@ -28,49 +31,22 @@ public class MauSacController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
-        Page<MauSac> pageData;
-        if ((keyword != null && !keyword.isEmpty()) || trangThai != null) {
-            pageData = mauSacRepository.search(keyword, trangThai, pageable);
-        } else {
-            pageData = mauSacRepository.findAll(pageable);
-        }
+        Page<MauSac> pageData = thuocTinhService.searchMauSac(keyword, trangThai, pageable);
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
-        model.addAttribute("nextMaMauSac", generateNextMaMauSac());
+        model.addAttribute("nextMaMauSac", maGeneratorService.generateMaMauSac());
         return "mau-sac";
-    }
-
-    @Autowired
-    private com.example.be.service.MaGeneratorService maGeneratorService;
-
-    private String generateNextMaMauSac() {
-        return maGeneratorService.generateMaMauSac();
     }
 
     @PostMapping("/add")
     public String add(@ModelAttribute MauSac mauSac, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (mauSac.getTenMauSac() == null || mauSac.getTenMauSac().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên màu sắc không được để trống!");
-            return "redirect:" + (referer != null ? referer : "/mau-sac");
-        }
-        String tenTrimmed = mauSac.getTenMauSac().trim();
-
-        java.util.Optional<MauSac> existing = mauSacRepository.findByTenMauSacIgnoreCase(tenTrimmed);
-        if (existing.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Màu sắc này đã tồn tại trong hệ thống.");
-            return "redirect:" + (referer != null ? referer : "/mau-sac");
-        }
-
-        mauSac.setTenMauSac(tenTrimmed);
-        if (mauSac.getMaMauSac() == null || mauSac.getMaMauSac().trim().isEmpty() || "(Tự động sinh)".equals(mauSac.getMaMauSac().trim())) {
-            mauSac.setMaMauSac(generateNextMaMauSac());
-        }
-        mauSac.setTrangThai(true);
         try {
-            mauSacRepository.save(mauSac);
+            thuocTinhService.addMauSac(mauSac);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Tên hoặc mã có thể đã tồn tại.");
         }
@@ -80,24 +56,11 @@ public class MauSacController {
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute MauSac mauSac, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (mauSac.getTenMauSac() == null || mauSac.getTenMauSac().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên màu sắc không được để trống!");
-            return "redirect:" + (referer != null ? referer : "/mau-sac");
-        }
-        String tenTrimmed = mauSac.getTenMauSac().trim();
-
-        java.util.Optional<MauSac> existing = mauSacRepository.findByTenMauSacIgnoreCase(tenTrimmed);
-        if (existing.isPresent() && !existing.get().getId().equals(id)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên màu sắc đã trùng với màu sắc khác.");
-            return "redirect:" + (referer != null ? referer : "/mau-sac");
-        }
-
-        mauSac.setId(id);
-        mauSac.setTenMauSac(tenTrimmed);
-        mauSac.setTrangThai(existing.get().getTrangThai());
         try {
-            mauSacRepository.save(mauSac);
+            thuocTinhService.updateMauSac(id, mauSac);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên hoặc mã có thể đã tồn tại.");
         }
@@ -107,14 +70,10 @@ public class MauSacController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         try {
-            MauSac mauSac = mauSacRepository.findById(id).orElse(null);
-            if(mauSac != null) {
-                mauSac.setTrangThai(mauSac.getTrangThai() != null ? !mauSac.getTrangThai() : false);
-                mauSacRepository.save(mauSac);
-                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
-            }
+            thuocTinhService.toggleStatusMauSac(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã có lỗi xảy ra!");
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật trạng thái!");
         }
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/mau-sac");

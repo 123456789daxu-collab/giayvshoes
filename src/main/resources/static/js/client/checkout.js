@@ -136,7 +136,7 @@ function renderCheckoutSummary() {
     if (hasStopped) {
         warningHtml = `
             <div style="background:#fef2f2; border:1.5px solid #f87171; border-radius:10px; padding:12px 16px; margin-bottom:16px; color:#991b1b; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                <span style="font-size:18px;">⚠️</span>
+                <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#f59e0b;"></i>
                 <span>Trong đơn hàng có sản phẩm <strong>đã ngừng kinh doanh</strong>. Vui lòng quay lại giỏ hàng để xóa trước khi đặt hàng!</span>
             </div>
         `;
@@ -149,7 +149,7 @@ function renderCheckoutSummary() {
     } else if (outOfStockItem) {
         warningHtml = `
             <div style="background:#fffbeb; border:1.5px solid #f59e0b; border-radius:10px; padding:12px 16px; margin-bottom:16px; color:#b45309; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                <span style="font-size:18px;">⚠️</span>
+                <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#f59e0b;"></i>
                 <span>Sản phẩm <strong>"${outOfStockItem.tenSanPham}"</strong> không đủ số lượng trong kho (kho còn <strong>${outOfStockItem.soLuongTon || 0}</strong>, bạn đang chọn <strong>${outOfStockItem.qty}</strong>). Vui lòng quay lại giỏ hàng để điều chỉnh!</span>
             </div>
         `;
@@ -182,8 +182,8 @@ function renderCheckoutSummary() {
                     <div class="summary-item-name" style="${isStopped ? 'color:#64748b; text-decoration:line-through;' : ''}">${item.tenSanPham}</div>
                     <div class="summary-item-meta">Màu: ${item.mauSac || '—'} / Size: ${item.sizeGiay || '—'}</div>
                     <div class="summary-item-code">Mã: ${code}</div>
-                    ${isStopped ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; margin-top:3px; width:fit-content;">⛔ ĐÃ NGỪNG BÁN</div>` : ''}
-                    ${isOutOfStock ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; margin-top:3px; width:fit-content;">⚠️ KHO CÒN: ${item.soLuongTon || 0} (BẠN CHỌN: ${item.qty})</div>` : ''}
+                    ${isStopped ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; margin-top:3px; width:fit-content;"><i data-lucide="ban" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>ĐÃ NGỪNG BÁN</div>` : ''}
+                    ${isOutOfStock ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:11px; font-weight:800; padding:2px 6px; border-radius:4px; margin-top:3px; width:fit-content;"><i data-lucide="alert-triangle" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>KHO CÒN: ${item.soLuongTon || 0} (BẠN CHỌN: ${item.qty})</div>` : ''}
                 </div>
                 <div class="summary-item-right">
                     <div class="summary-item-price" style="${isStopped ? 'color:#94a3b8;' : ''}">${formatPrice(item.giaBan)}</div>
@@ -325,7 +325,7 @@ function autoApplyBestVoucher() {
         state.appliedVoucher = bestVoucher;
         $('inputVoucher').value = bestVoucher.maVoucher;
         const msg = $('voucherMessage');
-        msg.textContent = `✓ Tự động áp dụng mã tốt nhất: ${bestVoucher.tenVoucher}`;
+        msg.textContent = `Tự động áp dụng mã tốt nhất: ${bestVoucher.tenVoucher}`;
         msg.style.color = '#10b981';
     } else {
         state.appliedVoucher = null;
@@ -464,7 +464,7 @@ function setupVoucherControls() {
             const data = await res.json();
             state.appliedVoucher = data;
             calculatePricing();
-            msg.textContent = `✓ Đã áp dụng: ${data.tenVoucher}`;
+            msg.textContent = `Đã áp dụng: ${data.tenVoucher}`;
             msg.style.color = '#10b981';
             showToast(`Áp dụng thành công voucher: ${data.tenVoucher}`, 'success');
             renderVouchers(subtotal);
@@ -507,7 +507,7 @@ async function validateAppliedVoucherRealtime() {
             if (inputVoucher) inputVoucher.value = '';
             const msgEl = $('voucherMessage');
             if (msgEl) {
-                msgEl.textContent = `❌ ${errorMsg}`;
+                msgEl.textContent = `${errorMsg}`;
                 msgEl.style.color = '#ef4444';
             }
 
@@ -515,7 +515,7 @@ async function validateAppliedVoucherRealtime() {
                 loadActiveVouchers();
             }
 
-            showToast(`⚠️ ${errorMsg}`, 'error');
+            showToast(`${errorMsg}`, 'error');
             return false;
         }
 
@@ -533,7 +533,7 @@ function setupCheckoutBtn() {
     $('btnOrderComplete').addEventListener('click', async () => {
         const stoppedItem = state.checkoutItems.find(i => i.isStopped);
         if (stoppedItem) {
-            showToast(`❌ Sản phẩm "${stoppedItem.tenSanPham}" đã ngừng kinh doanh. Vui lòng quay lại giỏ hàng để xóa!`, 'error');
+            showToast(`Sản phẩm "${stoppedItem.tenSanPham}" đã ngừng kinh doanh. Vui lòng quay lại giỏ hàng để xóa!`, 'error');
             return;
         }
 
@@ -574,7 +574,13 @@ function setupCheckoutBtn() {
             const total = Math.max(0, subtotal + state.shippingFee - discount);
             const fullAddress = `${specificAddress}, ${ward}, ${district}, ${province}`;
             
-            const payMap = { COD: '📦 Thanh toán khi nhận hàng', VNPAY: '💳 VNPAY', MOMO: '💳 MoMo', ZALOPAY: '💳 ZaloPay', VIETQR: '💳 VietQR' };
+            const payMap = { 
+                COD: '<i data-lucide="package" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Thanh toán khi nhận hàng', 
+                VNPAY: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>VNPAY', 
+                MOMO: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>MoMo', 
+                ZALOPAY: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>ZaloPay', 
+                VIETQR: '<i data-lucide="credit-card" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>VietQR' 
+            };
             const confirmEl = $('orderConfirmSummary');
             if (confirmEl) {
                 const feeHtml = state.shippingFee === 0
@@ -582,19 +588,22 @@ function setupCheckoutBtn() {
                     : state.shippingFee.toLocaleString('vi-VN') + ' ₫';
                 confirmEl.innerHTML = `
                     <div style="display:flex;flex-direction:column;gap:12px;font-size:14px;">
-                        <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">👤 Họ tên</span><strong>${name}</strong></div>
-                        <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">📞 SĐT</span><strong>${phone}</strong></div>
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><span style="color:#64748b;flex-shrink:0;">📍 Địa chỉ giao</span><span style="text-align:right;font-weight:600;">${fullAddress}</span></div>
+                        <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="user" style="width:14px;height:14px;"></i> Họ tên</span><strong>${name}</strong></div>
+                        <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="phone" style="width:14px;height:14px;"></i> SĐT</span><strong>${phone}</strong></div>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><span style="color:#64748b;flex-shrink:0;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:14px;height:14px;"></i> Địa chỉ giao</span><span style="text-align:right;font-weight:600;">${fullAddress}</span></div>
                         <hr style="border:none;border-top:1px dashed #e2e8f0;margin:2px 0;">
                         <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">Tạm tính</span><span>${subtotal.toLocaleString('vi-VN')} ₫</span></div>
                         <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">Giảm giá</span><span style="color:#10b981;">-${discount.toLocaleString('vi-VN')} ₫</span></div>
                         <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">Phí vận chuyển</span>${feeHtml}</div>
                         <div style="display:flex;justify-content:space-between;font-size:17px;font-weight:800;color:#1e293b;padding-top:6px;border-top:2px solid #f1f5f9;">
-                            <span>💰 Tổng cộng</span><span style="color:#e53e3e;">${total.toLocaleString('vi-VN')} ₫</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;"><i data-lucide="wallet" style="width:16px;height:16px;"></i> Tổng cộng</span><span style="color:#e53e3e;">${total.toLocaleString('vi-VN')} ₫</span>
                         </div>
                         <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">Thanh toán</span><strong>${payMap[state.selectedPaymentMethod] || state.selectedPaymentMethod}</strong></div>
                     </div>
                 `;
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
             }
             modal.style.display = 'flex';
         } else {
@@ -631,14 +640,14 @@ async function submitOrder() {
 
     const stoppedItem = state.checkoutItems.find(i => i.isStopped);
     if (stoppedItem) {
-        showToast(`❌ Sản phẩm "${stoppedItem.tenSanPham}" đã ngừng kinh doanh. Không thể đặt hàng!`, 'error');
+        showToast(`Sản phẩm "${stoppedItem.tenSanPham}" đã ngừng kinh doanh. Không thể đặt hàng!`, 'error');
         renderCheckoutSummary();
         return;
     }
 
     const outOfStockItem = state.checkoutItems.find(i => (i.soLuongTon != null && i.soLuongTon < i.qty) || (i.soLuongTon != null && i.soLuongTon <= 0));
     if (outOfStockItem) {
-        showToast(`❌ Sản phẩm "${outOfStockItem.tenSanPham}" không đủ tồn kho (kho còn: ${outOfStockItem.soLuongTon || 0}, bạn chọn: ${outOfStockItem.qty})! Vui lòng điều chỉnh lại giỏ hàng.`, 'error');
+        showToast(`Sản phẩm "${outOfStockItem.tenSanPham}" không đủ tồn kho (kho còn: ${outOfStockItem.soLuongTon || 0}, bạn chọn: ${outOfStockItem.qty})! Vui lòng điều chỉnh lại giỏ hàng.`, 'error');
         renderCheckoutSummary();
         $('btnOrderComplete').disabled = false;
         $('btnOrderComplete').textContent = 'Đặt Hàng';
@@ -757,11 +766,11 @@ async function submitOrder() {
             localStorage.removeItem('checkout_items');
 
             // 4. Redirect sang VNPay
-            showToast('🔄 Đang chuyển sang cổng thanh toán VNPay...', 'info');
+            showToast('Đang chuyển sang cổng thanh toán VNPay...', 'info');
             setTimeout(() => { window.location.href = vnpData.paymentUrl; }, 600);
             return;
         } catch (err) {
-            showToast('❌ ' + err.message, 'error');
+            showToast('' + err.message, 'error');
             $('btnOrderComplete').disabled = false;
             $('btnOrderComplete').textContent = 'Hoàn thành đặt hàng';
             return;
@@ -778,7 +787,7 @@ async function submitOrder() {
             payload: payload,
             emailPayload: emailPayload
         }));
-        showToast('🔄 Đang chuyển sang cổng thanh toán online...', 'info');
+        showToast('Đang chuyển sang cổng thanh toán online...', 'info');
         setTimeout(() => {
             window.location.href = `/client/checkout/payment-online?ma=${encodeURIComponent(tempMa)}&total=${encodeURIComponent(total)}&method=${encodeURIComponent(method)}`;
         }, 500);
@@ -812,7 +821,7 @@ async function submitOrder() {
                 if (inputVoucher) inputVoucher.value = '';
                 const msgEl = $('voucherMessage');
                 if (msgEl) {
-                    msgEl.textContent = `❌ ${errMsg}`;
+                    msgEl.textContent = `${errMsg}`;
                     msgEl.style.color = '#ef4444';
                 }
             }
@@ -835,7 +844,7 @@ async function submitOrder() {
         localStorage.removeItem('checkout_items');
 
         // COD: Thông báo thành công và chuyển sang trang hoàn tất
-        showToast('🎉 Đặt hàng thành công! Đang chuyển hướng...', 'success');
+        showToast('Đặt hàng thành công! Đang chuyển hướng...', 'success');
         
         setTimeout(() => {
             window.location.href = `/client/checkout/success?ma=${encodeURIComponent(orderRes.maHoaDon)}&total=${orderRes.tongTien}&status=chờ xác nhận`;
@@ -874,7 +883,7 @@ async function checkAuthAndPrefill() {
             if (banner) {
                 banner.style.display = 'flex';
                 if (infoEl) {
-                    infoEl.textContent = `👤 ${data.user.hoTen || ''}${ data.user.email ? '  •  ' + data.user.email : ''}${ data.user.soDienThoai ? '  •  ' + data.user.soDienThoai : ''}`;
+                    infoEl.textContent = `${data.user.hoTen || ''}${ data.user.email ? '  •  ' + data.user.email : ''}${ data.user.soDienThoai ? '  •  ' + data.user.soDienThoai : ''}`;
                 }
             }
 
@@ -1306,7 +1315,7 @@ function updateShippingByArea(provinceName, districtName) {
         // Tỉnh/thành khác ngoài Hà Nội → phí 30k
         state.shippingFee = SHIP_FEE;
         if (distInfoEl) {
-            distInfoEl.innerHTML = `🚚 Giao ngoài Hà Nội &bull; <span style="color:#f59e0b; font-weight:600;">Phí vận chuyển: 30.000 đ</span>`;
+            distInfoEl.innerHTML = `<i data-lucide="truck" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Giao ngoài Hà Nội &bull; <span style="color:#f59e0b; font-weight:600;">Phí vận chuyển: 30.000 đ</span>`;
         }
         calculatePricing();
         return;
@@ -1317,7 +1326,7 @@ function updateShippingByArea(provinceName, districtName) {
         // Chưa chọn quận/huyện
         state.shippingFee = 0;
         if (distInfoEl) {
-            distInfoEl.innerHTML = `📍 Hà Nội &bull; <span style="color:#64748b;">Vui lòng chọn Quận/Huyện để tính phí ship</span>`;
+            distInfoEl.innerHTML = `<i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Hà Nội &bull; <span style="color:#64748b;">Vui lòng chọn Quận/Huyện để tính phí ship</span>`;
         }
         calculatePricing();
         return;
@@ -1327,13 +1336,13 @@ function updateShippingByArea(provinceName, districtName) {
         // Nội thành Hà Nội → Free ship
         state.shippingFee = 0;
         if (distInfoEl) {
-            distInfoEl.innerHTML = `📍 Nội thành Hà Nội &bull; <span style="color:#10b981; font-weight:700;">Miễn phí vận chuyển! 🎉</span>`;
+            distInfoEl.innerHTML = `<i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Nội thành Hà Nội &bull; <span style="color:#10b981; font-weight:700;">Miễn phí vận chuyển!</span>`;
         }
     } else {
         // Ngoại thành Hà Nội (huyện) → phí 30k
         state.shippingFee = SHIP_FEE;
         if (distInfoEl) {
-            distInfoEl.innerHTML = `📍 Ngoại thành Hà Nội &bull; <span style="color:#f59e0b; font-weight:600;">Phí vận chuyển: 30.000 đ</span>`;
+            distInfoEl.innerHTML = `<i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Ngoại thành Hà Nội &bull; <span style="color:#f59e0b; font-weight:600;">Phí vận chuyển: 30.000 đ</span>`;
         }
     }
 

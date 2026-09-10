@@ -179,7 +179,7 @@ function renderMultipleResults(invoices) {
 
     listEl.innerHTML = `
         <div style="padding:20px 24px;border-bottom:1px solid #e2e8f0;background:#f8fafc;">
-            <h3 style="margin:0;font-size:16px;font-weight:800;color:#1e293b;">📋 Các đơn hàng tìm thấy (${invoices.length})</h3>
+            <h3 style="margin:0;font-size:16px;font-weight:800;color:#1e293b;"><i data-lucide="file-text" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"></i>Các đơn hàng tìm thấy (${invoices.length})</h3>
             <p style="margin:4px 0 0;font-size:13px;color:#64748b;">Nhấn vào đơn hàng để xem chi tiết</p>
         </div>
         <div style="display:flex;flex-direction:column;">
@@ -713,11 +713,16 @@ function showToast(msg, type = 'success') {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    const icon = type === 'success'
-        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#10b981" width="16" height="16"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
-        : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#ef4444" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-    toast.innerHTML = `${icon} <span style="margin-left:8px;">${msg}</span>`;
+    const iconName = type === 'success' ? 'check-circle' : 'alert-circle';
+    const iconColor = type === 'success' ? '#10b981' : '#ef4444';
+    toast.innerHTML = `<i data-lucide="${iconName}" style="width: 16px; height: 16px; color: ${iconColor}; flex-shrink: 0;"></i> <span style="margin-left:8px;">${msg}</span>`;
     container.appendChild(toast);
+
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+        try {
+            lucide.createIcons({ root: toast });
+        } catch(e) {}
+    }
 
     setTimeout(() => {
         toast.style.animation = 'slideInToast 0.35s ease reverse';

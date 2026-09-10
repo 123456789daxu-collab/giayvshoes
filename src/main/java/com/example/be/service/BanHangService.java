@@ -20,4 +20,8 @@ public interface BanHangService {
     HoaDon capNhatPhieuGiamGia(Long idHoaDon, Long idPhieuGiamGia);
     
     HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang, BigDecimal phiShip, String sdtNhan, String diaChiGiao);
+    
+    java.util.List<java.util.Map<String, Object>> getDanhSachKhachHang(String keyword);
+    java.util.List<java.util.Map<String, Object>> getDanhSachSanPhamBanHang(String keyword);
+    java.util.Map<String, Object> getHoaDonChiTietResponse(Long idHoaDon);
 }

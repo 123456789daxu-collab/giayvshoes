@@ -83,7 +83,7 @@ async function handleLogin(e) {
         const data = await res.json();
         
         if (res.ok) {
-            showToast('🎉 Đăng nhập thành công!', 'success');
+            showToast('Đăng nhập thành công!', 'success');
             
             setTimeout(() => {
                 const ref = document.referrer;

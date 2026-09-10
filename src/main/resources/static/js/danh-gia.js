@@ -222,7 +222,7 @@ function renderTable() {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="5" style="text-align:center; padding: 56px 20px; color: #94a3b8;">
-                        <div style="font-size: 36px; margin-bottom: 8px;">👟</div>
+                        <div style="margin-bottom: 8px;"><i class="bi bi-box-seam" style="font-size: 32px; color: #94a3b8;"></i></div>
                         <div style="font-weight: 700; color: #475569; font-size: 15px;">Không tìm thấy sản phẩm nào</div>
                         <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Hãy thử đổi từ khoá tìm kiếm khác.</div>
                     </td>
@@ -258,7 +258,7 @@ function renderTable() {
                     </td>
                     <td style="text-align: center;">
                         <span class="dg-score-badge ${hasReviews ? 'has-score' : 'no-score'}">
-                            ★ ${p.diemTB}
+                            <i class="bi bi-star-fill text-warning me-1"></i>${p.diemTB}
                         </span>
                     </td>
                     <td>
@@ -293,7 +293,7 @@ function renderTable() {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" style="text-align:center; padding: 56px 20px; color: #94a3b8;">
-                        <div style="font-size: 36px; margin-bottom: 8px;">📭</div>
+                        <div style="margin-bottom: 8px;"><i class="bi bi-inbox" style="font-size: 32px; color: #94a3b8;"></i></div>
                         <div style="font-weight: 700; color: #475569; font-size: 15px;">Không tìm thấy đánh giá nào</div>
                         <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Hãy thử đổi từ khoá tìm kiếm khác.</div>
                     </td>
@@ -331,7 +331,7 @@ function renderTable() {
                     </td>
                     <td>
                         <div style="color: #f59e0b; font-weight: 700; font-size: 13px; margin-bottom: 2px;">
-                            ${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}
+                            ${'<i class="bi bi-star-fill text-warning"></i>'.repeat(stars)}${'<i class="bi bi-star text-muted"></i>'.repeat(5 - stars)}
                         </div>
                         <div style="font-size: 13px; color: #334155;">
                             ${escapeHtml(r.noiDung || '(Không có bình luận chữ)')}
@@ -372,7 +372,7 @@ function renderPagination() {
             Hiển thị trang <strong>${current}</strong> / <strong>${totalPages}</strong> (${list.length} mục)
         </div>
         <div style="display: flex; gap: 6px;">
-            <button class="dg-page-btn" ${current === 1 ? 'disabled' : ''} onclick="goToPage(${current - 1})">❮</button>
+            <button class="dg-page-btn" ${current === 1 ? 'disabled' : ''} onclick="goToPage(${current - 1})"><i class="bi bi-chevron-left"></i></button>
     `;
 
     for (let i = 1; i <= totalPages; i++) {
@@ -384,7 +384,7 @@ function renderPagination() {
     }
 
     html += `
-            <button class="dg-page-btn" ${current === totalPages ? 'disabled' : ''} onclick="goToPage(${current + 1})">❯</button>
+            <button class="dg-page-btn" ${current === totalPages ? 'disabled' : ''} onclick="goToPage(${current + 1})"><i class="bi bi-chevron-right"></i></button>
         </div>
     `;
 
@@ -432,7 +432,7 @@ function renderDetailView() {
 
         const currentFilter = dgState.detailStarFilter;
         const avgScoreRound = Math.min(5, Math.max(1, Math.round(prod.diemTBNumeric || 5)));
-        const avgStarsHtml = '★'.repeat(avgScoreRound) + '<span style="color:#cbd5e1;letter-spacing:2px;">' + '★'.repeat(5 - avgScoreRound) + '</span>';
+        const avgStarsHtml = '<i class="bi bi-star-fill text-warning me-1"></i>'.repeat(avgScoreRound) + '<i class="bi bi-star text-muted me-1"></i>'.repeat(5 - avgScoreRound);
 
         pillCardEl.innerHTML = `
             <div class="dg-rating-pill-card-content">
@@ -449,19 +449,19 @@ function renderDetailView() {
                         Tất cả (${total})
                     </button>
                     <button class="dg-star-pill ${currentFilter === 5 ? 'active' : ''}" onclick="onDetailStarFilter(5)">
-                        5 ★ (${count5})
+                        5 <i class="bi bi-star-fill text-warning me-1"></i>(${count5})
                     </button>
                     <button class="dg-star-pill ${currentFilter === 4 ? 'active' : ''}" onclick="onDetailStarFilter(4)">
-                        4 ★ (${count4})
+                        4 <i class="bi bi-star-fill text-warning me-1"></i>(${count4})
                     </button>
                     <button class="dg-star-pill ${currentFilter === 3 ? 'active' : ''}" onclick="onDetailStarFilter(3)">
-                        3 ★ (${count3})
+                        3 <i class="bi bi-star-fill text-warning me-1"></i>(${count3})
                     </button>
                     <button class="dg-star-pill ${currentFilter === 2 ? 'active' : ''}" onclick="onDetailStarFilter(2)">
-                        2 ★ (${count2})
+                        2 <i class="bi bi-star-fill text-warning me-1"></i>(${count2})
                     </button>
                     <button class="dg-star-pill ${currentFilter === 1 ? 'active' : ''}" onclick="onDetailStarFilter(1)">
-                        1 ★ (${count1})
+                        1 <i class="bi bi-star-fill text-warning me-1"></i>(${count1})
                     </button>
                 </div>
             </div>
@@ -526,7 +526,7 @@ function renderDetailReviewsList() {
     if (reviews.length === 0) {
         listEl.innerHTML = `
             <div class="dg-detail-card" style="text-align: center; padding: 48px 20px; color: #94a3b8;">
-                <div style="font-size: 36px; margin-bottom: 8px;">📭</div>
+                <div style="margin-bottom: 8px;"><i class="bi bi-inbox" style="font-size: 32px; color: #94a3b8;"></i></div>
                 <div style="font-size: 15px; font-weight: 700; color: #475569;">Không có đánh giá nào phù hợp với bộ lọc</div>
                 <div style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Hãy thử chọn số sao khác hoặc thay đổi khoảng ngày tìm kiếm.</div>
             </div>
@@ -541,8 +541,8 @@ function renderDetailReviewsList() {
         const initial = authorName.trim().charAt(0).toUpperCase() || 'K';
         const images = r.anhDanhGia || [];
 
-        // Stars render (e.g. ★★★★★ or ★☆☆☆☆ with soft styling)
-        const starsDisplay = '★'.repeat(stars) + '<span style="color:#cbd5e1;letter-spacing:2px;">' + '★'.repeat(5 - stars) + '</span>';
+        // Stars render using Bootstrap Icons
+        const starsDisplay = '<i class="bi bi-star-fill text-warning me-1"></i>'.repeat(stars) + '<i class="bi bi-star text-muted me-1"></i>'.repeat(5 - stars);
 
         // Images gallery
         const imagesHtml = images.length > 0 ? `
@@ -567,7 +567,7 @@ function renderDetailReviewsList() {
             replyHtml = `
                 <div class="dg-existing-reply-box">
                     <div class="dg-existing-reply-head">
-                        <span>💬 Phản hồi từ ${escapeHtml(r.nguoiPhanHoi || 'Shop VShoes')}</span>
+                        <span><i class="bi bi-chat-dots-fill text-info me-1"></i> Phản hồi từ ${escapeHtml(r.nguoiPhanHoi || 'Shop VShoes')}</span>
                         <span style="font-size: 12px; font-weight: 500; color: #15803d;">${escapeHtml(r.ngayPhanHoi || '')}</span>
                     </div>
                     <div class="dg-existing-reply-text">${escapeHtml(r.phanHoi)}</div>
@@ -707,7 +707,7 @@ async function analyzeCurrentProduct() {
 
         if (window.Swal) {
             Swal.fire({
-                title: `✨ Phân tích Đánh giá: ${data.productName}`,
+                title: `Phân tích Đánh giá: ${data.productName}`,
                 html: `
                     <div style="text-align: left; font-size: 13.5px; line-height: 1.6; color: #334155;">
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; text-align: center;">
@@ -726,14 +726,14 @@ async function analyzeCurrentProduct() {
                         </div>
 
                         <div style="background: #f8fafc; padding: 14px 16px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 12px;">
-                            <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;">📊 Tổng quan sản phẩm:</div>
+                            <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;"><i class="bi bi-bar-chart-line-fill text-primary me-1"></i> Tổng quan sản phẩm:</div>
                             <div>• Tổng số nhận xét: <strong>${data.totalReviews} lượt</strong></div>
-                            <div>• Điểm đánh giá trung bình: <strong style="color: #f59e0b;">★ ${data.avgRating} / 5.0</strong></div>
+                            <div>• Điểm đánh giá trung bình: <strong style="color: #f59e0b;"><i class="bi bi-star-fill text-warning me-1"></i>${data.avgRating} / 5.0</strong></div>
                             <div>• Đánh giá kèm hình ảnh thực tế: <strong>${data.withImagesCount} lượt</strong></div>
                         </div>
 
                         <div style="background: #eff6ff; padding: 14px 16px; border-radius: 10px; border: 1px solid #bfdbfe;">
-                            <div style="font-weight: 700; color: #1e40af; margin-bottom: 6px;">💡 Đề xuất hành động cho Shop:</div>
+                            <div style="font-weight: 700; color: #1e40af; margin-bottom: 6px;"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Đề xuất hành động cho Shop:</div>
                             <div>${data.negativeCount > 0 ? '• Cần ưu tiên liên hệ khách hàng có phản hồi chưa hài lòng để hỗ trợ đổi trả hoặc bảo hành kịp thời.' : '• Sản phẩm đang nhận được sự hài lòng cao từ khách hàng, nên tiếp tục duy trì chất lượng và đẩy mạnh khuyến mãi!'}</div>
                         </div>
                     </div>

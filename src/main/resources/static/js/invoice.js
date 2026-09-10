@@ -691,7 +691,7 @@ function renderTable() {
         const ghiChuUpper = (invoice.ghiChu || '').toUpperCase();
         const khachDaXacNhan = ghiChuUpper.includes('KHÁCH XÁC NHẬN ĐÃ THANH TOÁN') || ghiChuUpper.includes('KHACH XAC NHAN DA THANH TOAN');
         const paymentAlertBadge = (khachDaXacNhan && invoice.trangThai === 0)
-            ? `<br><span style="font-size:10px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 6px;border-radius:4px;margin-top:3px;display:inline-block;">💳 Chờ kiểm tra TT</span>`
+            ? `<br><span style="font-size:10px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 6px;border-radius:4px;margin-top:3px;display:inline-block;"><i data-lucide="credit-card" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>Chờ kiểm tra TT</span>`
             : '';
 
         tr.innerHTML = `

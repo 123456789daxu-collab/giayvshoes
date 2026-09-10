@@ -1,11 +1,5 @@
 package com.example.be.controller;
 
-import com.example.be.entity.ChiTietHoaDon;
-import com.example.be.entity.HoaDon;
-import com.example.be.entity.SanPhamChiTiet;
-import com.example.be.repository.ChiTietHoaDonRepository;
-import com.example.be.repository.HoaDonRepository;
-import com.example.be.repository.SanPhamChiTietRepository;
 import com.example.be.service.HoaDonService;
 import com.example.be.service.VNPayService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,15 +23,6 @@ public class VNPayController {
 
     @Autowired
     private HoaDonService hoaDonService;
-
-    @Autowired
-    private HoaDonRepository hoaDonRepository;
-
-    @Autowired
-    private ChiTietHoaDonRepository chiTietHoaDonRepository;
-
-    @Autowired
-    private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     /**
      * Tạo URL thanh toán VNPay.
@@ -67,65 +52,10 @@ public class VNPayController {
                 amount = Long.parseLong(amountObj.toString().replace(",", "").replace(".", ""));
             }
 
-            if (orderId.isBlank()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Thiếu orderId"));
-            }
-            if (amount <= 0) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Số tiền thanh toán không hợp lệ"));
-            }
-
-            // Kiểm tra tồn kho của tất cả sản phẩm trong hóa đơn trước khi tạo link thanh toán VNPay
-            HoaDon hd = null;
-            if (!orderId.isBlank()) {
-                hd = hoaDonRepository.findAll().stream()
-                        .filter(h -> orderId.equals(h.getMaHoaDon()))
-                        .findFirst()
-                        .orElse(null);
-                if (hd == null) {
-                    try {
-                        long id = Long.parseLong(orderId);
-                        hd = hoaDonRepository.findById(id).orElse(null);
-                    } catch (NumberFormatException ignored) {}
-                }
-            }
-
-            if (hd == null) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "Không tìm thấy thông tin đơn hàng với mã: " + orderId));
-            }
-
-            List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hd.getId());
-            if (details != null && !details.isEmpty()) {
-                for (ChiTietHoaDon ct : details) {
-                    SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-                    if (spct != null) {
-                        spct = sanPhamChiTietRepository.findById(spct.getId()).orElse(spct);
-                        int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
-                        int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
-
-                        boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
-                        boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
-
-                        String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
-                        String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
-                        String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
-                        String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
-                                ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
-                                : "";
-
-                        if (!isProductActive || !isVariantActive) {
-                            return ResponseEntity.badRequest()
-                                    .body(Map.of("error", "Sản phẩm '" + tenSp + variant + "' đã ngừng kinh doanh, không thể thanh toán!"));
-                        }
-
-                        if (stock < qty) {
-                            return ResponseEntity.badRequest()
-                                    .body(Map.of("error", "Sản phẩm '" + tenSp + variant + "' không đủ số lượng trong kho (kho còn: " + stock + ", cần: " + qty + ")! Vui lòng chọn sản phẩm khác."));
-                        }
-                    }
-                }
+            try {
+                hoaDonService.validateOrderForPayment(orderId, amount);
+            } catch (IllegalArgumentException | IllegalStateException valEx) {
+                return ResponseEntity.badRequest().body(Map.of("error", valEx.getMessage()));
             }
 
             // Lấy IP của client

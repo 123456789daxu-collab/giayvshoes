@@ -44,4 +44,6 @@ public interface DotGiamGiaService {
             LocalDateTime end,
             Integer trangThai
     ) throws Exception;
+
+    List<String> getActiveColorNames();
 }

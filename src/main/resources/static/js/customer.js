@@ -1,0 +1,918 @@
+        let currentStatusFilter = 'all'; // 'all', '1', '0'
+        let currentPage = 0; // 0-indexed cho Spring Boot Backend
+        let pageSize = 10;
+        let totalPages = 1;
+        let activeCustomerIdForAddress = null;
+        let allLoadedCustomers = [];
+
+        function getNextCustomerCodeLocal() {
+            let maxNum = 0;
+            if (allLoadedCustomers && allLoadedCustomers.length > 0) {
+                allLoadedCustomers.forEach(c => {
+                    if (c && c.maKhachHang) {
+                        const digits = String(c.maKhachHang).replace(/\D+/g, '');
+                        if (digits) {
+                            const num = parseInt(digits, 10);
+                            if (num < 1000000 && num > maxNum) maxNum = num;
+                        }
+                    }
+                });
+            }
+            return 'KH' + String(maxNum + 1).padStart(3, '0');
+        }
+
+        // Khởi chạy khi DOM load xong
+        document.addEventListener("DOMContentLoaded", () => {
+            // Ràng buộc chọn 1 trong 2 giới tính ở bộ lọc
+            const genderNam = document.getElementById("gender-nam");
+            const genderNu = document.getElementById("gender-nu");
+
+            genderNam.addEventListener("change", () => {
+                if (genderNam.checked) genderNu.checked = false;
+                applyFilters();
+            });
+
+            genderNu.addEventListener("change", () => {
+                if (genderNu.checked) genderNam.checked = false;
+                applyFilters();
+            });
+
+            loadTable();
+        });
+
+        // Hàm tải dữ liệu khách hàng từ API Backend
+        async function loadTable() {
+            const search = document.getElementById("search-input").value.trim();
+            const isNamChecked = document.getElementById("gender-nam").checked;
+            const isNuChecked = document.getElementById("gender-nu").checked;
+            const dob = document.getElementById("dob-input").value;
+
+            let gioiTinh = "";
+            if (isNamChecked) gioiTinh = "true";
+            if (isNuChecked) gioiTinh = "false";
+
+            let statusValue = "";
+            if (currentStatusFilter !== 'all') statusValue = currentStatusFilter;
+
+            const url = `/api/khach-hang?search=${encodeURIComponent(search)}&gioiTinh=${gioiTinh}&dob=${dob}&trangThai=${statusValue}&page=${currentPage}&size=${pageSize}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Không thể tải danh sách khách hàng");
+                const data = await response.json();
+                renderTable(data);
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi kết nối máy chủ backend: " + error.message);
+            }
+        }
+
+        // Hàm render dữ liệu vào bảng
+        function renderTable(pageData) {
+            const tableBody = document.getElementById("customer-table-body");
+            tableBody.innerHTML = "";
+
+            const list = pageData.content || [];
+            if (list && list.length > 0) {
+                allLoadedCustomers = list;
+            }
+            totalPages = pageData.totalPages || 1;
+            const totalElements = pageData.totalElements || 0;
+
+            document.getElementById("total-count-label").innerText = `Tổng ${totalElements} khách hàng`;
+
+            if (list.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #94a3b8; padding: 48px 16px;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                                <i data-lucide="inbox" style="width: 32px; height: 32px; color: #cbd5e1;"></i>
+                                <span>Không tìm thấy khách hàng nào khớp với bộ lọc.</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                updatePaginationControls();
+                lucide.createIcons();
+                return;
+            }
+
+            list.forEach((customer, index) => {
+                const tr = document.createElement("tr");
+
+                // STT
+                const sttTd = `
+                    <td style="text-align: center; font-weight: 500; color: #64748b; font-size: 12.5px;">
+                        ${currentPage * pageSize + index + 1}
+                    </td>
+                `;
+
+                // Ảnh đại diện
+                const avatarTd = `
+                    <td class="avatar-td" style="text-align: center; padding: 6px 4px;">
+                        <div class="avatar-wrapper" style="width: 36px; height: 36px; margin: 0 auto; border-radius: 50%; border: none; background: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img src="${customer.anhDaiDien || ''}" class="avatar-img" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=' + encodeURIComponent('${customer.hoTen || "KH"}') + '&background=f1f5f9&color=64748b&size=128'" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />
+                        </div>
+                    </td>
+                `;
+
+                // Mã KH
+                const codeTd = `
+                    <td style="font-weight: 600; color: #0f172a; white-space: nowrap; font-size: 12.5px;">
+                        ${customer.maKhachHang || "KH000"}
+                    </td>
+                `;
+
+                // Họ và tên
+                const nameTd = `
+                    <td style="color: #1e293b; font-weight: 500; font-size: 13px;">
+                        ${customer.hoTen}
+                    </td>
+                `;
+
+                // Ngày sinh
+                const dobTd = `
+                    <td style="white-space: nowrap; color: #64748b; font-size: 12px;">${formatDate(customer.ngaySinh)}</td>
+                `;
+
+                // Email
+                const emailTd = `
+                    <td style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${customer.email || ''}">
+                        <span style="font-size: 12px;">${customer.email || "-"}</span>
+                    </td>
+                `;
+
+                // SĐT
+                const phoneTd = `
+                    <td style="white-space: nowrap; font-size: 12.5px;">
+                        <span>${customer.soDienThoai || "-"}</span>
+                    </td>
+                `;
+
+                // Địa chỉ
+                const addressTd = `
+                    <td id="addr-cell-${customer.id}" style="max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <span class="loading-addr" style="color:#94a3b8; font-style: italic; font-size: 12px;">Đang tải...</span>
+                    </td>
+                `;
+
+                // Trạng thái hoạt động
+                const statusBadge = customer.trangThai === 1
+                    ? `<span class="status-badge active">Hoạt động</span>`
+                    : `<span class="status-badge inactive">Ngừng hoạt động</span>`;
+                const statusTd = `
+                    <td style="text-align: center;">${statusBadge}</td>
+                `;
+
+                // Hành động
+                const checkedAttr = customer.trangThai === 1 ? 'checked' : '';
+                const actionsTd = `
+                    <td style="text-align: center; white-space: nowrap;">
+                        <div class="btn-actions-cell" style="justify-content: center; gap: 4px;">
+                            <button class="action-icon-btn view" title="Xem chi tiết" onclick="openDetailModal(${customer.id})" style="width: 28px; height: 28px;">
+                                <i data-lucide="map-pin" style="width: 13px; height: 13px;"></i>
+                            </button>
+                            <button class="action-icon-btn edit" title="Chỉnh sửa khách hàng" onclick="openEditCustomerModal(${customer.id})" style="width: 28px; height: 28px;">
+                                <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+                            </button>
+                            <label class="switch-control" title="Bật/Tắt trạng thái" style="width: 36px; height: 18px; margin-left: 2px;">
+                                <input type="checkbox" ${checkedAttr} onchange="toggleCustomerStatus(${customer.id}, this.checked, this)">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </td>
+                `;
+
+                tr.innerHTML = sttTd + avatarTd + codeTd + nameTd + dobTd + emailTd + phoneTd + addressTd + statusTd + actionsTd;
+                tableBody.appendChild(tr);
+
+                // Fetch địa chỉ mặc định bất đồng bộ để tối ưu hiển thị
+                fetchDefaultAddress(customer.id);
+            });
+
+            updatePaginationControls();
+            lucide.createIcons();
+        }
+
+        // Tải địa chỉ mặc định hiển thị trên bảng
+        async function fetchDefaultAddress(customerId) {
+            try {
+                const response = await fetch(`/api/khach-hang/${customerId}/dia-chi`);
+                if (!response.ok) return;
+                const addresses = await response.json();
+                const defaultAddr = addresses.find(a => a.macDinh === true) || addresses[0];
+                const cell = document.getElementById(`addr-cell-${customerId}`);
+                if (!cell) return;
+
+                if (defaultAddr) {
+                    const fullText = `${defaultAddr.diaChiChiTiet}, ${defaultAddr.phuongXa}, ${defaultAddr.quanHuyen}, ${defaultAddr.tinhThanh}`;
+                    cell.innerHTML = `
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; font-size: 12px;" title="${fullText}">
+                            ${fullText}
+                        </div>
+                    `;
+                } else {
+                    cell.innerHTML = `
+                        <div style="color: #94a3b8; font-size: 12px;">
+                            <span>Chưa có địa chỉ</span>
+                        </div>
+                    `;
+                }
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Lỗi lấy địa chỉ cho KH: " + customerId, err);
+            }
+        }
+
+        // Định dạng ngày sinh dd-MM-yyyy để hiển thị
+        function formatDate(dateStr) {
+            if (!dateStr) return "-";
+            if (Array.isArray(dateStr)) {
+                const y = dateStr[0];
+                const m = String(dateStr[1]).padStart(2, '0');
+                const d = String(dateStr[2]).padStart(2, '0');
+                return `${d}-${m}-${y}`;
+            }
+            const parts = dateStr.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateStr;
+        }
+
+        // Lấy màu ngẫu nhiên cho Avatar để giao diện rực rỡ
+        function getAvatarColor(id) {
+            const colors = ['#0284c7', '#4f46e5', '#059669', '#d97706', '#dc2626', '#7c3aed', '#db2777'];
+            return colors[id % colors.length];
+        }
+
+        // Cập nhật các nút phân trang
+        function updatePaginationControls() {
+            const pageNumbersContainer = document.getElementById("page-numbers-container");
+            pageNumbersContainer.innerHTML = "";
+
+            // Nút Prev
+            const prevBtn = document.getElementById("prev-page-btn");
+            if (currentPage === 0) {
+                prevBtn.classList.add("disabled");
+            } else {
+                prevBtn.classList.remove("disabled");
+            }
+
+            // Nút Next
+            const nextBtn = document.getElementById("next-page-btn");
+            if (currentPage >= totalPages - 1) {
+                nextBtn.classList.add("disabled");
+            } else {
+                nextBtn.classList.remove("disabled");
+            }
+
+            // Hiển thị số trang
+            for (let i = 0; i < totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => {
+                    currentPage = i;
+                    loadTable();
+                };
+                pageNumbersContainer.appendChild(btn);
+            }
+        }
+
+        // Thay đổi trang
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 0 && newPage < totalPages) {
+                currentPage = newPage;
+                loadTable();
+            }
+        }
+
+        // Thay đổi số lượng hiển thị trên trang
+        function changePageSize(size) {
+            pageSize = parseInt(size);
+            currentPage = 0;
+            loadTable();
+        }
+
+        // Lọc nhanh theo điều kiện
+        function applyFilters() {
+            currentPage = 0;
+            loadTable();
+        }
+
+        // Toggle bộ lọc Trạng thái
+        function toggleStatusFilter(button, statusValue) {
+            const buttons = button.parentNode.querySelectorAll(".status-btn");
+            buttons.forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
+
+            currentStatusFilter = statusValue;
+            applyFilters();
+        }
+
+        // Reset bộ lọc tìm kiếm
+        function resetFilters() {
+            document.getElementById("search-input").value = "";
+            document.getElementById("gender-nam").checked = false;
+            document.getElementById("gender-nu").checked = false;
+            document.getElementById("dob-input").value = "";
+
+            const statusButtons = document.querySelectorAll(".status-btn");
+            statusButtons.forEach(btn => {
+                if (btn.innerText.trim() === "Tất cả") {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+            currentStatusFilter = 'all';
+
+            applyFilters();
+        }
+
+        // Cập nhật trạng thái hoạt động nhanh với xác nhận
+        async function toggleCustomerStatus(id, isChecked, checkboxEl) {
+            AdminStatus.confirmToggle({
+                entityName: 'Tài khoản khách hàng',
+                checkboxEl: checkboxEl,
+                onConfirm: async () => {
+                    const newStatus = isChecked ? 1 : 0;
+                    const url = `/api/khach-hang/${id}/trang-thai?trangThai=${newStatus}`;
+                    try {
+                        const response = await fetch(url, { method: "PATCH" });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không thể cập nhật trạng thái");
+                        }
+                        loadTable();
+                    } catch (err) {
+                        if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+                        Swal.fire('Lỗi', err.message, 'error');
+                        loadTable();
+                    }
+                }
+            });
+        }
+
+        // Mở Modal Thêm mới Khách hàng
+        async function openAddCustomerModal() {
+            document.getElementById("customer-form").reset();
+            document.getElementById("cust-id").value = "";
+            document.getElementById("cust-code").value = getNextCustomerCodeLocal();
+            document.getElementById("cust-code").readOnly = true;
+            document.getElementById("customer-modal-title").innerText = "Thêm mới Khách hàng";
+            document.getElementById("initial-address-section").style.display = "block";
+            document.getElementById("status-group").style.display = "none";
+            document.getElementById("cust-status").value = "1";
+
+            // Yêu cầu nhập các thông tin địa chỉ ban đầu nếu cần
+            document.getElementById("addr-province").required = false;
+
+            document.getElementById("list-panel").classList.remove("active");
+            document.getElementById("form-panel").classList.add("active");
+            window.scrollTo(0, 0);
+
+            try {
+                const response = await fetch('/api/khach-hang/next-code');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.code) {
+                        document.getElementById("cust-code").value = data.code;
+                    }
+                }
+            } catch (err) {}
+        }
+
+        // Mở Modal Chỉnh sửa Khách hàng
+        async function openEditCustomerModal(id) {
+            try {
+                const response = await fetch(`/api/khach-hang/${id}`);
+                if (!response.ok) throw new Error("Không thể lấy dữ liệu khách hàng");
+                const customer = await response.json();
+
+                document.getElementById("cust-id").value = customer.id;
+                const code = customer.maKhachHang || "";
+                document.getElementById("cust-code").value = code;
+                document.getElementById("cust-code").readOnly = true;
+                document.getElementById("cust-name").value = customer.hoTen;
+                document.getElementById("cust-phone").value = customer.soDienThoai;
+                document.getElementById("cust-email").value = customer.email || "";
+                document.getElementById("cust-gender").value = String(customer.gioiTinh);
+                document.getElementById("cust-dob").value = customer.ngaySinh || "";
+                document.getElementById("cust-status").value = String(customer.trangThai != null ? customer.trangThai : 1);
+                document.getElementById("status-group").style.display = "none";
+
+                // Ẩn phần điền địa chỉ ban đầu khi Sửa thông tin chính
+                document.getElementById("initial-address-section").style.display = "none";
+
+                document.getElementById("customer-modal-title").innerText = "Chỉnh sửa Khách hàng" + (code ? " - Mã: " + code : "");
+                
+                document.getElementById("list-panel").classList.remove("active");
+                document.getElementById("form-panel").classList.add("active");
+                window.scrollTo(0, 0);
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+            }
+        }
+
+        // Đóng Form Khách hàng
+        function closeCustomerModal() {
+            document.getElementById("form-panel").classList.remove("active");
+            document.getElementById("list-panel").classList.add("active");
+            window.scrollTo(0, 0);
+        }
+
+        // Lưu thông tin Khách hàng (Thêm / Sửa)
+        async function saveCustomer(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("cust-id").value;
+            const maKhachHang = document.getElementById("cust-code").value.trim();
+            const hoTen = document.getElementById("cust-name").value.trim();
+            const soDienThoai = document.getElementById("cust-phone").value.trim();
+            const email = document.getElementById("cust-email").value.trim();
+            const gioiTinh = document.getElementById("cust-gender").value === "true";
+            const ngaySinh = document.getElementById("cust-dob").value || null;
+            const trangThai = parseInt(document.getElementById("cust-status").value);
+
+            // Validate số điện thoại (Việt Nam)
+            const phoneRegex = /^(03|05|07|08|09)\d{8}$/;
+            if (!soDienThoai || !phoneRegex.test(soDienThoai)) {
+                showToast("Thất bại", "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam (10 số, bắt đầu bằng 03, 05, 07, 08, hoặc 09).", "error");
+                return;
+            }
+
+            // Validate email
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast("Thất bại", "Email không đúng định dạng. Vui lòng nhập lại.", "error");
+                    return;
+                }
+            }
+
+            // Validate ngày sinh
+            if (ngaySinh) {
+                const dobDate = new Date(ngaySinh);
+                const today = new Date();
+                
+                if (dobDate > today) {
+                    showToast("Thất bại", "Ngày sinh không được ở tương lai.", "error");
+                    return;
+                }
+
+                let age = today.getFullYear() - dobDate.getFullYear();
+                const m = today.getMonth() - dobDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+                    age--;
+                }
+
+                if (age < 16) {
+                    showToast("Thất bại", "Khách hàng phải từ 16 tuổi trở lên.", "error");
+                    return;
+                }
+            }
+
+            // Không gửi maKhachHang khi thêm mới/cập nhật vì hệ thống tự quản lý
+            let payload = {
+                hoTen,
+                soDienThoai,
+                email: email || null,
+                gioiTinh,
+                ngaySinh,
+                trangThai
+            };
+
+            // Nếu thêm mới thì gửi kèm địa chỉ mặc định đầu tiên
+            if (!id) {
+                const tinhThanh = document.getElementById("addr-province").value.trim();
+                const quanHuyen = document.getElementById("addr-district").value.trim();
+                const phuongXa = document.getElementById("addr-ward").value.trim();
+                const diaChiChiTiet = document.getElementById("addr-detail").value.trim();
+                const loaiDiaChi = document.getElementById("addr-type").value;
+
+                if (tinhThanh) {
+                    payload.diaChiMacDinh = {
+                        tinhThanh,
+                        quanHuyen,
+                        phuongXa,
+                        diaChiChiTiet,
+                        loaiDiaChi,
+                        macDinh: true
+                    };
+                }
+            }
+
+            const result = await Swal.fire({
+                title: id ? 'Xác nhận cập nhật?' : 'Xác nhận thêm mới?',
+                text: "Bạn có chắc chắn muốn lưu thông tin khách hàng này?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonColor: '#cbd5e1',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            });
+            
+            if (!result.isConfirmed) return;
+
+            const url = id ? `/api/khach-hang/${id}` : "/api/khach-hang";
+            const method = id ? "PUT" : "POST";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Lỗi lưu thông tin khách hàng");
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: id ? "Cập nhật thông tin thành công!" : "Thêm mới khách hàng thành công!",
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+                closeCustomerModal();
+                loadTable();
+            } catch (err) {
+                Swal.fire('Lỗi', "Thao tác thất bại: " + err.message, 'error');
+            }
+        }
+
+        // Mở Modal Xem chi tiết & Quản lý địa chỉ
+        async function openDetailModal(id) {
+            activeCustomerIdForAddress = id;
+            try {
+                const response = await fetch(`/api/khach-hang/${id}`);
+                if (!response.ok) throw new Error("Không thể tải thông tin chi tiết");
+                const customer = await response.json();
+
+                // Gán thông tin cá nhân
+                const avatarImg = document.getElementById("detail-avatar");
+                if (avatarImg) {
+                    avatarImg.src = customer.anhDaiDien || `https://ui-avatars.com/api/?name=${encodeURIComponent(customer.hoTen || 'KH')}&background=f1f5f9&color=64748b&size=128`;
+                }
+
+                document.getElementById("detail-name").innerText = customer.hoTen;
+                document.getElementById("detail-code").innerText = customer.maKhachHang || "Không rõ";
+                document.getElementById("detail-phone").innerText = customer.soDienThoai || "-";
+                document.getElementById("detail-email").innerText = customer.email || "-";
+                document.getElementById("detail-gender").innerText = customer.gioiTinh === true ? "Nam" : "Nữ";
+                document.getElementById("detail-dob").innerText = formatDate(customer.ngaySinh);
+
+                const statusEl = document.getElementById("detail-status");
+                if (customer.trangThai === 1) {
+                    statusEl.innerText = "Hoạt động";
+                    statusEl.className = "status-badge active";
+                } else {
+                    statusEl.innerText = "Ngừng hoạt động";
+                    statusEl.className = "status-badge inactive";
+                }
+
+                // Tải danh sách địa chỉ
+                await loadAddressList(id);
+
+                document.getElementById("detail-modal").style.display = "flex";
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+            }
+        }
+
+        // Đóng Modal Chi tiết
+        function closeDetailModal() {
+            document.getElementById("detail-modal").style.display = "none";
+            activeCustomerIdForAddress = null;
+        }
+
+        // Tải danh sách địa chỉ của khách hàng
+        async function loadAddressList(customerId) {
+            const container = document.getElementById("address-list-container");
+            container.innerHTML = `<span style="font-style: italic; color:#94a3b8;">Đang tải danh sách địa chỉ...</span>`;
+
+            try {
+                const response = await fetch(`/api/khach-hang/${customerId}/dia-chi`);
+                if (!response.ok) throw new Error("Không thể lấy danh sách địa chỉ");
+                const addresses = response.json ? await response.json() : [];
+
+                container.innerHTML = "";
+
+                if (addresses.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; color: #94a3b8; padding: 20px 0;">
+                            <span>Chưa cấu hình địa chỉ nào.</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                addresses.forEach(addr => {
+                    const div = document.createElement("div");
+                    div.className = `address-item-card ${addr.macDinh ? 'default' : ''}`;
+
+                    const defaultBadge = addr.macDinh
+                        ? `<span class="addr-badge-default">Mặc định</span>`
+                        : "";
+
+                    const typeBadge = `<span class="addr-badge-type">${addr.loaiDiaChi || 'Nhà riêng'}</span>`;
+
+                    const buttons = `
+                        <div class="addr-card-actions">
+                            ${!addr.macDinh ? `<button class="addr-action-btn primary-text" onclick="setAddressDefault(${addr.id})">Đặt mặc định</button>` : ''}
+                            <button class="addr-action-btn edit-text" onclick="openEditAddressSubModal(${addr.id}, '${addr.tenNguoiNhan}', '${addr.sdt}', '${addr.tinhThanh}', '${addr.quanHuyen}', '${addr.phuongXa}', '${addr.diaChiChiTiet}', '${addr.loaiDiaChi}', ${addr.macDinh})">Sửa</button>
+                            ${!addr.macDinh ? `<button class="addr-action-btn danger-text" onclick="deleteAddress(${addr.id})">Xóa</button>` : ''}
+                        </div>
+                    `;
+
+                    div.innerHTML = `
+                        <div class="addr-card-main">
+                            <div class="addr-card-row">
+                                <span class="addr-name">${addr.tenNguoiNhan}</span>
+                                <span class="addr-phone">${addr.sdt}</span>
+                                ${defaultBadge}
+                                ${typeBadge}
+                            </div>
+                            <div class="addr-details">
+                                <span>${addr.diaChiChiTiet}</span>
+                                <span>${addr.phuongXa}, ${addr.quanHuyen}, ${addr.tinhThanh}</span>
+                            </div>
+                        </div>
+                        ${buttons}
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (err) {
+                container.innerHTML = `<span style="color: #ef4444;">Lỗi: ${err.message}</span>`;
+            }
+        }
+
+        // Mở Modal Thêm mới Địa chỉ
+        function openAddAddressSubModal() {
+            if (!activeCustomerIdForAddress) return;
+            document.getElementById("address-form").reset();
+            document.getElementById("addr-id").value = "";
+            document.getElementById("addr-cust-id").value = activeCustomerIdForAddress;
+            document.getElementById("address-modal-title").innerText = "Thêm Địa Chỉ Mới";
+            document.getElementById("address-modal").style.display = "flex";
+        }
+
+        // Mở Modal Cập nhật Địa chỉ
+        function openEditAddressSubModal(id, name, phone, province, district, ward, detail, type, isDefault) {
+            document.getElementById("addr-id").value = id;
+            document.getElementById("addr-cust-id").value = activeCustomerIdForAddress;
+            document.getElementById("addr-recipient").value = name;
+            document.getElementById("addr-phone-input").value = phone;
+            document.getElementById("addr-prov").value = province;
+            document.getElementById("addr-dist").value = district;
+            document.getElementById("addr-w").value = ward;
+            document.getElementById("addr-det").value = detail;
+            document.getElementById("addr-type-select").value = type || "Nhà riêng";
+            document.getElementById("addr-default").checked = isDefault;
+
+            document.getElementById("address-modal-title").innerText = "Chỉnh Sửa Địa Chỉ";
+            document.getElementById("address-modal").style.display = "flex";
+        }
+
+        // Đóng Modal Địa chỉ
+        function closeAddressModal() {
+            document.getElementById("address-modal").style.display = "none";
+        }
+
+        // Lưu thông tin địa chỉ
+        async function saveAddress(event) {
+            event.preventDefault();
+
+            const addressId = document.getElementById("addr-id").value;
+            const customerId = document.getElementById("addr-cust-id").value;
+
+            const tenNguoiNhan = document.getElementById("addr-recipient").value.trim();
+            const sdt = document.getElementById("addr-phone-input").value.trim();
+            const tinhThanh = document.getElementById("addr-prov").value.trim();
+            const quanHuyen = document.getElementById("addr-dist").value.trim();
+            const phuongXa = document.getElementById("addr-w").value.trim();
+            const diaChiChiTiet = document.getElementById("addr-det").value.trim();
+            const loaiDiaChi = document.getElementById("addr-type-select").value;
+            const macDinh = document.getElementById("addr-default").checked;
+
+            const payload = {
+                tenNguoiNhan,
+                sdt,
+                tinhThanh,
+                quanHuyen,
+                phuongXa,
+                diaChiChiTiet,
+                loaiDiaChi,
+                macDinh
+            };
+
+            const url = addressId ? `/api/khach-hang/dia-chi/${addressId}` : `/api/khach-hang/${customerId}/dia-chi`;
+            const method = addressId ? "PUT" : "POST";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Lỗi lưu địa chỉ");
+                }
+
+                alert("Lưu thông tin địa chỉ thành công!");
+                closeAddressModal();
+                if (activeCustomerIdForAddress) {
+                    loadAddressList(activeCustomerIdForAddress);
+                }
+                loadTable(); // Tải lại bảng để cập nhật cột địa chỉ
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+            }
+        }
+
+        // Thiết lập làm địa chỉ mặc định
+        async function setAddressDefault(addressId) {
+            try {
+                const response = await fetch(`/api/khach-hang/dia-chi/${addressId}/mac-dinh`, {
+                    method: "PATCH"
+                });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không đặt được địa chỉ mặc định");
+                }
+                if (activeCustomerIdForAddress) {
+                    loadAddressList(activeCustomerIdForAddress);
+                }
+                loadTable();
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+            }
+        }
+
+        // Xóa địa chỉ
+        async function deleteAddress(addressId) {
+            if (!confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
+
+            try {
+                const response = await fetch(`/api/khach-hang/dia-chi/${addressId}`, {
+                    method: "DELETE"
+                });
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Không xóa được địa chỉ");
+                }
+                alert("Đã xóa địa chỉ thành công!");
+                if (activeCustomerIdForAddress) {
+                    loadAddressList(activeCustomerIdForAddress);
+                }
+                loadTable();
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+            }
+        }
+
+        // Trigger Import Excel
+        function triggerImportExcel() {
+            document.getElementById("excel-file-input").click();
+        }
+
+        // Upload file Excel import
+        async function uploadExcelFile(input) {
+            const files = input.files;
+            if (files.length === 0) return;
+
+            const file = files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const response = await fetch("/api/khach-hang/import", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.message || "Lỗi import excel");
+                }
+
+                alert("Import danh sách khách hàng thành công!");
+                input.value = ""; // Clear file input
+                loadTable();
+            } catch (err) {
+                alert("Lỗi: " + err.message);
+                input.value = "";
+            }
+        }
+
+        // Trigger Export Excel
+        function triggerExportExcel() {
+            const search = document.getElementById("search-input").value.trim();
+            const isNamChecked = document.getElementById("gender-nam").checked;
+            const isNuChecked = document.getElementById("gender-nu").checked;
+            const dob = document.getElementById("dob-input").value;
+
+            let gioiTinh = "";
+            if (isNamChecked) gioiTinh = "true";
+            if (isNuChecked) gioiTinh = "false";
+
+            let statusValue = "";
+            if (currentStatusFilter !== 'all') statusValue = currentStatusFilter;
+
+            const url = `/api/khach-hang/export?search=${encodeURIComponent(search)}&gioiTinh=${gioiTinh}&dob=${dob}&trangThai=${statusValue}`;
+            window.location.href = url;
+        }
+
+        // Tải File Mẫu Excel
+        function triggerPdfDownload() {
+            window.location.href = "/api/khach-hang/template";
+        }
+
+        // --- SECTION ĐỊA CHỈ: LẤY TỪ OPEN API VN ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // Load provinces on startup
+            fetchProvinces('addr-province');
+            fetchProvinces('addr-prov');
+        });
+
+        async function fetchProvinces(selectId) {
+            try {
+                const response = await fetch('https://provinces.open-api.vn/api/?depth=1');
+                const data = await response.json();
+                const select = document.getElementById(selectId);
+                data.forEach(p => {
+                    let opt = document.createElement("option");
+                    opt.value = p.name;
+                    opt.dataset.code = p.code;
+                    opt.textContent = p.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("Lỗi lấy danh sách tỉnh thành: ", err);
+            }
+        }
+
+        async function loadDistricts(provinceSelect, districtSelectId, wardSelectId) {
+            const districtSelect = document.getElementById(districtSelectId);
+            const wardSelect = document.getElementById(wardSelectId);
+            
+            // Reset
+            districtSelect.innerHTML = '<option value="">Chọn Quận / Huyện</option>';
+            districtSelect.disabled = true;
+            wardSelect.innerHTML = '<option value="">Chọn Phường / Xã</option>';
+            wardSelect.disabled = true;
+
+            const selectedOption = provinceSelect.options[provinceSelect.selectedIndex];
+            if (!selectedOption || !selectedOption.dataset.code) return;
+
+            const code = selectedOption.dataset.code;
+            try {
+                const response = await fetch(`https://provinces.open-api.vn/api/p/${code}?depth=2`);
+                const data = await response.json();
+                data.districts.forEach(d => {
+                    let opt = document.createElement("option");
+                    opt.value = d.name;
+                    opt.dataset.code = d.code;
+                    opt.textContent = d.name;
+                    districtSelect.appendChild(opt);
+                });
+                districtSelect.disabled = false;
+            } catch (err) {
+                console.error("Lỗi lấy danh sách quận huyện: ", err);
+            }
+        }
+
+        async function loadWards(districtSelect, wardSelectId) {
+            const wardSelect = document.getElementById(wardSelectId);
+            
+            // Reset
+            wardSelect.innerHTML = '<option value="">Chọn Phường / Xã</option>';
+            wardSelect.disabled = true;
+
+            const selectedOption = districtSelect.options[districtSelect.selectedIndex];
+            if (!selectedOption || !selectedOption.dataset.code) return;
+
+            const code = selectedOption.dataset.code;
+            try {
+                const response = await fetch(`https://provinces.open-api.vn/api/d/${code}?depth=2`);
+                const data = await response.json();
+                data.wards.forEach(w => {
+                    let opt = document.createElement("option");
+                    opt.value = w.name;
+                    opt.dataset.code = w.code;
+                    opt.textContent = w.name;
+                    wardSelect.appendChild(opt);
+                });
+                wardSelect.disabled = false;
+            } catch (err) {
+                console.error("Lỗi lấy danh sách phường xã: ", err);
+            }
+        }

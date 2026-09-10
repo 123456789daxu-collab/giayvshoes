@@ -101,7 +101,7 @@ function copyText(elementId, labelName) {
     const text = el.textContent.trim();
 
     navigator.clipboard.writeText(text).then(() => {
-        showToast(`📋 Đã sao chép ${labelName}: ${text}`, 'success');
+        showToast(`Đã sao chép ${labelName}: ${text}`, 'success');
     }).catch(err => {
         // Fallback for older browsers
         const textarea = document.createElement('textarea');
@@ -110,7 +110,7 @@ function copyText(elementId, labelName) {
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        showToast(`📋 Đã sao chép ${labelName}: ${text}`, 'success');
+        showToast(`Đã sao chép ${labelName}: ${text}`, 'success');
     });
 }
 
@@ -128,7 +128,7 @@ function startCountdownTimer(durationSeconds) {
         if (--timer < 0) {
             clearInterval(interval);
             countdownEl.textContent = 'HẾT GIỜ';
-            showToast('⚠️ Đơn hàng đã hết thời gian giữ! Vui lòng thao tác lại.', 'error');
+            showToast('Đơn hàng đã hết thời gian giữ! Vui lòng thao tác lại.', 'error');
         }
     }, 1000);
 }
@@ -207,7 +207,7 @@ async function handlePaidConfirmation() {
         // Xóa thông tin phiên thanh toán tạm
         sessionStorage.removeItem('pending_online_order');
 
-        showToast('✅ Đã ghi nhận thanh toán! Đơn hàng đang chờ admin xác nhận.', 'success');
+        showToast('Đã ghi nhận thanh toán! Đơn hàng đang chờ admin xác nhận.', 'success');
 
         setTimeout(() => {
             window.location.href = `/client/checkout/success?ma=${encodeURIComponent(orderMa)}&total=${encodeURIComponent(orderTotal)}&status=${encodeURIComponent('chờ xác nhận thanh toán')}`;
@@ -215,7 +215,7 @@ async function handlePaidConfirmation() {
 
     } catch (err) {
         console.error(err);
-        showToast('❌ ' + err.message, 'error');
+        showToast('' + err.message, 'error');
         if (btn) {
             btn.disabled = false;
             btn.textContent = 'Tôi Đã Thanh Toán (Xác Nhận)';

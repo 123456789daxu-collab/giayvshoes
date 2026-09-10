@@ -3,7 +3,7 @@ package com.example.be.controller;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.be.entity.DanhMuc;
-import com.example.be.repository.DanhMucRepository;
+import com.example.be.service.ThuocTinhService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class DanhMucController {
 
     @Autowired
-    private DanhMucRepository danhMucRepository;
+    private ThuocTinhService thuocTinhService;
+
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
 
     @GetMapping
     public String index(Model model, 
@@ -28,49 +31,22 @@ public class DanhMucController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
-        Page<DanhMuc> pageData;
-        if ((keyword != null && !keyword.isEmpty()) || trangThai != null) {
-            pageData = danhMucRepository.search(keyword, trangThai, pageable);
-        } else {
-            pageData = danhMucRepository.findAll(pageable);
-        }
+        Page<DanhMuc> pageData = thuocTinhService.searchDanhMuc(keyword, trangThai, pageable);
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
-        model.addAttribute("nextMaDanhMuc", generateNextMaDanhMuc());
+        model.addAttribute("nextMaDanhMuc", maGeneratorService.generateMaDanhMuc());
         return "the-loai";
-    }
-
-    @Autowired
-    private com.example.be.service.MaGeneratorService maGeneratorService;
-
-    private String generateNextMaDanhMuc() {
-        return maGeneratorService.generateMaDanhMuc();
     }
 
     @PostMapping("/add")
     public String add(@ModelAttribute DanhMuc danhMuc, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (danhMuc.getTenDanhMuc() == null || danhMuc.getTenDanhMuc().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên danh mục không được để trống!");
-            return "redirect:" + (referer != null ? referer : "/the-loai");
-        }
-        String tenTrimmed = danhMuc.getTenDanhMuc().trim();
-
-        java.util.Optional<DanhMuc> existing = danhMucRepository.findByTenDanhMucIgnoreCase(tenTrimmed);
-        if (existing.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Danh mục này đã tồn tại trong hệ thống.");
-            return "redirect:" + (referer != null ? referer : "/the-loai");
-        }
-
-        danhMuc.setTenDanhMuc(tenTrimmed);
-        if (danhMuc.getMaDanhMuc() == null || danhMuc.getMaDanhMuc().trim().isEmpty() || "(Tự động sinh)".equals(danhMuc.getMaDanhMuc().trim())) {
-            danhMuc.setMaDanhMuc(generateNextMaDanhMuc());
-        }
-        danhMuc.setTrangThai(true);
         try {
-            danhMucRepository.save(danhMuc);
+            thuocTinhService.addDanhMuc(danhMuc);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Tên hoặc mã có thể đã tồn tại.");
         }
@@ -80,24 +56,11 @@ public class DanhMucController {
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute DanhMuc danhMuc, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (danhMuc.getTenDanhMuc() == null || danhMuc.getTenDanhMuc().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên danh mục không được để trống!");
-            return "redirect:" + (referer != null ? referer : "/the-loai");
-        }
-        String tenTrimmed = danhMuc.getTenDanhMuc().trim();
-
-        java.util.Optional<DanhMuc> existing = danhMucRepository.findByTenDanhMucIgnoreCase(tenTrimmed);
-        if (existing.isPresent() && !existing.get().getId().equals(id)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên danh mục đã trùng với danh mục khác.");
-            return "redirect:" + (referer != null ? referer : "/the-loai");
-        }
-
-        danhMuc.setId(id);
-        danhMuc.setTenDanhMuc(tenTrimmed);
-        danhMuc.setTrangThai(existing.get().getTrangThai());
         try {
-            danhMucRepository.save(danhMuc);
+            thuocTinhService.updateDanhMuc(id, danhMuc);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên hoặc mã có thể đã tồn tại.");
         }
@@ -107,12 +70,8 @@ public class DanhMucController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         try {
-            DanhMuc danhMuc = danhMucRepository.findById(id).orElse(null);
-            if (danhMuc != null) {
-                danhMuc.setTrangThai(danhMuc.getTrangThai() != null ? !danhMuc.getTrangThai() : false);
-                danhMucRepository.save(danhMuc);
-                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
-            }
+            thuocTinhService.toggleStatusDanhMuc(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật trạng thái!");
         }

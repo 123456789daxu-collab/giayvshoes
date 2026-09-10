@@ -56,4 +56,10 @@ public interface PhieuGiamGiaService {
             LocalDateTime start, 
             LocalDateTime end
     ) throws IOException;
+
+    List<PhieuGiamGia> getAvailableVouchers();
+
+    List<PhieuGiamGia> getPublicActiveVouchers();
+
+    java.util.Map<String, Object> checkVoucher(String ma, java.math.BigDecimal tongTien);
 }

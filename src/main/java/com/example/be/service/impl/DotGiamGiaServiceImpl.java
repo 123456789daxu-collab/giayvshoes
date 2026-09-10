@@ -44,6 +44,14 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @Autowired
+    private com.example.be.repository.MauSacRepository mauSacRepository;
+
+    @Override
+    public List<String> getActiveColorNames() {
+        return mauSacRepository.findDistinctActiveColorNames();
+    }
+
+    @Autowired
     private SanPhamRepository sanPhamRepository;
 
     @Autowired

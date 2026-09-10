@@ -259,10 +259,7 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
 
     private void clearVoucherFromPendingInvoices(Long voucherId) {
         if (voucherId == null) return;
-        List<HoaDon> pendingInvoices = hoaDonRepository.findAll().stream()
-                .filter(hd -> hd.getTrangThai() != null && hd.getTrangThai() == 0)
-                .filter(hd -> hd.getPhieuGiamGia() != null && voucherId.equals(hd.getPhieuGiamGia().getId()))
-                .collect(Collectors.toList());
+        List<HoaDon> pendingInvoices = hoaDonRepository.findByTrangThaiAndPhieuGiamGiaId(0, voucherId);
 
         for (HoaDon hd : pendingInvoices) {
             hd.setPhieuGiamGia(null);
@@ -423,5 +420,54 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
 
             return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
+    }
+
+    @Override
+    public List<PhieuGiamGia> getAvailableVouchers() {
+        return phieuGiamGiaRepository.findAvailableVouchers(LocalDateTime.now());
+    }
+
+    @Override
+    public List<PhieuGiamGia> getPublicActiveVouchers() {
+        return getAvailableVouchers().stream()
+                .filter(v -> v.getLoaiPhieu() == null || "Công khai".equalsIgnoreCase(v.getLoaiPhieu()) || "Public".equalsIgnoreCase(v.getLoaiPhieu()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public java.util.Map<String, Object> checkVoucher(String ma, BigDecimal tongTien) {
+        if (ma == null || ma.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã voucher không được để trống!");
+        }
+        Optional<PhieuGiamGia> opt = phieuGiamGiaRepository.findByMaVoucher(ma.trim().toUpperCase());
+        if (opt.isEmpty()) {
+            return null;
+        }
+        PhieuGiamGia v = opt.get();
+        if (v.getTrangThai() == null || v.getTrangThai() != 1) {
+            throw new IllegalStateException("Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!");
+        }
+        LocalDateTime now = LocalDateTime.now();
+        if (v.getNgayBatDau() != null && now.isBefore(v.getNgayBatDau())) {
+            throw new IllegalStateException("Chưa tới ngày áp dụng phiếu giảm giá này!");
+        }
+        if (v.getNgayKetThuc() != null && now.isAfter(v.getNgayKetThuc())) {
+            throw new IllegalStateException("Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!");
+        }
+        if (v.getSoLuong() != null && v.getSoLuongDaDung() != null && v.getSoLuongDaDung() >= v.getSoLuong()) {
+            throw new IllegalStateException("Phiếu giảm giá này đã hết lượt sử dụng, vui lòng chọn phiếu giảm giá khác!");
+        }
+        if (v.getDonToiThieu() != null && tongTien != null && tongTien.compareTo(v.getDonToiThieu()) < 0) {
+            throw new IllegalStateException("Giá trị đơn hàng chưa đạt mức tối thiểu để áp dụng phiếu giảm giá này!");
+        }
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("id", v.getId());
+        result.put("maVoucher", v.getMaVoucher());
+        result.put("tenVoucher", v.getTenVoucher());
+        result.put("loaiGiamGia", v.getLoaiGiamGia());
+        result.put("giaTriGiam", v.getGiaTriGiam());
+        result.put("giamToiDa", v.getGiamToiDa());
+        result.put("donToiThieu", v.getDonToiThieu());
+        return result;
     }
 }

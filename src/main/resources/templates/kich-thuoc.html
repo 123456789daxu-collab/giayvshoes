@@ -193,50 +193,8 @@
         var successMsg = /*[[${successMessage}]]*/ null;
         var errorMsg = /*[[${errorMessage}]]*/ null;
         /*]]>*/
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            if (successMsg) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: successMsg,
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            }
-            if (errorMsg) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: errorMsg,
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            }
-
-            /* Removed letter validation for numbers */
-        });
-        function confirmToggleStatus(url) {
-            Swal.fire({
-                title: 'Xác nhận thay đổi',
-                text: 'Bạn có chắc chắn muốn thay đổi trạng thái?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = url;
-                }
-            });
-        }
     </script>
+    <script th:src="@{/js/attribute-crud.js}"></script>
 </body>
 </html>
 

@@ -124,7 +124,7 @@ function setupProfileForm() {
 
             const data = await res.json();
             if (res.ok && data.success) {
-                alert('🎉 Cập nhật thông tin cá nhân thành công!');
+                alert('Cập nhật thông tin cá nhân thành công!');
                 loadAccountData();
             } else {
                 alert(data.message || 'Cập nhật thông tin thất bại!');
@@ -195,22 +195,22 @@ function renderMyAddresses() {
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <strong style="font-size: 15px; color: #0f172a;">${name}</strong>
                         ${phone ? `<span style="color: #64748b; font-size: 13px; font-weight: 600;">(${phone})</span>` : ''}
-                        <span style="font-size: 11px; font-weight: 700; background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px;">${loai === 'Văn phòng' ? '🏢 Văn phòng' : '🏠 Nhà riêng'}</span>
-                        ${isDefault ? `<span style="font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 3px 10px; border-radius: 4px;">✓ Địa chỉ mặc định</span>` : ''}
+                        <span style="font-size: 11px; font-weight: 700; background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px;">${loai === 'Văn phòng' ? '<i data-lucide="building-2" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"></i>Văn phòng' : '<i data-lucide="home" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"></i>Nhà riêng'}</span>
+                        ${isDefault ? `<span style="font-size: 11px; font-weight: 800; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 3px 10px; border-radius: 4px;"><i data-lucide="check-circle" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>Địa chỉ mặc định</span>` : ''}
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button onclick="editAddress(${addr.id})" style="background: none; border: none; color: #0284c7; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;" onmouseover="this.style.background='#f0f9ff'" onmouseout="this.style.background='none'">
-                            ✏️ Sửa
+                            <i data-lucide="pencil" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"></i>Sửa
                         </button>
                         ${!isDefault ? `
                             <button onclick="deleteAddress(${addr.id})" style="background: none; border: none; color: #ef4444; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
-                                🗑️ Xóa
+                                <i data-lucide="trash-2" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"></i>Xóa
                             </button>
                         ` : ''}
                     </div>
                 </div>
                 <div style="font-size: 14px; color: #334155; line-height: 1.5; margin-bottom: 12px;">
-                    📍 ${fullAddrStr}
+                    <i data-lucide="map-pin" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"></i>${fullAddrStr}
                 </div>
                 ${!isDefault ? `
                     <div style="display: flex; justify-content: flex-end;">
@@ -495,7 +495,7 @@ function setupAddressModal() {
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert('🎉 ' + data.message);
+                    alert('' + data.message);
                     closeModal();
                     await loadMyAddresses();
                 } else {
@@ -606,7 +606,7 @@ window.setDefaultAddress = async function(id) {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-            alert('🎉 ' + data.message);
+            alert('' + data.message);
             await loadMyAddresses();
         } else {
             alert(data.message || 'Thao tác thất bại!');
@@ -625,7 +625,7 @@ window.deleteAddress = async function(id) {
         });
         const data = await res.json();
         if (res.ok && data.success) {
-            alert('🗑️ ' + data.message);
+            alert('' + data.message);
             await loadMyAddresses();
         } else {
             alert(data.message || 'Xóa thất bại!');
@@ -660,7 +660,7 @@ function setupPasswordForm() {
 
             const data = await res.json();
             if (res.ok && data.success) {
-                alert('🔒 Đổi mật khẩu thành công!');
+                alert('Đổi mật khẩu thành công!');
                 form.reset();
             } else {
                 alert(data.message || 'Đổi mật khẩu thất bại!');
@@ -750,14 +750,14 @@ function renderMyOrders() {
                 <div class="order-card-header">
                     <div>
                         <span class="order-code-text">${order.maHoaDon || ('HD' + order.id)}</span>
-                        <span class="order-date-text" style="margin-left: 12px;">📅 ${dateStr}</span>
+                        <span class="order-date-text" style="margin-left: 12px;"><i data-lucide="calendar" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"></i>${dateStr}</span>
                     </div>
                     <div>${badgeHtml}</div>
                 </div>
                 <div class="order-card-body">
                     <div>
                         <span style="font-size: 13px; color: #64748b;">Hình thức: <strong>${order.loaiHoaDon || 'Trực tuyến'}</strong></span>
-                        ${order.diaChiGiao ? `<div style="font-size: 12px; color: #64748b; margin-top: 4px;">📍 Giao đến: ${escapeHtml(order.diaChiGiao)}</div>` : ''}
+                        ${order.diaChiGiao ? `<div style="font-size: 12px; color: #64748b; margin-top: 4px;"><i data-lucide="map-pin" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;"></i>Giao đến: ${escapeHtml(order.diaChiGiao)}</div>` : ''}
                     </div>
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <span class="order-price-badge">${priceStr}</span>
@@ -879,9 +879,9 @@ window.openCancelOrderModal = function(id, code, onCancelledCallback) {
         <div class="com-box">
             <div class="com-header">
                 <div class="com-title">
-                    <span>⚠️ Xác nhận hủy đơn hàng</span>
+                    <span><i data-lucide="alert-triangle" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;color:#dc2626;"></i>Xác nhận hủy đơn hàng</span>
                 </div>
-                <button class="com-close" onclick="document.getElementById('cancelOrderModal').remove()">✕</button>
+                <button class="com-close" onclick="document.getElementById('cancelOrderModal').remove()"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
             </div>
             <div class="com-body">
                 <div class="com-order-badge">
@@ -913,7 +913,7 @@ window.openCancelOrderModal = function(id, code, onCancelledCallback) {
             <div class="com-footer">
                 <button class="com-btn-back" onclick="document.getElementById('cancelOrderModal').remove()">Quay lại</button>
                 <button class="com-btn-submit" id="comBtnSubmit" onclick="submitCancelOrderModal(${id}, '${escapeHtml(code || String(id))}')">
-                    ✕ Xác nhận hủy đơn
+                    <i data-lucide="x-circle" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"></i>Xác nhận hủy đơn
                 </button>
             </div>
         </div>
@@ -987,7 +987,7 @@ window.submitCancelOrderModal = async function(id, code) {
             alert(data.message || 'Không thể hủy đơn hàng!');
             if (btnSubmit) {
                 btnSubmit.disabled = false;
-                btnSubmit.textContent = '✕ Xác nhận hủy đơn';
+                btnSubmit.textContent = '<i data-lucide="x-circle" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"></i>Xác nhận hủy đơn';
             }
         }
     } catch (e) {
@@ -995,7 +995,7 @@ window.submitCancelOrderModal = async function(id, code) {
         alert('Lỗi kết nối máy chủ! Vui lòng thử lại sau.');
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.textContent = '✕ Xác nhận hủy đơn';
+            btnSubmit.textContent = '<i data-lucide="x-circle" style="width:16px;height:16px;vertical-align:-2px;margin-right:4px;"></i>Xác nhận hủy đơn';
         }
     }
 };
@@ -1027,8 +1027,14 @@ function showToast(msg, type = 'success') {
         box-shadow: 0 10px 25px rgba(0,0,0,0.15); pointer-events: auto;
         animation: slideInToast 0.3s ease forwards;
     `;
-    toast.innerHTML = `<span>${type === 'success' ? '✓' : '⚠️'}</span> <span>${msg}</span>`;
+    toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-triangle'}" style="width: 18px; height: 18px; flex-shrink: 0;"></i> <span>${msg}</span>`;
     container.appendChild(toast);
+
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+        try {
+            lucide.createIcons({ root: toast });
+        } catch(e) {}
+    }
 
     setTimeout(() => {
         toast.style.opacity = '0';

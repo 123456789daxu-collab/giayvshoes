@@ -22,9 +22,6 @@ public class DotGiamGiaController {
     @Autowired
     private DotGiamGiaService dotGiamGiaService;
 
-    @Autowired
-    private jakarta.persistence.EntityManager entityManager;
-
     @GetMapping("/next-code")
     public ResponseEntity<?> getNextCode() {
         return ResponseEntity.ok(Map.of("code", dotGiamGiaService.generateNextMaCampaign()));
@@ -33,7 +30,7 @@ public class DotGiamGiaController {
     @GetMapping("/filters")
     public ResponseEntity<?> getFilters() {
         try {
-            List<String> colors = entityManager.createQuery("SELECT DISTINCT m.tenMauSac FROM MauSac m WHERE m.trangThai = true AND m.tenMauSac IS NOT NULL ORDER BY m.tenMauSac", String.class).getResultList();
+            List<String> colors = dotGiamGiaService.getActiveColorNames();
             List<Integer> sizes = java.util.stream.IntStream.rangeClosed(36, 44).boxed().collect(java.util.stream.Collectors.toList());
             return ResponseEntity.ok(Map.of("colors", colors, "sizes", sizes));
         } catch (Exception e) {

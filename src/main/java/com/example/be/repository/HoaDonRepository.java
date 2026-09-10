@@ -47,5 +47,9 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
     boolean existsByMaHoaDon(String maHoaDon);
 
     java.util.Optional<HoaDon> findByMaHoaDon(String maHoaDon);
+
+    List<HoaDon> findByTrangThaiAndLoaiHoaDon(Integer trangThai, Boolean loaiHoaDon);
+
+    List<HoaDon> findByTrangThaiAndPhieuGiamGiaId(Integer trangThai, Long phieuGiamGiaId);
 }
 
