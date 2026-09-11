@@ -5,10 +5,12 @@ import com.example.be.repository.ChiTietHoaDonRepository;
 import com.example.be.repository.DanhGiaRepository;
 import com.example.be.repository.SanPhamChiTietRepository;
 import com.example.be.repository.SanPhamRepository;
+import com.example.be.service.DanhGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @RestController
@@ -19,6 +21,7 @@ public class AdminDanhGiaRestController {
     @Autowired private SanPhamRepository sanPhamRepository;
     @Autowired private SanPhamChiTietRepository sanPhamChiTietRepository;
     @Autowired private ChiTietHoaDonRepository chiTietHoaDonRepository;
+    @Autowired private DanhGiaService danhGiaService;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
 
