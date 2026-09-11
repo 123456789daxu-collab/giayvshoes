@@ -18,11 +18,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.example.be.config.DatabaseAutoCreationConfig;
 
 @SpringBootApplication
 public class BeApplication {
 
     public static void main(String[] args) {
+        DatabaseAutoCreationConfig.ensureDatabaseExists();
         SpringApplication.run(BeApplication.class, args);
     }
 

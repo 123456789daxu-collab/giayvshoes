@@ -743,3 +743,90 @@ select.form-select-sm {
     box-shadow: none !important;
 }
 
+/* 12. Unified Back Button (.back-link / .btn-back) */
+.back-link, .btn-back {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    color: #0f2d4a !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    cursor: pointer !important;
+    padding: 8px 18px !important;
+    border-radius: 8px !important;
+    margin-bottom: 18px !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    line-height: 1.4 !important;
+}
+
+.back-link:hover, .btn-back:hover {
+    background: #f1f5f9 !important;
+    border-color: #00adef !important;
+    color: #00adef !important;
+    transform: translateX(-3px) !important;
+    box-shadow: 0 4px 12px rgba(0, 173, 239, 0.15) !important;
+}
+
+.back-link svg, .back-link i, .btn-back svg, .btn-back i {
+    width: 18px !important;
+    height: 18px !important;
+    transition: transform 0.2s ease !important;
+    vertical-align: middle !important;
+}
+
+.back-link:hover svg, .back-link:hover i, .btn-back:hover svg, .btn-back:hover i {
+    transform: translateX(-3px) !important;
+}
+
+/* 13. Unified Admin Breadcrumb */
+.admin-breadcrumb {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 13.5px !important;
+    color: #64748b !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+}
+
+.admin-breadcrumb .breadcrumb-item {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+}
+
+.admin-breadcrumb .breadcrumb-item a {
+    color: #64748b !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: color 0.15s ease !important;
+}
+
+.admin-breadcrumb .breadcrumb-item a:hover {
+    color: #00adef !important;
+}
+
+.admin-breadcrumb .breadcrumb-separator {
+    color: #94a3b8 !important;
+    display: flex !important;
+    align-items: center !important;
+    font-size: 12px !important;
+}
+
+.admin-breadcrumb .breadcrumb-item.active {
+    color: #0f2d4a !important;
+    font-weight: 700 !important;
+    background: #f1f5f9 !important;
+    padding: 3px 10px !important;
+    border-radius: 6px !important;
+}
+

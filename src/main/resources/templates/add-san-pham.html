@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.1">
     <style>
         body { background-color: #f8f9fa; margin: 0; padding: 0; }
         .card-custom { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 2rem; border: none; width: 100%; }
@@ -75,6 +76,12 @@
         <main class="main-content">
             <!-- Nhúng Header dùng chung -->
             <div th:replace="~{header/header :: header}"></div>
+
+            <!-- Nút quay lại danh sách đồng bộ -->
+            <a href="/san-pham" class="back-link">
+                <i data-lucide="arrow-left"></i>
+                <span>Quay lại danh sách</span>
+            </a>
 
             <form id="productForm" action="/san-pham/save-all" method="POST">
                 
