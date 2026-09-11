@@ -1,11 +1,15 @@
 package com.example.be.controller;
 
+import com.example.be.entity.DanhGia;
+import com.example.be.entity.KhachHang;
 import com.example.be.service.DanhGiaService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * API đánh giá sản phẩm.
