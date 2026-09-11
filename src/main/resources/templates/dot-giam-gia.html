@@ -449,12 +449,22 @@
                 const trangThaiTd = `<td><span class="badge ${statusInfo.class}">${statusInfo.text}</span></td>`;
 
                 // Hành động
+                const isChecked = campaign.trangThai === 1 ? 'checked' : '';
+                const isExpired = statusInfo.text === "Hết hạn";
+                const switchHtml = isExpired ? '' : `
+                            <label class="switch-control" title="Bật/Tắt trạng thái">
+                                <input type="checkbox" ${isChecked} onchange="toggleCampaignActive(${campaign.id}, this.checked, this)">
+                                <span class="switch-slider"></span>
+                            </label>
+                `;
+
                 const hanhDongTd = `
                     <td style="text-align: center;">
-                        <div class="btn-actions-cell" style="justify-content: center; gap: 20px;">
+                        <div class="btn-actions-cell" style="justify-content: center; gap: 12px; align-items: center;">
                             <button type="button" class="action-icon-btn edit" title="Chỉnh sửa" onclick="openEditCampaignForm(${campaign.id})">
                                 <i data-lucide="edit-3" style="width: 18px; height: 18px;"></i>
                             </button>
+                            ${switchHtml}
                         </div>
                     </td>
                 `;
@@ -575,21 +585,30 @@
         }
 
         // Bật/tắt trạng thái
-        async function toggleCampaignActive(id, isChecked) {
-            const status = isChecked ? 1 : 0;
-            try {
-                const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
-                    method: "PATCH"
-                });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+        async function toggleCampaignActive(id, isChecked, checkboxEl) {
+            AdminStatus.confirmToggle({
+                entityName: 'Đợt giảm giá',
+                isActivating: isChecked,
+                checkboxEl: checkboxEl,
+                onConfirm: async () => {
+                    const status = isChecked ? 1 : 0;
+                    try {
+                        const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                            method: "PATCH"
+                        });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không thể cập nhật trạng thái");
+                        }
+                        AdminNotify.success(isChecked ? "Đã bật hoạt động đợt giảm giá!" : "Đã tắt hoạt động đợt giảm giá!");
+                        loadCampaignsTable();
+                    } catch (err) {
+                        if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+                        AdminNotify.error("Lỗi: " + err.message);
+                        loadCampaignsTable();
+                    }
                 }
-                loadCampaignsTable();
-            } catch (err) {
-                Swal.fire('Lỗi', err.message, 'error');
-                loadCampaignsTable();
-            }
+            });
         }
 
         async function deleteCampaign(id) {

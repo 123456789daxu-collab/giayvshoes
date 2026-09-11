@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="/css/header.css?v=99">
     <link rel="stylesheet" href="/css/khach-hang.css?v=99">
     <link rel="stylesheet" href="/css/phieu-giam-gia.css?v=99">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.0">
+    <link rel="stylesheet" href="/css/global-typography.css?v=2.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <style>
         /* Custom CSS cho trang Thống kê chuẩn theo thiết kế mẫu */
@@ -659,7 +662,22 @@
                             </tbody>
                         </table>
                     </div>
-                    <div id="top-sp-pagination" style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 5px;"></div>
+                    <!-- Standardized Table Footer for Pagination -->
+                    <div class="table-footer d-flex justify-content-between align-items-center" id="top-sp-pagination-wrapper" style="margin-top: 16px; padding: 14px 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <div class="total-count text-muted" id="top-sp-count-info" style="font-size: 13px;"></div>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div class="page-size-selector" style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 13px; color: #64748b; font-weight: 500;">Hiển thị</span>
+                                <select id="top-sp-page-size" class="form-select form-select-sm page-size-select" style="width: auto; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; color: #0f172a; height: 32px;" onchange="changeTopSpPageSize(this.value)">
+                                    <option value="5" selected>5</option>
+                                    <option value="10">10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+                            <div id="top-sp-pagination" class="pagination-controls" style="display: flex; gap: 4px;"></div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1083,7 +1101,12 @@
         // Top San Pham Data & Pagination
         let allTopSanPham = [];
         let currentTopSpPage = 1;
-        const topSpItemsPerPage = 5;
+        let topSpItemsPerPage = 5;
+
+        function changeTopSpPageSize(newSize) {
+            topSpItemsPerPage = parseInt(newSize, 10) || 5;
+            renderTopSanPhamTable(1);
+        }
 
         function loadTopSanPhamData() {
             const start = document.getElementById('filter-start').value;
@@ -1134,58 +1157,90 @@
 
         function renderTopSanPhamTable(page) {
             const tbody = document.getElementById('top-sp-body');
+            const paginationWrapper = document.getElementById('top-sp-pagination-wrapper');
             const paginationDiv = document.getElementById('top-sp-pagination');
+            const countInfoDiv = document.getElementById('top-sp-count-info');
             
             if (!allTopSanPham || allTopSanPham.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">Không có dữ liệu.</td></tr>';
-                paginationDiv.innerHTML = '';
+                if (paginationWrapper) paginationWrapper.style.display = 'none';
                 return;
             }
             
-            const totalPages = Math.ceil(allTopSanPham.length / topSpItemsPerPage);
+            if (paginationWrapper) paginationWrapper.style.display = 'flex';
+            
+            const totalElements = allTopSanPham.length;
+            const totalPages = Math.ceil(totalElements / topSpItemsPerPage);
             if (page < 1) page = 1;
             if (page > totalPages) page = totalPages;
             currentTopSpPage = page;
             
             const startIdx = (page - 1) * topSpItemsPerPage;
-            const endIdx = startIdx + topSpItemsPerPage;
+            const endIdx = Math.min(startIdx + topSpItemsPerPage, totalElements);
             const pageData = allTopSanPham.slice(startIdx, endIdx);
             
             let html = '';
             pageData.forEach((sp, index) => {
                 html += `
                     <tr>
-                        <td>${startIdx + index + 1}</td>
-                        <td style="font-weight: 500;">${sp.maSanPham || '-'}</td>
-                        <td>${sp.tenSanPham || '-'}</td>
-                        <td><span class="badge badge-cash">${sp.thuocTinh || '-'}</span></td>
-                        <td>${formatCurrency(sp.donGia)}</td>
-                        <td style="text-align: center;">${sp.tonKho || 0}</td>
-                        <td style="text-align: center; font-weight: 600; color: #16a34a;">${sp.daBan || 0}</td>
+                        <td style="text-align: center; color: #64748b; font-weight: 500;">${startIdx + index + 1}</td>
+                        <td style="font-weight: 600; color: #0f172a;">${sp.maSanPham || '-'}</td>
+                        <td style="color: #1e293b; font-weight: 500;">${sp.tenSanPham || '-'}</td>
+                        <td><span class="app-badge app-badge-info" style="font-size: 12px;">${sp.thuocTinh || '-'}</span></td>
+                        <td style="font-weight: 600; color: #0f172a;">${formatCurrency(sp.donGia)}</td>
+                        <td style="text-align: center; color: #475569;">${sp.tonKho || 0}</td>
+                        <td style="text-align: center; font-weight: 700; color: #16a34a;">${sp.daBan || 0}</td>
                     </tr>
                 `;
             });
             tbody.innerHTML = html;
             
+            if (countInfoDiv) {
+                countInfoDiv.innerHTML = `Đang hiển thị <span class="fw-bold text-dark">${startIdx + 1}</span>-<span class="fw-bold text-dark">${endIdx}</span> trong tổng số <span class="fw-bold text-dark">${totalElements}</span> kết quả`;
+            }
+            
             if (totalPages <= 1) {
-                paginationDiv.innerHTML = '';
+                if (paginationDiv) paginationDiv.innerHTML = '';
                 return;
             }
             
             let pageHtml = '';
-            pageHtml += `<button class="btn-outline" style="padding: 4px 10px;" onclick="renderTopSanPhamTable(${currentTopSpPage - 1})" ${currentTopSpPage === 1 ? 'disabled' : ''}>&laquo;</button>`;
+            // Prev button
+            pageHtml += `<button class="page-btn ${currentTopSpPage === 1 ? 'disabled' : ''}" onclick="renderTopSanPhamTable(${currentTopSpPage - 1})" ${currentTopSpPage === 1 ? 'disabled' : ''}><i class="bi bi-chevron-left"></i></button>`;
             
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === currentTopSpPage) {
-                    pageHtml += `<button class="btn-outline active" style="padding: 4px 10px; background-color: #ef4444; border-color: #ef4444; color: #fff;">${i}</button>`;
-                } else {
-                    pageHtml += `<button class="btn-outline" style="padding: 4px 10px;" onclick="renderTopSanPhamTable(${i})">${i}</button>`;
+            // Window of pages
+            let startPage = Math.max(1, currentTopSpPage - 1);
+            let endPage = Math.min(totalPages, startPage + 2);
+            if (endPage - startPage < 2) {
+                startPage = Math.max(1, endPage - 2);
+            }
+            
+            if (startPage > 1) {
+                pageHtml += `<button class="page-btn" onclick="renderTopSanPhamTable(1)">1</button>`;
+                if (startPage > 2) {
+                    pageHtml += `<span style="display:inline-flex; align-items:center; padding: 0 4px; color: #94a3b8;">...</span>`;
                 }
             }
             
-            pageHtml += `<button class="btn-outline" style="padding: 4px 10px;" onclick="renderTopSanPhamTable(${currentTopSpPage + 1})" ${currentTopSpPage === totalPages ? 'disabled' : ''}>&raquo;</button>`;
+            for (let i = startPage; i <= endPage; i++) {
+                if (i === currentTopSpPage) {
+                    pageHtml += `<button class="page-btn active">${i}</button>`;
+                } else {
+                    pageHtml += `<button class="page-btn" onclick="renderTopSanPhamTable(${i})">${i}</button>`;
+                }
+            }
             
-            paginationDiv.innerHTML = pageHtml;
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pageHtml += `<span style="display:inline-flex; align-items:center; padding: 0 4px; color: #94a3b8;">...</span>`;
+                }
+                pageHtml += `<button class="page-btn" onclick="renderTopSanPhamTable(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            pageHtml += `<button class="page-btn ${currentTopSpPage === totalPages ? 'disabled' : ''}" onclick="renderTopSanPhamTable(${currentTopSpPage + 1})" ${currentTopSpPage === totalPages ? 'disabled' : ''}><i class="bi bi-chevron-right"></i></button>`;
+            
+            if (paginationDiv) paginationDiv.innerHTML = pageHtml;
         }
 
         function formatCurrency(val) {

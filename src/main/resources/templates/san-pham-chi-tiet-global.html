@@ -226,30 +226,28 @@
                                 </td>
                                 <td th:text="${ct.coGiay != null ? ct.coGiay.sizeGiay : ''}">36</td>
                                 <td th:text="${ct.mauSac != null ? ct.mauSac.tenMauSac : 'N/A'}"></td>
-                                <td>
-                                    <span th:if="${ct.trangThai == 1 and ct.soLuongTon > 0}" class="status-badge status-active">Đang kinh doanh</span>
-                                    <span th:if="${ct.trangThai == 1 and ct.soLuongTon <= 0}" class="status-badge status-inactive">Hết hàng</span>
-                                    <span th:unless="${ct.trangThai == 1}" class="status-badge" style="background-color: #f1f5f9; color: #64748b;">Ngừng kinh doanh</span>
+                                <td class="text-center align-middle">
+                                    <span th:if="${ct.trangThai == 1 and ct.soLuongTon > 0}" class="app-badge app-badge-success">Đang kinh doanh</span>
+                                    <span th:if="${ct.trangThai == 1 and ct.soLuongTon <= 0}" class="app-badge app-badge-warning">Hết hàng</span>
+                                    <span th:unless="${ct.trangThai == 1}" class="app-badge app-badge-danger">Ngừng kinh doanh</span>
                                 </td>
-                                <td class="text-nowrap align-middle">
-                                    <a class="action-btn btn-view" title="Xem chi tiết"
-                                       th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a class="action-btn btn-toggle toggle-status-btn" title="Chuyển đổi trạng thái"
-                                       th:data-id="${ct.id}" th:data-action="${ct.trangThai == 1 ? 'Ngừng kinh doanh' : 'Mở kinh doanh'}" href="javascript:void(0);">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </a>
-                                    <button class="action-btn btn-edit" title="Chỉnh sửa"
-                                            data-bs-toggle="modal" 
-                                            th:data-bs-target="'#editVariantModal' + ${ct.id}">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                    <a class="action-btn btn-delete" title="Xóa"
-                                       th:href="@{'/san-pham/delete-variant/' + ${ct.id}}"
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa biến thể này không?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                <td class="text-center align-middle text-nowrap">
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <a class="action-icon-btn view" title="Xem chi tiết"
+                                           th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <label class="switch-control" title="Chuyển đổi trạng thái" style="margin: 0 4px;">
+                                            <input type="checkbox" th:checked="${ct.trangThai == 1}"
+                                                   th:onchange="'confirmToggleVariantStatus(' + ${ct.id} + ', ' + ${ct.trangThai} + ', this)'">
+                                            <span class="switch-slider"></span>
+                                        </label>
+                                        <button type="button" class="action-icon-btn edit" title="Chỉnh sửa"
+                                                data-bs-toggle="modal" 
+                                                th:data-bs-target="'#editVariantModal' + ${ct.id}">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </div>
                                 </td>
 
                                 <!-- Modal Thư Viện Ảnh (Carousel) -->
@@ -358,38 +356,42 @@
                 </div>
                 
                 <!-- Phân trang -->
-                <div class="d-flex justify-content-between align-items-center mt-4" th:if="${pageData.totalElements > 0}">
-                    <div class="text-muted" style="font-size: 14px;">
-                        Hiển thị <span th:text="${pageData.number * pageData.size + 1}" class="fw-medium text-dark"></span> 
-                        đến <span th:text="${(pageData.number * pageData.size) + pageData.numberOfElements}" class="fw-medium text-dark"></span> 
-                        trong tổng số <span th:text="${pageData.totalElements}" class="fw-medium text-dark"></span> mục
+                <div class="table-footer d-flex justify-content-between align-items-center mt-4" th:if="${pageData.totalElements > 0}">
+                    <div class="total-count text-muted" style="font-size: 13px;">
+                        Hiển thị <strong th:text="${pageData.number * pageData.size + 1}" class="text-dark"></strong> 
+                        đến <strong th:text="${(pageData.number * pageData.size) + pageData.numberOfElements}" class="text-dark"></strong> 
+                        trong tổng số <strong th:text="${pageData.totalElements}" class="text-dark"></strong> mục
                     </div>
                     <nav>
-                        <ul class="pagination pagination-sm mb-0" th:if="${pageData.totalPages > 0}"
-    th:with="startPage=${pageData.number <= 1 ? 0 : (pageData.number >= pageData.totalPages - 2 ? pageData.totalPages - 3 : pageData.number - 1)},
-             actualStartPage=${startPage < 0 ? 0 : startPage},
-             endPage=${pageData.totalPages <= 3 ? pageData.totalPages - 1 : actualStartPage + 2}">
-    <!-- Nút Trước -->
-    <li class="page-item" th:classappend="${pageData.first ? 'disabled' : ''}">
-        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number - 1}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}">Trước</a>
-    </li>
-    <!-- Ellipsis Đầu -->
-    <li class="page-item disabled" th:if="${actualStartPage > 0}">
-        <a class="page-link" href="#">...</a>
-    </li>
-    <!-- Các số trang -->
-    <li class="page-item" th:each="i : ${#numbers.sequence(actualStartPage, endPage)}" th:classappend="${pageData.number == i ? 'active' : ''}">
-        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${i}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}" th:text="${i + 1}"></a>
-    </li>
-    <!-- Ellipsis Cuối -->
-    <li class="page-item disabled" th:if="${endPage < pageData.totalPages - 1}">
-        <a class="page-link" href="#">...</a>
-    </li>
-    <!-- Nút Sau -->
-    <li class="page-item" th:classappend="${pageData.last ? 'disabled' : ''}">
-        <a class="page-link" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number + 1}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}">Sau</a>
-    </li>
-</ul>
+                        <ul class="pagination pagination-sm mb-0" style="gap: 4px;" th:if="${pageData.totalPages > 0}"
+                            th:with="startPage=${pageData.number <= 1 ? 0 : (pageData.number >= pageData.totalPages - 2 ? pageData.totalPages - 3 : pageData.number - 1)},
+                                     actualStartPage=${startPage < 0 ? 0 : startPage},
+                                     endPage=${pageData.totalPages <= 3 ? pageData.totalPages - 1 : actualStartPage + 2}">
+                            <!-- Nút Trước -->
+                            <li class="page-item" th:classappend="${pageData.first ? 'disabled' : ''}">
+                                <a class="page-link page-btn" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number - 1}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}">
+                                    <i class="bi bi-chevron-left" style="font-size: 12px;"></i>
+                                </a>
+                            </li>
+                            <!-- Ellipsis Đầu -->
+                            <li class="page-item disabled" th:if="${actualStartPage > 0}">
+                                <span class="page-link page-btn" style="border: none; background: transparent;">...</span>
+                            </li>
+                            <!-- Các số trang -->
+                            <li class="page-item" th:each="i : ${#numbers.sequence(actualStartPage, endPage)}" th:classappend="${pageData.number == i ? 'active' : ''}">
+                                <a class="page-link page-btn" th:href="@{'/san-pham/chi-tiet-global'(page=${i}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}" th:text="${i + 1}"></a>
+                            </li>
+                            <!-- Ellipsis Cuối -->
+                            <li class="page-item disabled" th:if="${endPage < pageData.totalPages - 1}">
+                                <span class="page-link page-btn" style="border: none; background: transparent;">...</span>
+                            </li>
+                            <!-- Nút Sau -->
+                            <li class="page-item" th:classappend="${pageData.last ? 'disabled' : ''}">
+                                <a class="page-link page-btn" th:href="@{'/san-pham/chi-tiet-global'(page=${pageData.number + 1}, size=${pageData.size}, keyword=${keyword}, sanPhamId=${sanPhamId})}">
+                                    <i class="bi bi-chevron-right" style="font-size: 12px;"></i>
+                                </a>
+                            </li>
+                        </ul>
                     </nav>
                 </div>
             </div>
@@ -701,27 +703,37 @@
         }
 
         // Toggle Status Confirmation
-        document.querySelectorAll('.toggle-status-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                let action = this.getAttribute('data-action');
-                let id = this.getAttribute('data-id');
+        function confirmToggleVariantStatus(id, currentStatus, checkboxEl) {
+            const isCurrentlyActive = currentStatus == 1;
+            const actionText = isCurrentlyActive ? 'ngừng kinh doanh' : 'mở kinh doanh';
+            if (window.AdminStatus) {
+                AdminStatus.confirmToggle({
+                    entityName: 'Biến thể sản phẩm',
+                    checkboxEl: checkboxEl,
+                    currentStatus: isCurrentlyActive,
+                    onConfirm: () => {
+                        window.location.href = '/san-pham/toggle-status-variant/' + id;
+                    }
+                });
+            } else {
                 Swal.fire({
-                    title: 'Xác nhận',
-                    text: "Bạn có chắc chắn muốn " + action.toLowerCase() + " biến thể này?",
-                    icon: 'question',
+                    title: 'Xác nhận chuyển đổi?',
+                    text: `Bạn có chắc chắn muốn ${actionText} biến thể sản phẩm này không?`,
+                    icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#00adef',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Có, thực hiện!',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Đồng ý',
                     cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = '/san-pham/toggle-status-variant/' + id;
+                    } else if (checkboxEl) {
+                        checkboxEl.checked = isCurrentlyActive;
                     }
                 });
-            });
-        });
+            }
+        }
         function previewVariantImage(input, variantId) {
             var container = document.getElementById('previewContainer_' + variantId);
             var base64Input = document.getElementById('imageBase64_' + variantId);

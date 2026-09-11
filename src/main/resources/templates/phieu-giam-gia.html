@@ -6,12 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý phiếu giảm giá | VShoes</title>
     <!-- Nhúng CSS sidebar & khách hàng dùng chung -->
-    <link rel="stylesheet" href="/css/sidebar.css?v=99">
-    <link rel="stylesheet" href="/css/header.css?v=99">
-    <link rel="stylesheet" href="/css/khach-hang.css?v=99">
+    <link rel="stylesheet" href="/css/sidebar.css?v=105">
+    <link rel="stylesheet" href="/css/header.css?v=105">
+    <link rel="stylesheet" href="/css/admin-common.css?v=105">
+    <link rel="stylesheet" href="/css/khach-hang.css?v=105">
     <!-- Nhúng CSS riêng của trang phiếu giảm giá -->
-    <link rel="stylesheet" href="/css/phieu-giam-gia.css?v=99">
-    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="/css/phieu-giam-gia.css?v=105">
+    <!-- Bootstrap Icons & SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
@@ -220,14 +222,12 @@
                                             class="required-star">*</span></label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus"
-                                            onclick="adjustNumberInput('voucher-discount-val', -10)"><i
-                                                data-lucide="minus" style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-discount-val', -10)"><i class="bi bi-dash-lg"></i></button>
                                         <input type="text" id="voucher-discount-val"
                                             class="input-control number-input-control currency-input" required min="1"
                                             placeholder="Nhập giá trị..." oninput="handleCurrencyInput(this)">
                                         <button type="button" class="number-input-btn plus"
-                                            onclick="adjustNumberInput('voucher-discount-val', 10)"><i
-                                                data-lucide="plus" style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-discount-val', 10)"><i class="bi bi-plus-lg"></i></button>
                                     </div>
                                 </div>
 
@@ -235,14 +235,12 @@
                                     <label for="voucher-max-discount">Giảm tối đa (VNĐ)</label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus"
-                                            onclick="adjustNumberInput('voucher-max-discount', -10000)"><i
-                                                data-lucide="minus" style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-max-discount', -10000)"><i class="bi bi-dash-lg"></i></button>
                                         <input type="text" id="voucher-max-discount"
                                             class="input-control number-input-control currency-input" min="0"
                                             placeholder="Nhập mức giảm tối đa..." oninput="handleCurrencyInput(this)">
                                         <button type="button" class="number-input-btn plus"
-                                            onclick="adjustNumberInput('voucher-max-discount', 10000)"><i
-                                                data-lucide="plus" style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-max-discount', 10000)"><i class="bi bi-plus-lg"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -254,14 +252,12 @@
                                             class="required-star">*</span></label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus"
-                                            onclick="adjustNumberInput('voucher-min-order', -20000)"><i
-                                                data-lucide="minus" style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-min-order', -20000)"><i class="bi bi-dash-lg"></i></button>
                                         <input type="text" id="voucher-min-order"
                                             class="input-control number-input-control currency-input" required min="0"
                                             placeholder="Nhập hạn mức hóa đơn tối thiểu..." oninput="handleCurrencyInput(this)">
                                         <button type="button" class="number-input-btn plus"
-                                            onclick="adjustNumberInput('voucher-min-order', 20000)"><i
-                                                data-lucide="plus" style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-min-order', 20000)"><i class="bi bi-plus-lg"></i></button>
                                     </div>
                                 </div>
 
@@ -269,14 +265,12 @@
                                     <label for="voucher-quantity">Số lượng sử dụng</label>
                                     <div class="number-input-wrapper">
                                         <button type="button" class="number-input-btn minus" id="btn-qty-minus"
-                                            onclick="adjustNumberInput('voucher-quantity', -1)"><i data-lucide="minus"
-                                                style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-quantity', -1)"><i class="bi bi-dash-lg"></i></button>
                                         <input type="number" id="voucher-quantity"
                                             class="input-control number-input-control" min="1"
                                             placeholder="Nhập số lượng phát hành...">
                                         <button type="button" class="number-input-btn plus" id="btn-qty-plus"
-                                            onclick="adjustNumberInput('voucher-quantity', 1)"><i data-lucide="plus"
-                                                style="width: 18px; height: 18px;"></i></button>
+                                            onclick="adjustNumberInput('voucher-quantity', 1)"><i class="bi bi-plus-lg"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -555,7 +549,7 @@
                 const isExpired = statusInfo.text === "Hết hạn";
                 const switchHtml = isExpired ? '' : `
                             <label class="switch-control" title="Bật/Tắt trạng thái">
-                                <input type="checkbox" ${isChecked} onchange="toggleVoucherActive(${voucher.id}, this.checked)">
+                                <input type="checkbox" ${isChecked} onchange="toggleVoucherActive(${voucher.id}, this.checked, this)">
                                 <span class="switch-slider"></span>
                             </label>
                 `;
@@ -711,21 +705,78 @@
             loadVouchersTable();
         }
 
-        // Toggle nhanh bật/tắt hoạt động của voucher
-        async function toggleVoucherActive(id, isChecked) {
-            const status = isChecked ? 1 : 0;
-            try {
-                const response = await fetch(`/api/phieu-giam-gia/${id}/trang-thai?trangThai=${status}`, {
-                    method: "PATCH"
+        // Toggle nhanh bật/tắt hoạt động của voucher có thông báo xác nhận
+        async function toggleVoucherActive(id, isChecked, checkboxEl) {
+            if (window.AdminStatus) {
+                AdminStatus.confirmToggle({
+                    entityName: 'Phiếu giảm giá',
+                    isActivating: isChecked,
+                    checkboxEl: checkboxEl,
+                    onConfirm: async () => {
+                        const status = isChecked ? 1 : 0;
+                        try {
+                            const response = await fetch(`/api/phieu-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                                method: "PATCH"
+                            });
+                            if (!response.ok) {
+                                const data = await response.json();
+                                throw new Error(data.message || "Không thể cập nhật trạng thái");
+                            }
+                            if (window.AdminNotify) {
+                                AdminNotify.success(isChecked ? "Đã bật hoạt động phiếu giảm giá!" : "Đã tắt hoạt động phiếu giảm giá!");
+                            }
+                            loadVouchersTable();
+                        } catch (err) {
+                            if (checkboxEl) checkboxEl.checked = !isChecked;
+                            if (window.AdminNotify) {
+                                AdminNotify.error("Lỗi: " + err.message);
+                            } else {
+                                alert("Lỗi: " + err.message);
+                            }
+                            loadVouchersTable();
+                        }
+                    }
                 });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+            } else {
+                const actionText = isChecked ? "bật hoạt động" : "tắt hoạt động";
+                const result = await Swal.fire({
+                    title: `Xác nhận ${actionText}?`,
+                    text: `Bạn có chắc chắn muốn ${actionText} phiếu giảm giá này?`,
+                    icon: isChecked ? 'question' : 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: isChecked ? '#00adef' : '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (!result.isConfirmed) {
+                    if (checkboxEl) checkboxEl.checked = !isChecked;
+                    return;
                 }
-                loadVouchersTable();
-            } catch (err) {
-                alert("Lỗi: " + err.message);
-                loadVouchersTable();
+
+                const status = isChecked ? 1 : 0;
+                try {
+                    const response = await fetch(`/api/phieu-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                        method: "PATCH"
+                    });
+                    if (!response.ok) {
+                        const data = await response.json();
+                        throw new Error(data.message || "Không thể cập nhật trạng thái");
+                    }
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        text: isChecked ? "Đã bật hoạt động phiếu giảm giá!" : "Đã tắt hoạt động phiếu giảm giá!",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    loadVouchersTable();
+                } catch (err) {
+                    if (checkboxEl) checkboxEl.checked = !isChecked;
+                    Swal.fire('Lỗi', "Lỗi: " + err.message, 'error');
+                    loadVouchersTable();
+                }
             }
         }
 

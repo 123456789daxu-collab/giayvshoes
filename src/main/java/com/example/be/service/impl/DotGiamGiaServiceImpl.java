@@ -296,7 +296,7 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
         // 1. Fetch paginated active products
         Page<SanPham> sanPhamPage = sanPhamRepository.search(
                 (search != null && !search.trim().isEmpty()) ? search.trim() : null, 
-                1, null, null, null, pageable);
+                1, null, null, null, null, null, pageable);
 
         // 2. Map to DTOs and fetch active variants
         return sanPhamPage.map(sp -> {

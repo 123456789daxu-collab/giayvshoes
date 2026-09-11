@@ -467,7 +467,7 @@
                         </td>
                         <td style="text-align: center;">
                             <label class="toggle-switch">
-                                <input type="checkbox" ${item.trangThai === 1 ? 'checked' : ''} onchange="toggleCaLamStatus(${item.id}, ${item.trangThai})">
+                                <input type="checkbox" ${item.trangThai === 1 ? 'checked' : ''} onchange="toggleCaLamStatus(${item.id}, ${item.trangThai}, this)">
                                 <span class="toggle-slider"></span>
                             </label>
                         </td>
@@ -535,19 +535,31 @@
             }
         };
 
-        window.toggleCaLamStatus = function(id, currentStatus) {
-            // Optimistic update for now, ideally call API to update status
-            // As CaLam doesn't have toggle status endpoint out of the box in this setup
-            // I will just re-save it with inverted status
+        window.toggleCaLamStatus = function(id, currentStatus, checkboxEl) {
             const item = allCaLams.find(c => c.id === id);
-            if (item) {
-                item.trangThai = currentStatus === 1 ? 0 : 1;
-                fetch('/api/ca-lam', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(item)
-                }).then(() => loadCaLam());
-            }
+            if (!item) return;
+            const newStatus = currentStatus === 1 ? 0 : 1;
+            AdminStatus.confirmToggle({
+                entityName: 'Ca làm việc',
+                isActivating: newStatus === 1,
+                checkboxEl: checkboxEl,
+                onConfirm: () => {
+                    item.trangThai = newStatus;
+                    fetch('/api/ca-lam', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(item)
+                    }).then(res => {
+                        if (!res.ok) throw new Error("Không thể cập nhật trạng thái");
+                        AdminNotify.success(newStatus === 1 ? "Đã bật hoạt động ca làm việc!" : "Đã tắt hoạt động ca làm việc!");
+                        loadCaLam();
+                    }).catch(err => {
+                        if (checkboxEl) checkboxEl.checked = currentStatus === 1;
+                        AdminNotify.error("Lỗi: " + err.message);
+                        loadCaLam();
+                    });
+                }
+            });
         };
 
         window.deleteCaLam = function(id) {

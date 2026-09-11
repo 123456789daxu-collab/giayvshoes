@@ -90,8 +90,8 @@
 }
 
 .fi-input:focus {
-    border-color: #0f2d4a;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    border-color: #00adef;
+    box-shadow: 0 0 0 3px rgba(0, 173, 239, 0.15);
 }
 
 .fi-select {

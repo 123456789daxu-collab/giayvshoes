@@ -113,65 +113,15 @@ public class BeApplication {
 
     @Bean
     public CommandLineRunner initUserData(
-            NhanVienRepository nhanVienRepository,
-            com.example.be.repository.HoaDonRepository hoaDonRepository,
-            com.example.be.repository.LichLamViecRepository lichLamViecRepository,
-            com.example.be.repository.GiaoCaRepository giaoCaRepository) {
+            NhanVienRepository nhanVienRepository) {
         return args -> {
-            // Xóa nhân viên theo yêu cầu: Lê Hải Anh (123456789daxu@gmail.com / 0349678371)
-            List<NhanVien> allEmployees = nhanVienRepository.findAll();
-            for (NhanVien nv : allEmployees) {
-                boolean isTarget = "123456789daxu@gmail.com".equalsIgnoreCase(nv.getEmail())
-                        || "0349678371".equals(nv.getSoDienThoai())
-                        || "Lê Hải Anh".equalsIgnoreCase(nv.getHoTen());
-                if (isTarget) {
-                    Long nvId = nv.getId();
-                    // Gỡ ràng buộc trong HoaDon
-                    List<com.example.be.entity.HoaDon> hoaDons = hoaDonRepository.findAll();
-                    for (com.example.be.entity.HoaDon hd : hoaDons) {
-                        if (hd.getNhanVien() != null && hd.getNhanVien().getId().equals(nvId)) {
-                            hd.setNhanVien(null);
-                            hoaDonRepository.save(hd);
-                        }
-                    }
-                    // Xóa các bản ghi LichLamViec
-                    List<com.example.be.entity.LichLamViec> lichs = lichLamViecRepository.findAll();
-                    for (com.example.be.entity.LichLamViec llv : lichs) {
-                        if (llv.getNhanVien() != null && llv.getNhanVien().getId().equals(nvId)) {
-                            lichLamViecRepository.delete(llv);
-                        }
-                    }
-                    // Xóa hoặc gỡ ràng buộc trong GiaoCa
-                    List<com.example.be.entity.GiaoCa> giaoCas = giaoCaRepository.findAll();
-                    for (com.example.be.entity.GiaoCa gc : giaoCas) {
-                        boolean modified = false;
-                        if (gc.getNhanVienGiao() != null && gc.getNhanVienGiao().getId().equals(nvId)) {
-                            gc.setNhanVienGiao(null);
-                            modified = true;
-                        }
-                        if (gc.getNhanVienNhan() != null && gc.getNhanVienNhan().getId().equals(nvId)) {
-                            gc.setNhanVienNhan(null);
-                            modified = true;
-                        }
-                        if (modified) {
-                            if (gc.getNhanVienGiao() == null && gc.getNhanVienNhan() == null) {
-                                giaoCaRepository.delete(gc);
-                            } else {
-                                giaoCaRepository.save(gc);
-                            }
-                        }
-                    }
-                    // Xóa nhân viên
-                    nhanVienRepository.delete(nv);
-                    System.out.println("--- Đã xóa vĩnh viễn nhân viên: " + nv.getHoTen() + " (" + nv.getEmail() + ") ---");
-                }
-            }
 
             // Admin Account
-            if (nhanVienRepository.findByMaNhanVien("admin").isEmpty()) {
+            Optional<NhanVien> optAdmin = nhanVienRepository.findByMaNhanVien("admin");
+            if (optAdmin.isEmpty()) {
                 NhanVien admin = NhanVien.builder()
                         .maNhanVien("admin")
-                        .hoTen("Quản trị viên")
+                        .hoTen("Lê Hải Anh")
                         .email("admin@vshoes.com")
                         .soDienThoai("0987654321")
                         .matKhau("admin")
@@ -181,7 +131,14 @@ public class BeApplication {
                         .gioiTinh(true)
                         .build();
                 nhanVienRepository.save(admin);
-                System.out.println("--- Đã tạo tài khoản Quản lý: admin / admin ---");
+                System.out.println("--- Đã tạo tài khoản Quản lý: admin / admin (Lê Hải Anh) ---");
+            } else {
+                NhanVien admin = optAdmin.get();
+                if ("Quản trị viên".equals(admin.getHoTen())) {
+                    admin.setHoTen("Lê Hải Anh");
+                    nhanVienRepository.save(admin);
+                    System.out.println("--- Đã cập nhật tên Admin thành: Lê Hải Anh ---");
+                }
             }
 
             // Staff Account

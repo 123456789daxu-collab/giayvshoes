@@ -74,56 +74,169 @@ window.AdminStatus = {
 
     /**
      * Đồng bộ hiển thị popup xác nhận SweetAlert2 khi người dùng đổi trạng thái
-     * @param {Object} options { entityName, onConfirm, targetUrl, event, checkboxEl }
+     * @param {Object} options { entityName, title, text, isActivating, onConfirm, callback, targetUrl, event, checkboxEl }
+     */
+    confirmToggle: function(options = {}) {
+        return window.AdminNotify.confirmToggle(options);
+    }
+};
+
+/**
+ * Hệ thống Thông Báo & Xác Nhận Đồng Bộ VShoes (AdminNotify)
+ */
+window.AdminNotify = {
+    /**
+     * Hiển thị Toast thông báo góc phải màn hình
+     * @param {string} message Nội dung thông báo
+     * @param {string} type 'success' | 'error' | 'warning' | 'info'
+     * @param {string} title Tiêu đề (tùy chọn)
+     */
+    toast: function(message, type = 'success', title = '') {
+        if (!message) return;
+        
+        let defaultTitle = title;
+        if (!defaultTitle) {
+            if (type === 'success') defaultTitle = 'Thành công';
+            else if (type === 'error') defaultTitle = 'Lỗi';
+            else if (type === 'warning') defaultTitle = 'Cảnh báo';
+            else defaultTitle = 'Thông báo';
+        }
+
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type,
+                title: defaultTitle,
+                text: (message !== defaultTitle) ? message : undefined,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        } else if (typeof window.showCustomToast === 'function') {
+            window.showCustomToast(defaultTitle, message, type);
+        } else {
+            alert(message);
+        }
+    },
+
+    success: function(message, title = 'Thành công') {
+        return this.toast(message, 'success', title);
+    },
+
+    error: function(message, title = 'Lỗi') {
+        return this.toast(message, 'error', title);
+    },
+
+    warning: function(message, title = 'Cảnh báo') {
+        return this.toast(message, 'warning', title);
+    },
+
+    info: function(message, title = 'Thông báo') {
+        return this.toast(message, 'info', title);
+    },
+
+    /**
+     * Popup xác nhận hành động chung
+     */
+    confirm: function(options = {}) {
+        const title = options.title || 'Xác nhận thao tác?';
+        const text = options.text || 'Bạn có chắc chắn muốn thực hiện thao tác này?';
+        const icon = options.icon || 'question';
+        const confirmText = options.confirmText || 'Đồng ý';
+        const cancelText = options.cancelText || 'Hủy';
+        const confirmColor = options.confirmColor || '#0ea5e9';
+
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: confirmColor,
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: confirmText,
+                cancelButtonText: cancelText,
+                borderRadius: '12px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (options.onConfirm) options.onConfirm();
+                } else {
+                    if (options.onCancel) options.onCancel();
+                }
+                return result;
+            });
+        } else {
+            if (confirm(text)) {
+                if (options.onConfirm) options.onConfirm();
+                return Promise.resolve({ isConfirmed: true });
+            } else {
+                if (options.onCancel) options.onCancel();
+                return Promise.resolve({ isConfirmed: false });
+            }
+        }
+    },
+
+    /**
+     * Popup xác nhận đổi/tắt/bật trạng thái đồng bộ
      */
     confirmToggle: function(options = {}) {
         let entityName = options.entityName || 'bản ghi';
-        let title = options.title || `Xác nhận chuyển trạng thái?`;
-        let text = options.text || `Bạn có chắc chắn muốn thay đổi trạng thái của ${entityName} này?`;
+        let isActivating = options.isActivating !== undefined ? options.isActivating : null;
+        let actionWord = isActivating === true ? 'kích hoạt / mở bán' : (isActivating === false ? 'tắt hoạt động / ngừng kinh doanh' : 'thay đổi trạng thái');
+        let title = options.title || `Xác nhận ${actionWord}?`;
+        let text = options.text || `Bạn có chắc chắn muốn ${actionWord} cho ${entityName} này?`;
         let onConfirm = options.onConfirm || options.callback || null;
         let targetUrl = options.targetUrl || null;
-        let event = options.event || null;
         let checkboxEl = options.checkboxEl || null;
 
-        if (event && event.preventDefault) {
-            event.preventDefault();
+        if (options.event && options.event.preventDefault) {
+            options.event.preventDefault();
         }
 
-        const runConfirmation = () => {
-            if (typeof Swal !== 'undefined') {
-                return Swal.fire({
-                    title: title,
-                    text: text,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#0f2d4a',
-                    cancelButtonColor: '#cbd5e1',
-                    confirmButtonText: 'Đồng ý',
-                    cancelButtonText: 'Hủy'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        if (onConfirm) {
-                            onConfirm();
-                        } else if (targetUrl) {
-                            window.location.href = targetUrl;
-                        }
-                    } else {
-                        if (checkboxEl) {
-                            checkboxEl.checked = !checkboxEl.checked;
-                        }
-                    }
-                });
-            } else {
-                if (confirm(text)) {
-                    if (onConfirm) onConfirm();
-                    else if (targetUrl) window.location.href = targetUrl;
-                } else {
-                    if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
-                }
+        return this.confirm({
+            title: title,
+            text: text,
+            icon: 'question',
+            confirmColor: isActivating === false ? '#f59e0b' : '#0ea5e9',
+            confirmText: 'Đồng ý',
+            cancelText: 'Hủy',
+            onConfirm: () => {
+                if (onConfirm) onConfirm();
+                else if (targetUrl) window.location.href = targetUrl;
+            },
+            onCancel: () => {
+                if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+                if (options.onCancel) options.onCancel();
             }
-        };
+        });
+    },
 
-        return runConfirmation();
+    /**
+     * Tự động hiển thị Flash Message khi load trang
+     */
+    handleFlashMessages: function(successMsg, errorMsg) {
+        if (successMsg && String(successMsg).trim() !== '' && successMsg !== 'null') {
+            this.success(successMsg);
+        }
+        if (errorMsg && String(errorMsg).trim() !== '' && errorMsg !== 'null') {
+            this.error(errorMsg);
+        }
+    }
+};
+
+/**
+ * Đảm bảo window.showToast tương thích hoàn toàn
+ */
+window.showToast = function(titleOrMsg, msgOrType, maybeType) {
+    if (maybeType) {
+        window.AdminNotify.toast(msgOrType, maybeType, titleOrMsg);
+    } else if (msgOrType === 'error' || msgOrType === 'warning' || msgOrType === 'info' || msgOrType === 'success') {
+        window.AdminNotify.toast(titleOrMsg, msgOrType);
+    } else if (msgOrType) {
+        window.AdminNotify.toast(msgOrType, 'success', titleOrMsg);
+    } else {
+        window.AdminNotify.toast(titleOrMsg, 'success');
     }
 };
 
@@ -133,7 +246,7 @@ window.AdminStatus = {
  */
 window.confirmAdminStatusToggle = function(event, targetUrl, entityName = 'bản ghi') {
     if (event) event.preventDefault();
-    AdminStatus.confirmToggle({
+    AdminNotify.confirmToggle({
         entityName: entityName,
         targetUrl: targetUrl
     });

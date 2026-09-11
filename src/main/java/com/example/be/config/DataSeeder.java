@@ -100,7 +100,7 @@ public class DataSeeder implements CommandLineRunner {
         if (nhanVienRepository.count() == 0) {
             NhanVien admin = NhanVien.builder()
                     .maNhanVien("admin")
-                    .hoTen("Quản trị viên")
+                    .hoTen("Lê Hải Anh")
                     .matKhau("admin")
                     .email("admin@vshoes.com")
                     .soDienThoai("0123456789")
@@ -109,6 +109,13 @@ public class DataSeeder implements CommandLineRunner {
                     .build();
             nhanVienRepository.save(admin);
             System.out.println("Seeded Admin NhanVien");
+        } else {
+            nhanVienRepository.findByMaNhanVien("admin").ifPresent(admin -> {
+                if ("Quản trị viên".equals(admin.getHoTen())) {
+                    admin.setHoTen("Lê Hải Anh");
+                    nhanVienRepository.save(admin);
+                }
+            });
         }
 
         // Seed LichLamViec

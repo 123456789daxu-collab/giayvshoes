@@ -3,7 +3,6 @@ package com.example.be.controller;
 import com.example.be.entity.*;
 import com.example.be.repository.ChiTietHoaDonRepository;
 import com.example.be.repository.DanhGiaRepository;
-import com.example.be.repository.HoaDonRepository;
 import com.example.be.repository.SanPhamChiTietRepository;
 import com.example.be.repository.SanPhamRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import java.util.*;
 public class AdminDanhGiaRestController {
 
     @Autowired private DanhGiaRepository danhGiaRepository;
-    @Autowired private HoaDonRepository hoaDonRepository;
     @Autowired private SanPhamRepository sanPhamRepository;
     @Autowired private SanPhamChiTietRepository sanPhamChiTietRepository;
     @Autowired private ChiTietHoaDonRepository chiTietHoaDonRepository;

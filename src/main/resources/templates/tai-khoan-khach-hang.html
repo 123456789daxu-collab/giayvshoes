@@ -740,10 +740,11 @@
                             const data = await response.json();
                             throw new Error(data.message || "Không thể cập nhật trạng thái");
                         }
+                        AdminNotify.success(isChecked ? "Đã kích hoạt tài khoản khách hàng!" : "Đã ngừng hoạt động tài khoản khách hàng!");
                         loadTable();
                     } catch (err) {
                         if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
-                        Swal.fire('Lỗi', err.message, 'error');
+                        AdminNotify.error(err.message);
                         loadTable();
                     }
                 }

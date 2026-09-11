@@ -107,7 +107,7 @@ public class SanPhamServiceImpl implements SanPhamService {
         
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, sortObj);
         String kw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
-        return sanPhamRepository.search(kw, trangThai, null, idThuongHieu, idLoaiGiay, pageable);
+        return sanPhamRepository.search(kw, trangThai, null, idThuongHieu, idLoaiGiay, null, null, pageable);
     }
 
     @Override

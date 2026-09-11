@@ -71,7 +71,7 @@
                     <span class="card-title-table" style="font-weight: 600; color: #1e293b; font-size: 16px; margin-bottom: 0; display: flex; align-items: center; gap: 8px;">
                         <i data-lucide="layout-grid" style="width: 20px; height: 20px;"></i> Danh sách Danh mục
                     </span>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal" style="background: #4f46e5; border: none; border-radius: 8px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal" style="background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; border-radius: 8px; padding: 8px 16px; display: flex; align-items: center; gap: 8px; font-weight: 600; color: white; box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2);">
                         <i data-lucide="plus" style="width: 18px; height: 18px;"></i> Tạo mới
                     </button>
                 </div>
@@ -83,31 +83,33 @@
                     <table class="customer-table">
                         <thead>
                             <tr style="border-bottom: 1px solid #e2e8f0; background: transparent;">
-                                <th style="width: 60px; color: #64748b; font-weight: 600; padding: 12px 16px;">STT</th>
+                                <th style="width: 60px; color: #64748b; font-weight: 600; padding: 12px 16px; text-align: center;">STT</th>
                                 <th style="color: #64748b; font-weight: 600; padding: 12px 16px;">Mã danh mục</th>
                                 <th style="color: #64748b; font-weight: 600; padding: 12px 16px;">Tên danh mục</th>
-                                <th style="color: #64748b; font-weight: 600; padding: 12px 16px;">Trạng thái</th>
+                                <th style="color: #64748b; font-weight: 600; padding: 12px 16px; text-align: center;">Trạng thái</th>
                                 <th style="width: 120px; text-align: center; color: #64748b; font-weight: 600; padding: 12px 16px;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
                             <!-- Lặp qua danh sách danh mục -->
                             <tr th:each="item, stat : ${pageData.content}" style="border-bottom: 1px solid #f1f5f9;">
-                                <td style="text-align: center; padding: 16px; color: #64748b;" th:text="${(pageData.number * pageData.size) + stat.index + 1}">1</td>
-                                <td th:text="${item.maDanhMuc}" style="padding: 16px; color: #64748b;">TL01</td>
-                                <td th:text="${item.tenDanhMuc}" style="padding: 16px; color: #64748b;">Công việc</td>
-                                <td style="padding: 16px;">
-                                    <span th:if="${item.trangThai}" class="px-3 py-1 fw-medium" style="background-color: #dcfce7; color: #16a34a; border-radius: 20px; font-size: 0.85rem; display: inline-block;">Đang hoạt động</span>
-                                    <span th:unless="${item.trangThai}" class="px-3 py-1 fw-medium" style="background-color: #fce8e6; color: #d93025; border-radius: 20px; font-size: 0.85rem; display: inline-block;">Ngừng hoạt động</span>
+                                <td style="text-align: center; padding: 14px 16px; color: #64748b;" th:text="${(pageData.number * pageData.size) + stat.index + 1}">1</td>
+                                <td th:text="${item.maDanhMuc}" style="padding: 14px 16px; font-weight: 600; color: #0f172a;">TL01</td>
+                                <td th:text="${item.tenDanhMuc}" style="padding: 14px 16px; color: #1e293b;">Công việc</td>
+                                <td style="padding: 14px 16px; text-align: center;">
+                                    <span th:if="${item.trangThai}" class="app-badge app-badge-success">Đang hoạt động</span>
+                                    <span th:unless="${item.trangThai}" class="app-badge app-badge-danger">Ngừng hoạt động</span>
                                 </td>
-                                <td style="text-align: center; padding: 16px;">
-                                    <div class="action-buttons" style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-                                        <button class="btn-icon" title="Chỉnh sửa" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${item.id}" style="border: none; background: none; padding: 0;">
-                                            <i data-lucide="pencil" style="width: 20px; height: 20px; color: #64748b;"></i>
+                                <td style="text-align: center; padding: 14px 16px;">
+                                    <div class="action-buttons" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <button class="action-icon-btn edit" title="Chỉnh sửa" data-bs-toggle="modal" th:data-bs-target="'#editModal' + ${item.id}">
+                                            <i data-lucide="pencil" style="width: 16px; height: 16px;"></i>
                                         </button>
-                                        <button type="button" title="Đổi trạng thái" th:onclick="'confirmToggleStatus(\'/the-loai/delete/' + ${item.id} + '\')'" style="width: 38px; height: 38px; border-radius: 50%; border: 1px solid #e2e8f0; background: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='#ffffff'">
-                                            <i data-lucide="refresh-cw" style="width: 18px; height: 18px; color: #3b82f6;"></i>
-                                        </button>
+                                        <label class="switch-control" title="Chuyển đổi trạng thái" style="margin: 0 4px;">
+                                            <input type="checkbox" th:checked="${item.trangThai}"
+                                                   th:onchange="'confirmToggleStatus(\'/the-loai/delete/' + ${item.id} + '\', this)'">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                     <!-- Modal Chỉnh Sửa cho mỗi dòng -->
                                 <div class="modal fade" th:id="'editModal' + ${item.id}" tabindex="-1" aria-hidden="true">
@@ -246,20 +248,11 @@
                 });
             });
         });
-        function confirmToggleStatus(url) {
-            Swal.fire({
-                title: 'Xác nhận thay đổi',
-                text: 'Bạn có chắc chắn muốn thay đổi trạng thái?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = url;
-                }
+        function confirmToggleStatus(url, checkboxEl) {
+            AdminStatus.confirmToggle({
+                entityName: 'Danh mục',
+                checkboxEl: checkboxEl,
+                targetUrl: url
             });
         }
     </script>

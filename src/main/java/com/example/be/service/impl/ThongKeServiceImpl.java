@@ -41,16 +41,16 @@ public class ThongKeServiceImpl implements ThongKeService {
         ThongKeTongQuanDTO dto = new ThongKeTongQuanDTO();
         
         // 1. Tổng quan
-        String whereBase = " WHERE 1=1 ";
+        String whereHd = " WHERE 1=1 ";
         if (startDate != null) {
-            whereBase += " AND ngay_tao >= :startDate ";
+            whereHd += " AND hd.ngay_tao >= :startDate ";
         }
         if (endDate != null) {
-            whereBase += " AND ngay_tao <= :endDate ";
+            whereHd += " AND hd.ngay_tao <= :endDate ";
         }
 
         // Tổng số đơn
-        String sqlTongDon = "SELECT COUNT(id) FROM hoa_don" + whereBase;
+        String sqlTongDon = "SELECT COUNT(hd.id) FROM hoa_don hd" + whereHd;
         Query qTongDon = entityManager.createNativeQuery(sqlTongDon);
         if (startDate != null) qTongDon.setParameter("startDate", startDate);
         if (endDate != null) qTongDon.setParameter("endDate", endDate);
@@ -58,7 +58,7 @@ public class ThongKeServiceImpl implements ThongKeService {
         dto.setTongDonHang(tongDon != null ? tongDon.longValue() : 0L);
         
         // Doanh thu thực tế (chỉ đơn hàng đã hoàn thành, giả sử trạng thái hoàn thành là 5)
-        String sqlDoanhThuThucTe = "SELECT SUM(tong_tien) FROM hoa_don" + whereBase + " AND trang_thai = 5";
+        String sqlDoanhThuThucTe = "SELECT SUM(hd.tong_tien) FROM hoa_don hd" + whereHd + " AND hd.trang_thai = 5";
         Query qDtt = entityManager.createNativeQuery(sqlDoanhThuThucTe);
         if (startDate != null) qDtt.setParameter("startDate", startDate);
         if (endDate != null) qDtt.setParameter("endDate", endDate);
@@ -66,7 +66,7 @@ public class ThongKeServiceImpl implements ThongKeService {
         dto.setDoanhThuThucTe(safeToBigDecimal(dtt));
         
         // Doanh thu dự kiến (Tất cả đơn hàng)
-        String sqlDoanhThuDuKien = "SELECT SUM(tong_tien) FROM hoa_don" + whereBase;
+        String sqlDoanhThuDuKien = "SELECT SUM(hd.tong_tien) FROM hoa_don hd" + whereHd;
         Query qDtdk = entityManager.createNativeQuery(sqlDoanhThuDuKien);
         if (startDate != null) qDtdk.setParameter("startDate", startDate);
         if (endDate != null) qDtdk.setParameter("endDate", endDate);
@@ -77,7 +77,7 @@ public class ThongKeServiceImpl implements ThongKeService {
         dto.setTongDoanhThu(dto.getDoanhThuDuKien());
 
         // Sản phẩm đã bán
-        String sqlSpDaBan = "SELECT SUM(cthd.so_luong) FROM chi_tiet_hoa_don cthd JOIN hoa_don hd ON cthd.id_hoa_don = hd.id" + whereBase;
+        String sqlSpDaBan = "SELECT SUM(cthd.so_luong) FROM chi_tiet_hoa_don cthd JOIN hoa_don hd ON cthd.id_hoa_don = hd.id" + whereHd;
         Query qSpDaBan = entityManager.createNativeQuery(sqlSpDaBan);
         if (startDate != null) qSpDaBan.setParameter("startDate", startDate);
         if (endDate != null) qSpDaBan.setParameter("endDate", endDate);
@@ -103,13 +103,13 @@ public class ThongKeServiceImpl implements ThongKeService {
 
         // Tiền mặt & Chuyển khoản (truy vấn lich_su_thanh_toan / thanh_toan_hoa_don nếu có)
         try {
-            String sqlTienMat = "SELECT SUM(so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereBase + " AND (lstt.phuong_thuc_thanh_toan LIKE '%Tien%' OR lstt.phuong_thuc_thanh_toan LIKE '%t%');";
+            String sqlTienMat = "SELECT SUM(lstt.so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereHd + " AND (lstt.phuong_thuc_thanh_toan LIKE '%Tien%' OR lstt.phuong_thuc_thanh_toan LIKE '%t%');";
             Query qTm = entityManager.createNativeQuery(sqlTienMat);
             if (startDate != null) qTm.setParameter("startDate", startDate);
             if (endDate != null) qTm.setParameter("endDate", endDate);
             BigDecimal tm = safeToBigDecimal(qTm.getSingleResult());
 
-            String sqlCk = "SELECT SUM(so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereBase + " AND (lstt.phuong_thuc_thanh_toan LIKE '%ChuyenKhoan%' OR lstt.phuong_thuc_thanh_toan LIKE '%bank%' OR lstt.phuong_thuc_thanh_toan LIKE '%chuy%n%');";
+            String sqlCk = "SELECT SUM(lstt.so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereHd + " AND (lstt.phuong_thuc_thanh_toan LIKE '%ChuyenKhoan%' OR lstt.phuong_thuc_thanh_toan LIKE '%bank%' OR lstt.phuong_thuc_thanh_toan LIKE '%chuy%n%');";
             Query qCk = entityManager.createNativeQuery(sqlCk);
             if (startDate != null) qCk.setParameter("startDate", startDate);
             if (endDate != null) qCk.setParameter("endDate", endDate);

@@ -1,6 +1,7 @@
 <!-- File fragment Sidebar dùng chung cho toàn bộ các trang -->
 <div th:fragment="sidebar" class="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-    <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
+    <link rel="stylesheet" href="/css/global-typography.css?v=2.0">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.0">
     
     <!-- 1. KHU VỰC LOGO VSHOES -->
     <div class="sidebar-brand">
@@ -143,6 +144,15 @@
                 const href = link.getAttribute("href");
                 if (!href || href === '#' || href === '/') return;
                 
+                // Quy tắc ưu tiên đặc biệt cho trang chi tiết biến thể sản phẩm (variant-detail)
+                if (currentPath.startsWith('/san-pham/variant-detail') || currentPath.startsWith('/san-pham/chi-tiet-global')) {
+                    if (href === '/san-pham/chi-tiet-global') {
+                        bestMatch = link;
+                        bestMatchLength = 9999;
+                        return;
+                    }
+                }
+                
                 // So sánh đường dẫn hiện tại với thuộc tính href
                 if (currentPath === href || currentPath.startsWith(href + '/')) {
                     if (href.length > bestMatchLength) {
@@ -185,7 +195,11 @@
         });
     </script>
 
-    <!-- Script Hệ thống Toast & Ghi đè alert -->
+    <!-- SweetAlert2 & Admin Utilities chung cho tất cả các màn hình -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/admin-common.js?v=101"></script>
+
+    <!-- Script Hệ thống Toast & Ghi đè alert tương thích -->
     <script>
         (function() {
             function ensureToastContainer() {
@@ -198,7 +212,7 @@
                 return container;
             }
 
-            window.showToast = function(title, message, type = 'success') {
+            window.showCustomToast = function(title, message, type = 'success') {
                 const container = ensureToastContainer();
                 
                 const toast = document.createElement('div');
@@ -272,7 +286,11 @@
                     title = 'Cảnh báo';
                 }
                 
-                window.showToast(title, msgStr, type);
+                if (window.AdminNotify) {
+                    window.AdminNotify.toast(msgStr, type, title);
+                } else {
+                    window.showCustomToast(title, msgStr, type);
+                }
             };
         })();
     </script>
