@@ -18,6 +18,9 @@ public interface SanPhamService {
     String generateNextMaSanPham();
 
     List<SanPham> getAll();
+    long countTotalProducts();
+    long countActiveProducts();
+    long countInactiveProducts();
     Page<SanPham> getPage(int pageNo, int pageSize);
     Page<SanPham> searchFilter(String keyword, Long idThuongHieu, Long idLoaiGiay, Integer trangThai, String sort, int pageNo, int pageSize);
     SanPham getById(Long id);

@@ -260,31 +260,10 @@
 
         // Vẽ các nút phân trang voucher
         function renderVoucherPagination() {
-            const nav = document.getElementById("voucher-pagination");
-            nav.innerHTML = "";
-
-            // Nút lùi
-            const prev = document.createElement("button");
-            prev.className = `page-btn ${vCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>`;
-            prev.onclick = () => { if (vCurrentPage > 0) { vCurrentPage--; loadVouchersTable(); } };
-            nav.appendChild(prev);
-
-            // Các trang số
-            for (let i = 0; i < vTotalPages; i++) {
-                const btn = document.createElement("button");
-                btn.className = `page-btn ${i === vCurrentPage ? 'active' : ''}`;
-                btn.innerText = i + 1;
-                btn.onclick = () => { vCurrentPage = i; loadVouchersTable(); };
-                nav.appendChild(btn);
-            }
-
-            // Nút tiến
-            const next = document.createElement("button");
-            next.className = `page-btn ${vCurrentPage >= vTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>`;
-            next.onclick = () => { if (vCurrentPage < vTotalPages - 1) { vCurrentPage++; loadVouchersTable(); } };
-            nav.appendChild(next);
+            AdminUtils.renderPagination("voucher-pagination", vCurrentPage, vTotalPages, (page) => {
+                vCurrentPage = page;
+                loadVouchersTable();
+            });
         }
 
         // Đổi page size của voucher
@@ -312,21 +291,34 @@
         }
 
         // Toggle nhanh bật/tắt hoạt động của voucher
-        async function toggleVoucherActive(id, isChecked) {
+        function toggleVoucherActive(id, isChecked, name = 'phiếu giảm giá') {
             const status = isChecked ? 1 : 0;
-            try {
-                const response = await fetch(`/api/phieu-giam-gia/${id}/trang-thai?trangThai=${status}`, {
-                    method: "PATCH"
-                });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+            const checkboxEl = window.event ? window.event.target : null;
+            AdminStatus.confirmToggle({
+                entityName: `phiếu giảm giá "${name}"`,
+                isActivating: isChecked,
+                checkboxEl: checkboxEl,
+                onConfirm: async () => {
+                    try {
+                        const response = await fetch(`/api/phieu-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                            method: "PATCH"
+                        });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không thể cập nhật trạng thái");
+                        }
+                        AdminNotify.success("Cập nhật trạng thái thành công!");
+                        loadVouchersTable();
+                    } catch (err) {
+                        if (checkboxEl) checkboxEl.checked = !isChecked;
+                        AdminNotify.error("Lỗi: " + err.message);
+                        loadVouchersTable();
+                    }
+                },
+                onCancel: () => {
+                    if (checkboxEl) checkboxEl.checked = !isChecked;
                 }
-                loadVouchersTable();
-            } catch (err) {
-                alert("Lỗi: " + err.message);
-                loadVouchersTable();
-            }
+            });
         }
 
         // Xuất Excel danh sách voucher
@@ -632,39 +624,39 @@
             const ngayKetThucVal = document.getElementById("voucher-end-date").value;
 
             if (!tenVoucher) {
-                Swal.fire('Lỗi', 'Vui lòng nhập tên phiếu giảm giá!', 'warning');
+                AdminNotify.warning('Vui lòng nhập tên phiếu giảm giá!');
                 return;
             }
 
             if (!ngayBatDauVal || !ngayKetThucVal) {
-                Swal.fire('Lỗi', 'Vui lòng chọn thời gian bắt đầu và kết thúc!', 'warning');
+                AdminNotify.warning('Vui lòng chọn thời gian bắt đầu và kết thúc!');
                 return;
             }
 
             if (new Date(ngayBatDauVal) > new Date(ngayKetThucVal)) {
-                alert("Lỗi: Ngày bắt đầu phải diễn ra trước hoặc cùng ngày với ngày kết thúc!");
+                AdminNotify.warning("Ngày bắt đầu phải diễn ra trước hoặc cùng ngày với ngày kết thúc!");
                 return;
             }
 
             if (loaiGiamGia === "Phần trăm" && (giaTriGiam < 1 || giaTriGiam > 100)) {
-                alert("Lỗi: Giá trị giảm theo % phải nằm trong khoảng 1% - 100%!");
+                AdminNotify.warning("Giá trị giảm theo % phải nằm trong khoảng 1% - 100%!");
                 return;
             }
 
             if (loaiGiamGia === "Tiền mặt") {
                 if (giaTriGiam > donToiThieu) {
-                    alert("Lỗi: Giá trị giảm không được lớn hơn hóa đơn tối thiểu!");
+                    AdminNotify.warning("Giá trị giảm không được lớn hơn hóa đơn tối thiểu!");
                     return;
                 }
             } else if (loaiGiamGia === "Phần trăm") {
                 if (giamToiDa !== null && !isNaN(giamToiDa) && giamToiDa > donToiThieu) {
-                    alert("Lỗi: Giảm tối đa không được lớn hơn hóa đơn tối thiểu!");
+                    AdminNotify.warning("Giảm tối đa không được lớn hơn hóa đơn tối thiểu!");
                     return;
                 }
             }
 
             if (loaiPhieu === "Cá nhân" && selectedCustomerIds.size === 0) {
-                alert("Lỗi: Đối tượng cá nhân yêu cầu bạn chọn ít nhất 1 khách hàng nhận phiếu!");
+                AdminNotify.warning("Đối tượng cá nhân yêu cầu bạn chọn ít nhất 1 khách hàng nhận phiếu!");
                 return;
             }
 
@@ -684,45 +676,32 @@
                 customerIds: loaiPhieu === "Cá nhân" ? Array.from(selectedCustomerIds) : []
             };
 
-            const result = await Swal.fire({
+            AdminNotify.confirm({
                 title: id ? 'Xác nhận cập nhật?' : 'Xác nhận thêm mới?',
                 text: "Bạn có chắc chắn muốn lưu thông tin phiếu giảm giá này?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0ea5e9',
-                cancelButtonColor: '#cbd5e1',
-                confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Hủy'
-            });
+                onConfirm: async () => {
+                    const url = id ? `/api/phieu-giam-gia/${id}` : "/api/phieu-giam-gia";
+                    const method = id ? "PUT" : "POST";
 
-            if (!result.isConfirmed) return;
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
 
-            const url = id ? `/api/phieu-giam-gia/${id}` : "/api/phieu-giam-gia";
-            const method = id ? "PUT" : "POST";
+                        if (!response.ok) {
+                            const errData = await response.json();
+                            throw new Error(errData.message || "Lỗi lưu thông tin phiếu giảm giá");
+                        }
 
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.message || "Lỗi lưu thông tin phiếu giảm giá");
+                        AdminNotify.success(id ? "Cập nhật phiếu giảm giá thành công!" : "Thêm mới phiếu giảm giá thành công!");
+                        backToListPanel();
+                    } catch (err) {
+                        AdminNotify.error("Thao tác thất bại: " + err.message);
+                    }
                 }
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công!',
-                    text: id ? "Cập nhật phiếu giảm giá thành công!" : "Thêm mới phiếu giảm giá thành công!",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                backToListPanel();
-            } catch (err) {
-                Swal.fire('Lỗi', "Thao tác thất bại: " + err.message, 'error');
-            }
+            });
         }
 
 
@@ -874,33 +853,10 @@
 
         // Vẽ các nút phân trang khách hàng
         function renderCustPagination() {
-            const nav = document.getElementById("cust-pagination");
-            nav.innerHTML = "";
-
-            const prev = document.createElement("button");
-            prev.type = "button";
-            prev.className = `page-btn ${custCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i>`;
-            prev.onclick = () => { if (custCurrentPage > 0) { custCurrentPage--; loadCustomersTable(); } };
-            nav.appendChild(prev);
-
-            for (let i = 0; i < custTotalPages; i++) {
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.className = `page-btn ${i === custCurrentPage ? 'active' : ''}`;
-                btn.innerText = i + 1;
-                btn.onclick = () => { custCurrentPage = i; loadCustomersTable(); };
-                nav.appendChild(btn);
-            }
-
-            const next = document.createElement("button");
-            next.type = "button";
-            next.className = `page-btn ${custCurrentPage >= custTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i>`;
-            next.onclick = () => { if (custCurrentPage < custTotalPages - 1) { custCurrentPage++; loadCustomersTable(); } };
-            nav.appendChild(next);
-
-            lucide.createIcons();
+            AdminUtils.renderPagination("cust-pagination", custCurrentPage, custTotalPages, (page) => {
+                custCurrentPage = page;
+                loadCustomersTable();
+            });
         }
 
         // Đổi page size của bảng khách hàng

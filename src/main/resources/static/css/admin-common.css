@@ -702,3 +702,44 @@ select.form-select-sm {
 .toggle-switch input:checked + .toggle-slider:before {
     transform: translateX(20px);
 }
+
+/* 11. Unified SweetAlert2 Modal & Toast Styling */
+.swal2-popup {
+    font-family: inherit !important;
+    border-radius: 14px !important;
+    padding: 24px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.swal2-toast {
+    font-family: inherit !important;
+    border-radius: 10px !important;
+    padding: 12px 16px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid var(--admin-border) !important;
+}
+
+.swal2-toast .swal2-title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: var(--admin-text-main) !important;
+}
+
+.swal2-toast .swal2-html-container {
+    font-size: 13px !important;
+    color: var(--admin-text-sub) !important;
+}
+
+.swal2-actions {
+    gap: 10px !important;
+}
+
+.swal2-styled.swal2-confirm,
+.swal2-styled.swal2-cancel {
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    padding: 9px 20px !important;
+    box-shadow: none !important;
+}
+

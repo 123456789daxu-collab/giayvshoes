@@ -68,6 +68,21 @@ public class SanPhamServiceImpl implements SanPhamService {
     }
 
     @Override
+    public long countTotalProducts() {
+        return sanPhamRepository.count();
+    }
+
+    @Override
+    public long countActiveProducts() {
+        return sanPhamRepository.countByTrangThai(1);
+    }
+
+    @Override
+    public long countInactiveProducts() {
+        return sanPhamRepository.countByTrangThai(0);
+    }
+
+    @Override
     public Page<SanPham> getPage(int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo - 1, pageSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
         return sanPhamRepository.findAll(pageable);

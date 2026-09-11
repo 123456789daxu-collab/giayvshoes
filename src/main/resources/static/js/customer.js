@@ -248,35 +248,21 @@
 
         // Cập nhật các nút phân trang
         function updatePaginationControls() {
-            const pageNumbersContainer = document.getElementById("page-numbers-container");
-            pageNumbersContainer.innerHTML = "";
+            AdminUtils.renderPagination("page-numbers-container", currentPage, totalPages, (p) => {
+                currentPage = p;
+                loadTable();
+            });
 
-            // Nút Prev
             const prevBtn = document.getElementById("prev-page-btn");
-            if (currentPage === 0) {
-                prevBtn.classList.add("disabled");
-            } else {
-                prevBtn.classList.remove("disabled");
+            if (prevBtn) {
+                if (currentPage === 0) prevBtn.classList.add("disabled");
+                else prevBtn.classList.remove("disabled");
             }
 
-            // Nút Next
             const nextBtn = document.getElementById("next-page-btn");
-            if (currentPage >= totalPages - 1) {
-                nextBtn.classList.add("disabled");
-            } else {
-                nextBtn.classList.remove("disabled");
-            }
-
-            // Hiển thị số trang
-            for (let i = 0; i < totalPages; i++) {
-                const btn = document.createElement("button");
-                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-                btn.innerText = i + 1;
-                btn.onclick = () => {
-                    currentPage = i;
-                    loadTable();
-                };
-                pageNumbersContainer.appendChild(btn);
+            if (nextBtn) {
+                if (currentPage >= totalPages - 1) nextBtn.classList.add("disabled");
+                else nextBtn.classList.remove("disabled");
             }
         }
 
@@ -505,46 +491,33 @@
                 }
             }
 
-            const result = await Swal.fire({
+            AdminNotify.confirm({
                 title: id ? 'Xác nhận cập nhật?' : 'Xác nhận thêm mới?',
                 text: "Bạn có chắc chắn muốn lưu thông tin khách hàng này?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0ea5e9',
-                cancelButtonColor: '#cbd5e1',
-                confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Hủy'
-            });
-            
-            if (!result.isConfirmed) return;
+                onConfirm: async () => {
+                    const url = id ? `/api/khach-hang/${id}` : "/api/khach-hang";
+                    const method = id ? "PUT" : "POST";
 
-            const url = id ? `/api/khach-hang/${id}` : "/api/khach-hang";
-            const method = id ? "PUT" : "POST";
+                    try {
+                        const response = await fetch(url, {
+                            method: method,
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
 
-            try {
-                const response = await fetch(url, {
-                    method: method,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || "Lỗi lưu thông tin khách hàng");
+                        }
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || "Lỗi lưu thông tin khách hàng");
+                        AdminNotify.success(id ? "Cập nhật thông tin thành công!" : "Thêm mới khách hàng thành công!");
+                        closeCustomerModal();
+                        loadTable();
+                    } catch (err) {
+                        AdminNotify.error("Thao tác thất bại: " + err.message);
+                    }
                 }
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Thành công!',
-                    text: id ? "Cập nhật thông tin thành công!" : "Thêm mới khách hàng thành công!",
-                    showConfirmButton: false,
-                    timer: 2000
-                });
-                closeCustomerModal();
-                loadTable();
-            } catch (err) {
-                Swal.fire('Lỗi', "Thao tác thất bại: " + err.message, 'error');
-            }
+            });
         }
 
         // Mở Modal Xem chi tiết & Quản lý địa chỉ
@@ -748,35 +721,39 @@
                     const data = await response.json();
                     throw new Error(data.message || "Không đặt được địa chỉ mặc định");
                 }
+                AdminNotify.success("Đã đặt địa chỉ mặc định thành công!");
                 if (activeCustomerIdForAddress) {
                     loadAddressList(activeCustomerIdForAddress);
                 }
                 loadTable();
             } catch (err) {
-                alert("Lỗi: " + err.message);
+                AdminNotify.error("Lỗi: " + err.message);
             }
         }
 
         // Xóa địa chỉ
         async function deleteAddress(addressId) {
-            if (!confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) return;
-
-            try {
-                const response = await fetch(`/api/khach-hang/dia-chi/${addressId}`, {
-                    method: "DELETE"
-                });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không xóa được địa chỉ");
+            AdminNotify.confirmDelete({
+                entityName: "địa chỉ này",
+                onConfirm: async () => {
+                    try {
+                        const response = await fetch(`/api/khach-hang/dia-chi/${addressId}`, {
+                            method: "DELETE"
+                        });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không xóa được địa chỉ");
+                        }
+                        AdminNotify.success("Đã xóa địa chỉ thành công!");
+                        if (activeCustomerIdForAddress) {
+                            loadAddressList(activeCustomerIdForAddress);
+                        }
+                        loadTable();
+                    } catch (err) {
+                        AdminNotify.error("Lỗi: " + err.message);
+                    }
                 }
-                alert("Đã xóa địa chỉ thành công!");
-                if (activeCustomerIdForAddress) {
-                    loadAddressList(activeCustomerIdForAddress);
-                }
-                loadTable();
-            } catch (err) {
-                alert("Lỗi: " + err.message);
-            }
+            });
         }
 
         // Trigger Import Excel

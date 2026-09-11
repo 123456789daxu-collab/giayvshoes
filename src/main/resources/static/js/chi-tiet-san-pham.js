@@ -10,15 +10,7 @@
                     rowsToExport.push(tr);
                 });
             } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Chưa chọn sản phẩm',
-                    text: 'Vui lòng tích chọn ít nhất 1 sản phẩm để xuất Excel.',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                AdminNotify.warning('Vui lòng tích chọn ít nhất 1 sản phẩm để xuất Excel.');
                 return; // Không xuất gì cả nếu không có check
             }
 
@@ -78,27 +70,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // SweetAlert2 Notification
-            if (successMsg) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: successMsg,
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            }
-            
-            if (errorMsg) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: errorMsg,
-                    confirmButtonText: 'Đã hiểu'
-                });
-            }
+            // Standardized notification handler
+            AdminNotify.handleFlashMessages(successMsg, errorMsg);
 
             // Checkbox highlight row logic
             const selectAll = document.getElementById('selectAll');
@@ -147,17 +120,11 @@
                     e.preventDefault();
                     let action = this.getAttribute('data-action');
                     let id = this.getAttribute('data-id');
-                    Swal.fire({
-                        title: 'Xác nhận',
-                        text: "Bạn có chắc chắn muốn " + action.toLowerCase() + " biến thể này?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#00adef',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Có, thực hiện!',
-                        cancelButtonText: 'Hủy'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
+                    AdminStatus.confirmToggle({
+                        entityName: 'Biến thể',
+                        title: 'Xác nhận ' + action.toLowerCase() + ' biến thể?',
+                        text: 'Bạn có chắc chắn muốn ' + action.toLowerCase() + ' biến thể này?',
+                        onConfirm: () => {
                             window.location.href = '/san-pham/toggle-status-variant/' + id;
                         }
                     });
@@ -320,9 +287,8 @@
                 
                 // Giới hạn tối đa 6 ảnh
                 if (files.length > 6) {
-                    alert("Bạn chỉ được phép chọn tối đa 6 ảnh!");
+                    AdminNotify.warning("Bạn chỉ được phép chọn tối đa 6 ảnh!");
                     files = files.slice(0, 6);
-                    // Reset input files to only have 6 (not directly possible, so we just process 6)
                 }
                 
                 // Xóa các ảnh cũ trong container
@@ -365,18 +331,7 @@
                 return;
             }
             
-            Swal.fire({
-                title: 'Xác nhận lưu?',
-                text: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#00adef',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Có, lưu thay đổi!',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    HTMLFormElement.prototype.submit.call(form);
-                }
+            AdminNotify.confirm("Bạn có chắc chắn muốn lưu các thay đổi này không?", () => {
+                HTMLFormElement.prototype.submit.call(form);
             });
         }

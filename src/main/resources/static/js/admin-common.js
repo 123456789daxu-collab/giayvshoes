@@ -213,6 +213,32 @@ window.AdminNotify = {
     },
 
     /**
+     * Popup xác nhận xóa đồng bộ (nền đỏ cảnh báo)
+     */
+    confirmDelete: function(options = {}) {
+        let entityName = options.entityName || 'bản ghi này';
+        let title = options.title || `Xác nhận xóa?`;
+        let text = options.text || `Bạn có chắc chắn muốn xóa ${entityName} không? Hành động này không thể hoàn tác.`;
+        let onConfirm = options.onConfirm || options.callback || null;
+        let onCancel = options.onCancel || null;
+
+        return this.confirm({
+            title: title,
+            text: text,
+            icon: 'warning',
+            confirmColor: '#ef4444',
+            confirmText: options.confirmText || 'Có, Xóa!',
+            cancelText: options.cancelText || 'Hủy',
+            onConfirm: () => {
+                if (onConfirm) onConfirm();
+            },
+            onCancel: () => {
+                if (onCancel) onCancel();
+            }
+        });
+    },
+
+    /**
      * Tự động hiển thị Flash Message khi load trang
      */
     handleFlashMessages: function(successMsg, errorMsg) {
@@ -305,37 +331,79 @@ window.AdminUtils = {
     /**
      * Dựng giao diện thanh Phân trang chung
      */
-    renderPagination: function(containerId, currentPage, totalPages, onPageChange) {
-        const nav = document.getElementById(containerId);
+    renderPagination: function(containerOrId, currentPage, totalPages, onPageChange) {
+        const nav = typeof containerOrId === 'string' ? document.getElementById(containerOrId) : containerOrId;
         if (!nav) return;
         nav.innerHTML = '';
 
-        if (totalPages <= 1) return;
+        if (!totalPages || totalPages <= 1) return;
 
         // Nút Previous
         const prev = document.createElement('button');
         prev.type = 'button';
         prev.className = `page-btn ${currentPage === 0 ? 'disabled' : ''}`;
+        prev.title = 'Trang trước';
         prev.innerHTML = `<i data-lucide="chevron-left" style="width:14px;height:14px;"></i>`;
-        prev.onclick = () => { if (currentPage > 0) onPageChange(currentPage - 1); };
+        prev.onclick = (e) => {
+            if (e) e.preventDefault();
+            if (currentPage > 0) onPageChange(currentPage - 1);
+        };
         nav.appendChild(prev);
 
-        // Các nút số trang
-        for (let i = 0; i < totalPages; i++) {
+        // Tính toán phạm vi trang hiển thị
+        let startPage = Math.max(0, currentPage - 2);
+        let endPage = Math.min(totalPages - 1, currentPage + 2);
+
+        if (startPage > 0) {
+            const firstBtn = document.createElement('button');
+            firstBtn.type = 'button';
+            firstBtn.className = `page-btn ${0 === currentPage ? 'active' : ''}`;
+            firstBtn.innerText = '1';
+            firstBtn.onclick = (e) => { if (e) e.preventDefault(); onPageChange(0); };
+            nav.appendChild(firstBtn);
+
+            if (startPage > 1) {
+                const dots = document.createElement('span');
+                dots.className = 'page-btn disabled';
+                dots.innerText = '...';
+                nav.appendChild(dots);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
             btn.innerText = i + 1;
-            btn.onclick = () => onPageChange(i);
+            btn.onclick = (e) => { if (e) e.preventDefault(); onPageChange(i); };
             nav.appendChild(btn);
+        }
+
+        if (endPage < totalPages - 1) {
+            if (endPage < totalPages - 2) {
+                const dots = document.createElement('span');
+                dots.className = 'page-btn disabled';
+                dots.innerText = '...';
+                nav.appendChild(dots);
+            }
+            const lastBtn = document.createElement('button');
+            lastBtn.type = 'button';
+            lastBtn.className = `page-btn ${totalPages - 1 === currentPage ? 'active' : ''}`;
+            lastBtn.innerText = totalPages;
+            lastBtn.onclick = (e) => { if (e) e.preventDefault(); onPageChange(totalPages - 1); };
+            nav.appendChild(lastBtn);
         }
 
         // Nút Next
         const next = document.createElement('button');
         next.type = 'button';
         next.className = `page-btn ${currentPage >= totalPages - 1 ? 'disabled' : ''}`;
+        next.title = 'Trang sau';
         next.innerHTML = `<i data-lucide="chevron-right" style="width:14px;height:14px;"></i>`;
-        next.onclick = () => { if (currentPage < totalPages - 1) onPageChange(currentPage + 1); };
+        next.onclick = (e) => {
+            if (e) e.preventDefault();
+            if (currentPage < totalPages - 1) onPageChange(currentPage + 1);
+        };
         nav.appendChild(next);
 
         this.refreshIcons();

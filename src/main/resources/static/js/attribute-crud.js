@@ -1,38 +1,29 @@
+// attribute-crud.js - Shared helper for shoe attribute CRUD screens (Thương hiệu, Màu sắc, Chất liệu, Đế giày, Kích thước, Thể loại)
+
 document.addEventListener("DOMContentLoaded", function() {
-    if (typeof successMsg !== 'undefined' && successMsg) {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: successMsg,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
-    }
-    if (typeof errorMsg !== 'undefined' && errorMsg) {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: errorMsg,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
+    // Handle flash messages via centralized AdminNotify
+    if (typeof successMsg !== 'undefined' || typeof errorMsg !== 'undefined') {
+        if (window.AdminNotify) {
+            AdminNotify.handleFlashMessages(
+                typeof successMsg !== 'undefined' ? successMsg : null,
+                typeof errorMsg !== 'undefined' ? errorMsg : null
+            );
+        }
     }
 
+    // Input validation for attribute add/edit forms
     document.querySelectorAll("form").forEach(form => {
         form.addEventListener("submit", function(e) {
             const attrInputs = form.querySelectorAll("input[name='tenChatLieu'], input[name='tenDeGiay'], input[name='tenMauSac'], input[name='tenTheLoai'], input[name='tenThuongHieu'], input[name='giaTri'], input[name='tenDanhMuc']");
             for (let input of attrInputs) {
                 if (input.value.trim() === '') {
                     e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Lỗi nhập liệu',
-                        text: 'Thông tin thuộc tính không được để trống!'
-                    });
+                    if (window.AdminNotify) {
+                        AdminNotify.warning('Thông tin thuộc tính không được để trống!');
+                    } else {
+                        alert('Thông tin thuộc tính không được để trống!');
+                    }
+                    input.focus();
                     return;
                 }
             }
@@ -40,19 +31,29 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
-function confirmToggleStatus(url) {
-    Swal.fire({
-        title: 'Xác nhận thay đổi',
-        text: 'Bạn có chắc chắn muốn thay đổi trạng thái?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3b82f6',
-        cancelButtonColor: '#94a3b8',
-        confirmButtonText: 'Đồng ý',
-        cancelButtonText: 'Hủy'
-    }).then((result) => {
-        if (result.isConfirmed) {
+/**
+ * Standardized status toggle confirmation for attributes
+ * @param {string} url - Target URL to redirect or submit
+ * @param {HTMLInputElement} [checkboxEl] - Optional switch element
+ */
+function confirmToggleStatus(url, checkboxEl) {
+    if (window.AdminStatus && typeof AdminStatus.confirmToggle === 'function') {
+        AdminStatus.confirmToggle({
+            entityName: 'Thuộc tính',
+            checkboxEl: checkboxEl,
+            targetUrl: url
+        });
+    } else if (window.AdminNotify && typeof AdminNotify.confirmToggle === 'function') {
+        AdminNotify.confirmToggle('thuộc tính', () => {
             window.location.href = url;
+        }, () => {
+            if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
+        });
+    } else {
+        if (confirm('Bạn có chắc chắn muốn thay đổi trạng thái?')) {
+            window.location.href = url;
+        } else if (checkboxEl) {
+            checkboxEl.checked = !checkboxEl.checked;
         }
-    });
+    }
 }

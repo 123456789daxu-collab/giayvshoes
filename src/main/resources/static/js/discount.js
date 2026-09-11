@@ -217,31 +217,10 @@
 
         // Vẽ phân trang đợt giảm giá
         function renderCampaignPagination() {
-            const nav = document.getElementById("campaign-pagination");
-            nav.innerHTML = "";
-
-            // Nút lùi
-            const prev = document.createElement("button");
-            prev.className = `page-btn ${cCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>`;
-            prev.onclick = () => { if (cCurrentPage > 0) { cCurrentPage--; loadCampaignsTable(); } };
-            nav.appendChild(prev);
-
-            // Các trang số
-            for (let i = 0; i < cTotalPages; i++) {
-                const btn = document.createElement("button");
-                btn.className = `page-btn ${i === cCurrentPage ? 'active' : ''}`;
-                btn.innerText = i + 1;
-                btn.onclick = () => { cCurrentPage = i; loadCampaignsTable(); };
-                nav.appendChild(btn);
-            }
-
-            // Nút tiến
-            const next = document.createElement("button");
-            next.className = `page-btn ${cCurrentPage >= cTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>`;
-            next.onclick = () => { if (cCurrentPage < cTotalPages - 1) { cCurrentPage++; loadCampaignsTable(); } };
-            nav.appendChild(next);
+            AdminUtils.renderPagination("campaign-pagination", cCurrentPage, cTotalPages, (page) => {
+                cCurrentPage = page;
+                loadCampaignsTable();
+            });
         }
 
         function changeCampaignPageSize(val) {
@@ -265,21 +244,34 @@
         }
 
         // Bật/tắt trạng thái
-        async function toggleCampaignActive(id, isChecked) {
+        function toggleCampaignActive(id, isChecked, name = 'đợt giảm giá') {
             const status = isChecked ? 1 : 0;
-            try {
-                const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
-                    method: "PATCH"
-                });
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.message || "Không thể cập nhật trạng thái");
+            const checkboxEl = window.event ? window.event.target : null;
+            AdminStatus.confirmToggle({
+                entityName: `đợt giảm giá "${name}"`,
+                isActivating: isChecked,
+                checkboxEl: checkboxEl,
+                onConfirm: async () => {
+                    try {
+                        const response = await fetch(`/api/dot-giam-gia/${id}/trang-thai?trangThai=${status}`, {
+                            method: "PATCH"
+                        });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            throw new Error(data.message || "Không thể cập nhật trạng thái");
+                        }
+                        AdminNotify.success("Cập nhật trạng thái thành công!");
+                        loadCampaignsTable();
+                    } catch (err) {
+                        if (checkboxEl) checkboxEl.checked = !isChecked;
+                        AdminNotify.error("Lỗi: " + err.message);
+                        loadCampaignsTable();
+                    }
+                },
+                onCancel: () => {
+                    if (checkboxEl) checkboxEl.checked = !isChecked;
                 }
-                loadCampaignsTable();
-            } catch (err) {
-                Swal.fire('Lỗi', err.message, 'error');
-                loadCampaignsTable();
-            }
+            });
         }
 
         /*
@@ -472,12 +464,12 @@
             const moTa = document.getElementById("campaign-desc").value.trim();
 
             if (new Date(ngayBatDau) > new Date(ngayKetThuc)) {
-                Swal.fire('Lỗi', 'Ngày bắt đầu phải diễn ra trước ngày kết thúc!', 'warning');
+                AdminNotify.warning('Ngày bắt đầu phải diễn ra trước ngày kết thúc!');
                 return;
             }
 
             if (selectedProductDetailIds.size === 0) {
-                Swal.fire('Lỗi', 'Bạn phải chọn ít nhất 1 sản phẩm chi tiết để áp dụng đợt giảm giá!', 'warning');
+                AdminNotify.warning('Bạn phải chọn ít nhất 1 sản phẩm chi tiết để áp dụng đợt giảm giá!');
                 return;
             }
 
@@ -495,17 +487,10 @@
             const url = id ? `/api/dot-giam-gia/${id}` : "/api/dot-giam-gia";
             const method = id ? "PUT" : "POST";
 
-            Swal.fire({
-                title: 'Xác nhận lưu',
+            AdminNotify.confirm({
+                title: id ? 'Xác nhận cập nhật?' : 'Xác nhận tạo mới?',
                 text: 'Bạn có chắc chắn muốn lưu thông tin đợt giảm giá này?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0ea5e9',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Đồng ý',
-                cancelButtonText: 'Hủy'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
+                onConfirm: async () => {
                     try {
                         const response = await fetch(url, {
                             method: method,
@@ -518,10 +503,10 @@
                             throw new Error(errData.message || "Lỗi lưu thông tin đợt giảm giá");
                         }
 
-                        Swal.fire('Thành công', id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!", 'success');
+                        AdminNotify.success(id ? "Cập nhật đợt giảm giá thành công!" : "Tạo đợt giảm giá thành công!");
                         backToListPanel();
                     } catch (err) {
-                        Swal.fire('Lỗi', "Thao tác thất bại: " + err.message, 'error');
+                        AdminNotify.error("Thao tác thất bại: " + err.message);
                     }
                 }
             });
@@ -916,33 +901,10 @@
         });
 
         function renderProdPagination() {
-            const nav = document.getElementById("prod-pagination");
-            nav.innerHTML = "";
-
-            const prev = document.createElement("button");
-            prev.type = "button";
-            prev.className = `page-btn ${prodCurrentPage === 0 ? 'disabled' : ''}`;
-            prev.innerHTML = `<i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i>`;
-            prev.onclick = () => { if (prodCurrentPage > 0) { prodCurrentPage--; renderProductGroupTablePage(); } };
-            nav.appendChild(prev);
-
-            for (let i = 0; i < prodTotalPages; i++) {
-                const btn = document.createElement("button");
-                btn.type = "button";
-                btn.className = `page-btn ${i === prodCurrentPage ? 'active' : ''}`;
-                btn.innerText = i + 1;
-                btn.onclick = () => { prodCurrentPage = i; renderProductGroupTablePage(); };
-                nav.appendChild(btn);
-            }
-
-            const next = document.createElement("button");
-            next.type = "button";
-            next.className = `page-btn ${prodCurrentPage >= prodTotalPages - 1 ? 'disabled' : ''}`;
-            next.innerHTML = `<i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i>`;
-            next.onclick = () => { if (prodCurrentPage < prodTotalPages - 1) { prodCurrentPage++; renderProductGroupTablePage(); } };
-            nav.appendChild(next);
-            
-            lucide.createIcons();
+            AdminUtils.renderPagination("prod-pagination", prodCurrentPage, prodTotalPages, (page) => {
+                prodCurrentPage = page;
+                renderProductGroupTablePage();
+            });
         }
 
         function changeProdPageSize() {
@@ -959,3 +921,7 @@
             prodCurrentPage = 0;
             loadProductDetailsTable();
         }
+
+        window.exportCampaignsExcel = function() {
+            AdminNotify.info("Chức năng xuất danh sách đợt giảm giá ra file Excel đang được hoàn thiện.");
+        };

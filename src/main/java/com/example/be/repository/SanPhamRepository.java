@@ -11,7 +11,19 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
     
-    @Query("SELECT s FROM SanPham s " +
+    @Query(value = "SELECT s FROM SanPham s " +
+           "LEFT JOIN FETCH s.thuongHieu th " +
+           "LEFT JOIN FETCH s.loaiGiay lg " +
+           "LEFT JOIN FETCH s.danhMuc dm " +
+           "LEFT JOIN FETCH s.chatLieu cl " +
+           "WHERE (:keyword IS NULL OR LOWER(s.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND (:trangThai IS NULL OR s.trangThai = :trangThai) " +
+           "AND (:soLuongTon IS NULL OR s.soLuong <= :soLuongTon) " +
+           "AND (:idThuongHieu IS NULL OR th.id = :idThuongHieu) " +
+           "AND (:idLoaiGiay IS NULL OR lg.id = :idLoaiGiay) " +
+           "AND (:minPrice IS NULL OR s.giaBan >= :minPrice) " +
+           "AND (:maxPrice IS NULL OR s.giaBan <= :maxPrice)",
+           countQuery = "SELECT COUNT(s) FROM SanPham s " +
            "LEFT JOIN s.thuongHieu th " +
            "LEFT JOIN s.loaiGiay lg " +
            "WHERE (:keyword IS NULL OR LOWER(s.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(s.maSanPham) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
@@ -33,4 +45,5 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
     boolean existsByTenSanPham(String tenSanPham);
     SanPham findByTenSanPham(String tenSanPham);
     boolean existsByMaSanPham(String maSanPham);
+    long countByTrangThai(Integer trangThai);
 }

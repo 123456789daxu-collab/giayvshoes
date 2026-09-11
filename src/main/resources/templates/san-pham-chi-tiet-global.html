@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.1">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
@@ -417,8 +418,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- SweetAlert2 JS -->
+    <!-- SweetAlert2 JS & Admin Common -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="/js/admin-common.js?v=2.1"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
         var successMsg = /*[[${successMessage}]]*/ null;
@@ -437,15 +439,7 @@
                     rowsToExport.push(tr);
                 });
             } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Chưa chọn sản phẩm',
-                    text: 'Vui lòng tích chọn ít nhất 1 sản phẩm để xuất Excel.',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
+                AdminNotify.warning('Vui lòng tích chọn ít nhất 1 sản phẩm để xuất Excel.');
                 return; // Không xuất gì cả nếu chưa check
             }
 
@@ -510,27 +504,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // SweetAlert2 Notification
-            if (successMsg) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: successMsg,
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                });
-            }
-            
-            if (errorMsg) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: errorMsg,
-                    confirmButtonText: 'Đã hiểu'
-                });
-            }
+            // Standardized notification handler
+            AdminNotify.handleFlashMessages(successMsg, errorMsg);
 
             // Checkbox highlight row logic
             const selectAll = document.getElementById('selectAll');
@@ -743,9 +718,8 @@
                 
                 // Giới hạn tối đa 6 ảnh
                 if (files.length > 6) {
-                    alert("Bạn chỉ được phép chọn tối đa 6 ảnh!");
+                    AdminNotify.warning("Bạn chỉ được phép chọn tối đa 6 ảnh!");
                     files = files.slice(0, 6);
-                    // Reset input files to only have 6 (not directly possible, so we just process 6)
                 }
                 
                 // Xóa các ảnh cũ trong container
@@ -808,19 +782,8 @@
                 return;
             }
             
-            Swal.fire({
-                title: 'Xác nhận lưu?',
-                text: "Bạn có chắc chắn muốn lưu các thay đổi này không?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#00adef',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Có, lưu thay đổi!',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    HTMLFormElement.prototype.submit.call(form);
-                }
+            AdminNotify.confirm("Bạn có chắc chắn muốn lưu các thay đổi này không?", () => {
+                HTMLFormElement.prototype.submit.call(form);
             });
         }
     </script>

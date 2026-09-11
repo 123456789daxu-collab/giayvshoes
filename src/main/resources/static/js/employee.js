@@ -9,7 +9,8 @@ let currentSearch = "";
 let currentStatus = ""; // "" means all, "1" or "0" for active/inactive
 let currentGender = "";
 let currentDob = "";
-let isEditing = false;
+// Ensure window.showToast bridges cleanly to AdminNotify
+window.showToast = (msg, type) => AdminNotify.toast(msg, type || 'success');
 
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Initialize DOM Elements
@@ -108,31 +109,20 @@ document.addEventListener("DOMContentLoaded", () => {
         btnDeleteEmployee.addEventListener("click", () => {
             const id = document.getElementById("empId").value;
             if (!id) return;
-            Swal.fire({
-                title: 'Xóa nhân viên?',
-                text: "Bạn có chắc chắn muốn xóa nhân viên này không? Thao tác này không thể hoàn tác.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Có, Xóa!',
-                cancelButtonText: 'Hủy'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`/api/nhan-vien/${id}`, { method: 'DELETE' })
-                        .then(async (res) => {
-                            if (!res.ok) {
-                                const errMsg = await res.text();
-                                throw new Error(errMsg || "Không thể xóa nhân viên này (có thể do đang có dữ liệu ràng buộc)!");
-                            }
-                            window.showToast("Đã xóa nhân viên thành công!");
-                            hideFormPanel();
-                            loadEmployees();
-                        })
-                        .catch(err => {
-                            Swal.fire('Lỗi', err.message, 'error');
-                        });
-                }
+            AdminNotify.confirmDelete('nhân viên', () => {
+                fetch(`/api/nhan-vien/${id}`, { method: 'DELETE' })
+                    .then(async (res) => {
+                        if (!res.ok) {
+                            const errMsg = await res.text();
+                            throw new Error(errMsg || "Không thể xóa nhân viên này (có thể do đang có dữ liệu ràng buộc)!");
+                        }
+                        AdminNotify.success("Đã xóa nhân viên thành công!");
+                        hideFormPanel();
+                        loadEmployees();
+                    })
+                    .catch(err => {
+                        AdminNotify.error(err.message);
+                    });
             });
         });
     }
@@ -529,26 +519,10 @@ document.addEventListener("DOMContentLoaded", () => {
             requestMethod = "PUT";
         }
 
-        Swal.fire({
-            title: 'Xác nhận lưu',
-            text: 'Bạn có chắc chắn muốn lưu thông tin này?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#0ea5e9',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Show loading state
-                Swal.fire({
-                    title: 'Đang xử lý...',
-                    text: 'Vui lòng chờ trong giây lát',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
+        AdminNotify.confirm(
+            id ? 'Bạn có chắc chắn muốn cập nhật thông tin nhân viên này?' : 'Bạn có chắc chắn muốn lưu thông tin nhân viên mới này?',
+            () => {
+                AdminNotify.loading('Đang xử lý...', 'Vui lòng chờ trong giây lát');
                 
                 // Post/Put to backend
                 fetch(requestUrl, {
@@ -580,30 +554,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     return savedEmployee;
                 })
                 .then((savedEmployee) => {
+                    AdminNotify.closeLoading();
                     if (!id && savedEmployee) {
-                        Swal.fire({
-                            title: 'Thêm mới thành công!',
-                            text: 'Tài khoản nhân viên đã được tạo. Mật khẩu đăng nhập đã được gửi vào email của nhân viên.',
-                            icon: 'success',
-                            confirmButtonText: 'Đã hiểu'
-                        });
+                        AdminNotify.success('Tài khoản nhân viên đã được tạo. Mật khẩu đăng nhập đã được gửi vào email của nhân viên.');
                     } else {
-                        window.showToast(id ? "Cập nhật nhân viên thành công!" : "Tạo nhân viên thành công!");
+                        AdminNotify.toast(id ? "Cập nhật nhân viên thành công!" : "Tạo nhân viên thành công!", "success");
                     }
                     hideFormPanel();
                     loadEmployees();
                 })
                 .catch((error) => {
-                    Swal.fire({
-                        title: 'Lỗi!',
-                        text: error.message,
-                        icon: 'error',
-                        confirmButtonText: 'Đóng',
-                        confirmButtonColor: '#ef4444'
-                    });
+                    AdminNotify.closeLoading();
+                    AdminNotify.error(error.message);
                 });
             }
-        });
+        );
     };
 
     // 8. Initial Load
@@ -852,7 +817,7 @@ function renderTable() {
 
 // Generate premium pagination controls dynamically
 function renderPagination(totalElements, totalPages) {
-    const fromElement = currentPage * pageSize + 1;
+    const fromElement = totalElements === 0 ? 0 : currentPage * pageSize + 1;
     const toElement = Math.min((currentPage + 1) * pageSize, totalElements);
     
     let paginationInfoEl = document.getElementById("paginationInfo");
@@ -865,53 +830,10 @@ function renderPagination(totalElements, totalPages) {
     }
     paginationInfoEl.textContent = `Hiển thị ${fromElement}-${toElement} trong tổng số ${totalElements} nhân viên`;
 
-    const controls = document.getElementById("paginationControls");
-    controls.innerHTML = "";
-
-    // Prev Page trigger
-    const btnPrev = document.createElement("button");
-    btnPrev.disabled = currentPage === 0;
-    btnPrev.innerHTML = '<i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>';
-    btnPrev.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #64748b; margin: 0 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
-    btnPrev.onclick = () => {
-        currentPage--;
+    AdminUtils.renderPagination("paginationControls", currentPage, totalPages, (page) => {
+        currentPage = page;
         renderTable();
-    };
-    controls.appendChild(btnPrev);
-
-    // Numbered pages (with dynamic ellipsis for large page count)
-    const range = 2; // how many pages to show around current page
-    for (let i = 0; i < totalPages; i++) {
-        if (i === 0 || i === totalPages - 1 || (i >= currentPage - range && i <= currentPage + range)) {
-            const btnPage = document.createElement("button");
-            btnPage.textContent = i + 1;
-            btnPage.style.cssText = i === currentPage 
-                ? "background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); color: white; border: none; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; margin: 0 4px; box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2);"
-                : "background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #64748b; margin: 0 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
-            btnPage.onclick = () => {
-                currentPage = i;
-                renderTable();
-            };
-            controls.appendChild(btnPage);
-        } else if (i === 1 || i === totalPages - 2) {
-            const ellipsis = document.createElement("span");
-            ellipsis.textContent = "...";
-            ellipsis.style.margin = "0 6px";
-            ellipsis.style.color = "#94a3b8";
-            controls.appendChild(ellipsis);
-        }
-    }
-
-    // Next Page trigger
-    const btnNext = document.createElement("button");
-    btnNext.disabled = currentPage + 1 >= totalPages;
-    btnNext.innerHTML = '<i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>';
-    btnNext.style.cssText = "background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: #64748b; margin: 0 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);";
-    btnNext.onclick = () => {
-        currentPage++;
-        renderTable();
-    };
-    controls.appendChild(btnNext);
+    });
 }
 
 // Thay đổi số lượng hiển thị trên trang

@@ -177,8 +177,6 @@ public class SanPhamController {
                         @RequestParam(defaultValue = "5") int size,
                         @RequestParam(required = false, defaultValue = "price_asc") String sort) {
         
-        sanPhamService.syncMissingPricesAndQuantities();
-        
         Sort sortObj = Sort.by(Sort.Direction.ASC, "giaBan");
         if (sort != null && !sort.isEmpty()) {
             switch (sort) {
@@ -201,10 +199,9 @@ public class SanPhamController {
         model.addAttribute("totalPages", pageData.getTotalPages());
         model.addAttribute("totalItems", pageData.getTotalElements());
         
-        List<SanPham> allProducts = sanPhamService.getAll();
-        long totalProducts = allProducts != null ? allProducts.size() : 0;
-        long activeProducts = allProducts != null ? allProducts.stream().filter(sp -> sp != null && sp.getTrangThai() != null && sp.getTrangThai() == 1).count() : 0;
-        long inactiveProducts = allProducts != null ? allProducts.stream().filter(sp -> sp != null && (sp.getTrangThai() == null || sp.getTrangThai() == 0)).count() : 0;
+        long totalProducts = sanPhamService.countTotalProducts();
+        long activeProducts = sanPhamService.countActiveProducts();
+        long inactiveProducts = sanPhamService.countInactiveProducts();
         
         model.addAttribute("totalProducts", totalProducts);
         model.addAttribute("activeProducts", activeProducts);
