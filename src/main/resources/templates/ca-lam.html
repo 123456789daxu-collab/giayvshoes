@@ -372,7 +372,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                     <i data-lucide="clock" style="width: 20px; height: 20px; color: #ef4444;"></i>
-                    Thông tin Ca Làm
+                    <span id="modalCaLamTitleText">Thông tin Ca Làm</span>
                 </h3>
                 <button onclick="document.getElementById('modalCaLam').style.display='none'" style="background: none; border: none; cursor: pointer; color: #64748b;">
                     <i data-lucide="x" style="width: 20px; height: 20px;"></i>
@@ -400,13 +400,7 @@
                             <input type="time" id="thoiGianKetThuc" required style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
                         </div>
                     </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Trạng thái</label>
-                        <select id="trangThai" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; outline: none;">
-                            <option value="1">Hoạt động</option>
-                            <option value="0">Ngưng</option>
-                        </select>
-                    </div>
+                    <input type="hidden" id="trangThai" value="1">
                 </div>
                 
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">

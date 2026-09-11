@@ -98,7 +98,7 @@ function renderCart() {
             alertBox.id = 'cartStoppedWarningBox';
             alertBox.style.cssText = 'background:#fef2f2; border:1.5px solid #f87171; border-radius:10px; padding:12px 18px; margin-bottom:18px; color:#991b1b; font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:10px; box-shadow:0 2px 8px rgba(239,68,68,0.1);';
             alertBox.innerHTML = `
-                <span style="font-size:18px;">⚠️</span>
+                <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#f59e0b;"></i>
                 <span>Trong giỏ hàng có sản phẩm <strong>đã ngừng kinh doanh</strong>. Các sản phẩm này không thể thanh toán, vui lòng xóa để tiếp tục!</span>
             `;
             wrapper.insertBefore(alertBox, wrapper.firstChild);
@@ -133,7 +133,7 @@ function renderCart() {
                             <div class="cart-product-name" style="${isStopped ? 'color:#64748b; text-decoration:line-through;' : ''}">${item.tenSanPham}</div>
                             <div class="cart-product-variant">Phân loại hàng: ${item.mauSac || '—'}, ${item.sizeGiay || '—'}</div>
                             ${isStopped 
-                                ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px; margin-top:4px; width:fit-content;">⛔ ĐÃ NGỪNG BÁN</div>` 
+                                ? `<div style="display:inline-flex; align-items:center; gap:4px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px; margin-top:4px; width:fit-content;"><i data-lucide="ban" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>ĐÃ NGỪNG BÁN</div>` 
                                 : ''}
                         </div>
                     </div>
@@ -309,10 +309,17 @@ function setupActions() {
             return;
         }
         
-        // Filter checked items and ensure none are stopped
+        // Filter checked items and ensure none are stopped or out of stock
         const stoppedSelected = state.cart.filter(item => state.checkedIds.includes(item.id) && item.isStopped);
         if (stoppedSelected.length > 0) {
-            showToast(`❌ Sản phẩm "${stoppedSelected[0].tenSanPham}" đã ngừng kinh doanh. Vui lòng xóa trước khi thanh toán!`, 'error');
+            showToast(`Sản phẩm "${stoppedSelected[0].tenSanPham}" đã ngừng kinh doanh. Vui lòng xóa trước khi thanh toán!`, 'error');
+            return;
+        }
+
+        const outOfStockSelected = state.cart.filter(item => state.checkedIds.includes(item.id) && ((item.soLuongTon != null && item.soLuongTon < item.qty) || (item.soLuongTon != null && item.soLuongTon <= 0)));
+        if (outOfStockSelected.length > 0) {
+            const first = outOfStockSelected[0];
+            showToast(`Sản phẩm "${first.tenSanPham}" không đủ số lượng trong kho (kho còn: ${first.soLuongTon || 0}, bạn chọn: ${first.qty})!`, 'error');
             return;
         }
 

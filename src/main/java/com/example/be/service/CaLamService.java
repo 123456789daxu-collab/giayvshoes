@@ -2,6 +2,7 @@ package com.example.be.service;
 
 import com.example.be.entity.CaLam;
 import com.example.be.repository.CaLamRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,21 +27,17 @@ public class CaLamService {
         return caLamRepository.findById(id).orElse(null);
     }
 
+    @Autowired
+    private MaGeneratorService maGeneratorService;
+
     public String generateNextMaCa() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("CA");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (caLamRepository.existsByMaCa(code));
-        return code;
+        return maGeneratorService.generateMaCaLam();
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG CAP NHAT TRANG THAI)
+    /*
     public void deleteById(Long id) {
         caLamRepository.deleteById(id);
     }
+    */
 }

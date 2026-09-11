@@ -6,12 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.example.be.repository.ThuongHieuRepository;
-import com.example.be.repository.ChatLieuRepository;
-import com.example.be.repository.LoaiGiayRepository;
-import com.example.be.repository.DanhMucRepository;
-import com.example.be.repository.MauSacRepository;
-import com.example.be.repository.CoGiayRepository;
+import com.example.be.service.ThuocTinhService;
 
 @Controller
 public class ViewController {
@@ -27,26 +22,16 @@ public class ViewController {
     }
 
     @Autowired
-    private ThuongHieuRepository thuongHieuRepository;
-    @Autowired
-    private ChatLieuRepository chatLieuRepository;
-    @Autowired
-    private LoaiGiayRepository loaiGiayRepository;
-    @Autowired
-    private DanhMucRepository danhMucRepository;
-    @Autowired
-    private MauSacRepository mauSacRepository;
-    @Autowired
-    private CoGiayRepository coGiayRepository;
+    private ThuocTinhService thuocTinhService;
 
     @GetMapping("/thong-ke")
     public String thongKe(Model model) {
-        model.addAttribute("listThuongHieu", thuongHieuRepository.findAll());
-        model.addAttribute("listChatLieu", chatLieuRepository.findAll());
-        model.addAttribute("listLoaiGiay", loaiGiayRepository.findAll());
-        model.addAttribute("listDanhMuc", danhMucRepository.findAll());
-        model.addAttribute("listMauSac", mauSacRepository.findAll());
-        model.addAttribute("listCoGiay", coGiayRepository.findAll());
+        model.addAttribute("listThuongHieu", thuocTinhService.getAllThuongHieu());
+        model.addAttribute("listChatLieu", thuocTinhService.getAllChatLieu());
+        model.addAttribute("listLoaiGiay", thuocTinhService.getAllLoaiGiay());
+        model.addAttribute("listDanhMuc", thuocTinhService.getAllDanhMuc());
+        model.addAttribute("listMauSac", thuocTinhService.getAllMauSac());
+        model.addAttribute("listCoGiay", thuocTinhService.getAllCoGiay());
         return "thong-ke";
     }
 

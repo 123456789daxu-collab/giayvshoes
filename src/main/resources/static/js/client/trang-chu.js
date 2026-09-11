@@ -125,7 +125,7 @@ function initCart() {
 function addToCart(product, quantityToAdd = 1) {
     const maxStock = product.soLuongTon != null ? product.soLuongTon : (product.soLuong != null ? product.soLuong : 9999);
     if (maxStock <= 0) {
-        showToast('❌ Sản phẩm đã hết hàng trong kho!', 'error');
+        showToast('Sản phẩm đã hết hàng trong kho!', 'error');
         return false;
     }
 
@@ -134,7 +134,7 @@ function addToCart(product, quantityToAdd = 1) {
     const requestedTotal = currentQty + quantityToAdd;
 
     if (requestedTotal > maxStock) {
-        showToast(`❌ Không thể thêm! Số lượng yêu cầu (${requestedTotal}) vượt quá số lượng tồn kho (${maxStock}).`, 'error');
+        showToast(`Không thể thêm! Số lượng yêu cầu (${requestedTotal}) vượt quá số lượng tồn kho (${maxStock}).`, 'error');
         return false;
     }
 
@@ -145,7 +145,7 @@ function addToCart(product, quantityToAdd = 1) {
     }
     saveCart();
     updateCartBadge();
-    showToast(`✓ Đã thêm ${quantityToAdd} "${product.tenSanPham}" vào giỏ hàng`, 'success');
+    showToast(`Đã thêm ${quantityToAdd} "${product.tenSanPham}" vào giỏ hàng`, 'success');
     return true;
 }
 
@@ -207,7 +207,7 @@ function renderCartItems() {
             <div class="cart-item-info">
                 <div class="cart-item-name" style="${item.isStopped ? 'color:#64748b; text-decoration:line-through;' : ''}">${item.tenSanPham}</div>
                 <div class="cart-item-variant">Màu: ${item.mauSac || '—'} | Size: ${item.sizeGiay || '—'}</div>
-                ${item.isStopped ? `<div style="color:#dc2626; font-size:10.5px; font-weight:800; margin-top:2px;">⛔ ĐÃ NGỪNG BÁN</div>` : ''}
+                ${item.isStopped ? `<div style="color:#dc2626; font-size:10.5px; font-weight:800; margin-top:2px;"><i data-lucide="ban" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>ĐÃ NGỪNG BÁN</div>` : ''}
                 <div class="cart-item-bottom">
                     <div class="qty-control" style="${item.isStopped ? 'opacity:0.5; pointer-events:none;' : ''}">
                         <button class="qty-btn" onclick="updateCartQty(${item.id}, ${item.sizeGiay}, -1)">−</button>
@@ -518,7 +518,7 @@ function renderProducts(grid, products) {
                         <div class="price-current" style="font-size:17px;font-weight:900;color:#ef4444;line-height:1.1;">${formatPrice(price)}</div>
                     </div>
                     <div class="rating-mini">
-                        <span class="star">★</span>
+                        <span class="star"><i data-lucide="star" style="width:13px;height:13px;fill:#f59e0b;color:#f59e0b;"></i></span>
                         <span>${p.danhGia || '5.0'}</span>
                         <span>(${p.soLuotDanhGia || 0})</span>
                     </div>
@@ -849,7 +849,7 @@ function validateModalQtyInput(inputEl) {
     const maxStock = v ? (v.soLuongTon != null ? v.soLuongTon : 9999) : 9999;
     let val = parseInt(inputEl.value) || 1;
     if (val > maxStock) {
-        showToast(`❌ Số lượng nhập (${val}) vượt quá tồn kho (${maxStock})!`, 'error');
+        showToast(`Số lượng nhập (${val}) vượt quá tồn kho (${maxStock})!`, 'error');
         val = maxStock > 0 ? maxStock : 1;
         inputEl.value = val;
     }
@@ -864,7 +864,7 @@ function changeModalQty(delta) {
     val = val + delta;
 
     if (val > maxStock) {
-        showToast(`❌ Số lượng vượt quá tồn kho (${maxStock})!`, 'error');
+        showToast(`Số lượng vượt quá tồn kho (${maxStock})!`, 'error');
         val = maxStock > 0 ? maxStock : 1;
     }
     if (val < 1) val = 1;
@@ -879,7 +879,7 @@ function addModalProductToCart() {
 
     const maxStock = v.soLuongTon != null ? v.soLuongTon : 0;
     if (maxStock <= 0) {
-        showToast('❌ Sản phẩm đã hết hàng!', 'error');
+        showToast('Sản phẩm đã hết hàng!', 'error');
         return;
     }
 
@@ -888,7 +888,7 @@ function addModalProductToCart() {
     const totalRequested = currentQty + qty;
 
     if (totalRequested > maxStock) {
-        showToast(`❌ Không thể thêm vào giỏ hàng! Số lượng yêu cầu (${totalRequested}) vượt quá tồn kho (${maxStock}).`, 'error');
+        showToast(`Không thể thêm vào giỏ hàng! Số lượng yêu cầu (${totalRequested}) vượt quá tồn kho (${maxStock}).`, 'error');
         if (inputEl) inputEl.value = maxStock > 0 ? maxStock : 1;
         return;
     }
@@ -913,7 +913,7 @@ function closeProductModal() {
 
 // ========== WISHLIST ==========
 function toggleWishlist(id) {
-    showToast('💛 Đã thêm vào danh sách yêu thích!', 'success');
+    showToast('Đã thêm vào danh sách yêu thích!', 'success');
 }
 
 // ========== UTILS ==========
@@ -945,11 +945,16 @@ function showToast(msg, type = 'success') {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    const icon = type === 'success'
-        ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#10b981"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
-        : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke="#ef4444"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-    toast.innerHTML = `${icon} ${msg}`;
+    const iconName = type === 'success' ? 'check-circle' : 'alert-circle';
+    const iconColor = type === 'success' ? '#10b981' : '#ef4444';
+    toast.innerHTML = `<i data-lucide="${iconName}" style="width: 18px; height: 18px; color: ${iconColor}; flex-shrink: 0;"></i> <span>${msg}</span>`;
     container.appendChild(toast);
+
+    if (window.lucide && typeof lucide.createIcons === 'function') {
+        try {
+            lucide.createIcons({ root: toast });
+        } catch(e) {}
+    }
 
     setTimeout(() => {
         toast.style.animation = 'slideInToast 0.35s ease reverse';
@@ -962,7 +967,7 @@ document.getElementById('searchForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const keyword = document.getElementById('searchKeyword')?.value.trim();
     if (keyword) {
-        showToast(`🔍 Tìm kiếm: "${keyword}"...`, 'success');
+        showToast(`Tìm kiếm: "${keyword}"...`, 'success');
     }
 });
 
@@ -971,7 +976,7 @@ document.getElementById('newsletterForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = e.target.querySelector('input[type="email"]')?.value;
     if (email) {
-        showToast('📧 Cảm ơn! Bạn đã đăng ký nhận tin thành công.', 'success');
+        showToast('Cảm ơn! Bạn đã đăng ký nhận tin thành công.', 'success');
         e.target.reset();
     }
 });
@@ -982,7 +987,7 @@ document.getElementById('checkoutBtn')?.addEventListener('click', () => {
         showToast('Giỏ hàng trống!', 'error');
         return;
     }
-    showToast('🛍️ Đang chuyển đến trang thanh toán...', 'success');
+    showToast('Đang chuyển đến trang thanh toán...', 'success');
     setTimeout(() => window.location.href = '/client/checkout', 1500);
 });
 
@@ -1037,7 +1042,7 @@ window.addToCartGlobal = function(id, ten, gia, hinh, soLuongTon) {
     }
     saveCart();
     updateCartBadge();
-    showToast(`✓ Đã thêm "${ten}" vào giỏ hàng`, 'success');
+    showToast(`Đã thêm "${ten}" vào giỏ hàng`, 'success');
     
     // Update globally if applicable
     if (typeof window.updateCartBadgeGlobal === 'function') {

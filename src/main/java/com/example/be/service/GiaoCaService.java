@@ -26,9 +26,12 @@ public class GiaoCaService {
         return giaoCaRepository.findById(id).orElse(null);
     }
 
+    // KHONG DUNG XOA CUNG
+    /*
     public void deleteById(Long id) {
         giaoCaRepository.deleteById(id);
     }
+    */
 
     public GiaoCa findActiveShift() {
         return giaoCaRepository.findFirstByTrangThaiOrderByIdDesc(0); // 0 = Đang trong ca

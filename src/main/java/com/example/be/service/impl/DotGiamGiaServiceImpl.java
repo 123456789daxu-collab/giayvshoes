@@ -44,6 +44,14 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
     private SanPhamChiTietRepository sanPhamChiTietRepository;
 
     @Autowired
+    private com.example.be.repository.MauSacRepository mauSacRepository;
+
+    @Override
+    public List<String> getActiveColorNames() {
+        return mauSacRepository.findDistinctActiveColorNames();
+    }
+
+    @Autowired
     private SanPhamRepository sanPhamRepository;
 
     @Autowired
@@ -71,19 +79,12 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đợt giảm giá với ID: " + id));
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     @Override
     public String generateNextMaCampaign() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("DGG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (dotGiamGiaRepository.existsByMaDotGiamGia(code));
-        return code;
+        return maGeneratorService.generateMaDotGiamGia();
     }
 
     @Override
@@ -217,12 +218,15 @@ public class DotGiamGiaServiceImpl implements DotGiamGiaService {
         return dotGiamGiaRepository.save(campaign);
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG toggleStatus DE DOI TRANG THAI)
+    /*
     @Override
     @Transactional
     public void deleteCampaign(Long id) {
         chiTietDotGiamGiaRepository.deleteByDotGiamGiaId(id);
         dotGiamGiaRepository.deleteById(id);
     }
+    */
 
     @Override
     public List<Long> getProductDetailIdsByCampaignId(Long campaignId) {

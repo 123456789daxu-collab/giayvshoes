@@ -28,7 +28,7 @@ public interface DotGiamGiaService {
     
     DotGiamGia toggleStatus(Long id, Integer status);
     
-    void deleteCampaign(Long id);
+    // void deleteCampaign(Long id);
     
     List<Long> getProductDetailIdsByCampaignId(Long campaignId);
     
@@ -44,4 +44,6 @@ public interface DotGiamGiaService {
             LocalDateTime end,
             Integer trangThai
     ) throws Exception;
+
+    List<String> getActiveColorNames();
 }

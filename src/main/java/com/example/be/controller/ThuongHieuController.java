@@ -3,7 +3,7 @@ package com.example.be.controller;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.be.entity.ThuongHieu;
-import com.example.be.repository.ThuongHieuRepository;
+import com.example.be.service.ThuocTinhService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ThuongHieuController {
 
     @Autowired
-    private ThuongHieuRepository thuongHieuRepository;
+    private ThuocTinhService thuocTinhService;
+
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
 
     @GetMapping
     public String index(Model model, 
@@ -28,58 +31,24 @@ public class ThuongHieuController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
-        Page<ThuongHieu> pageData;
-        if ((keyword != null && !keyword.isEmpty()) || trangThai != null) {
-            pageData = thuongHieuRepository.search(keyword, trangThai, pageable);
-        } else {
-            pageData = thuongHieuRepository.findAll(pageable);
-        }
+        Page<ThuongHieu> pageData = thuocTinhService.searchThuongHieu(keyword, trangThai, pageable);
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
-        model.addAttribute("nextMaThuongHieu", generateNextMaThuongHieu());
+        model.addAttribute("nextMaThuongHieu", maGeneratorService.generateMaThuongHieu());
         return "thuong-hieu";
-    }
-
-    private String generateNextMaThuongHieu() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("TH");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (thuongHieuRepository.existsByMaThuongHieu(code));
-        return code;
     }
 
     @PostMapping("/add")
     public String add(@ModelAttribute ThuongHieu thuongHieu, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (thuongHieu.getTenThuongHieu() == null || thuongHieu.getTenThuongHieu().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên thương hiệu không được để trống!");
-            return "redirect:" + (referer != null ? referer : "/thuong-hieu");
-        }
-        String tenTrimmed = thuongHieu.getTenThuongHieu().trim();
-
-        java.util.Optional<ThuongHieu> existing = thuongHieuRepository.findByTenThuongHieuIgnoreCase(tenTrimmed);
-        if (existing.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Thương hiệu này đã tồn tại trong hệ thống.");
-            return "redirect:" + (referer != null ? referer : "/thuong-hieu");
-        }
-
-        thuongHieu.setTenThuongHieu(tenTrimmed);
-        if (thuongHieu.getMaThuongHieu() == null || thuongHieu.getMaThuongHieu().trim().isEmpty() || "(Tự động sinh)".equals(thuongHieu.getMaThuongHieu().trim())) {
-            thuongHieu.setMaThuongHieu(generateNextMaThuongHieu());
-        }
-        thuongHieu.setTrangThai(true);
         try {
-            thuongHieuRepository.save(thuongHieu);
+            thuocTinhService.addThuongHieu(thuongHieu);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Tên hoặc mã thương hiệu có thể đã tồn tại.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Tên hoặc mã có thể đã tồn tại.");
         }
         return "redirect:" + (referer != null ? referer : "/thuong-hieu");
     }
@@ -87,25 +56,13 @@ public class ThuongHieuController {
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute ThuongHieu thuongHieu, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (thuongHieu.getTenThuongHieu() == null || thuongHieu.getTenThuongHieu().trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Tên thương hiệu không được để trống!");
-            return "redirect:" + (referer != null ? referer : "/thuong-hieu");
-        }
-        String tenTrimmed = thuongHieu.getTenThuongHieu().trim();
-
-        java.util.Optional<ThuongHieu> existing = thuongHieuRepository.findByTenThuongHieuIgnoreCase(tenTrimmed);
-        if (existing.isPresent() && !existing.get().getId().equals(id)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên thương hiệu đã trùng với thương hiệu khác.");
-            return "redirect:" + (referer != null ? referer : "/thuong-hieu");
-        }
-
-        thuongHieu.setId(id);
-        thuongHieu.setTenThuongHieu(tenTrimmed);
         try {
-            thuongHieuRepository.save(thuongHieu);
+            thuocTinhService.updateThuongHieu(id, thuongHieu);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên hoặc mã thương hiệu có thể đã tồn tại.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Tên hoặc mã có thể đã tồn tại.");
         }
         return "redirect:" + (referer != null ? referer : "/thuong-hieu");
     }
@@ -113,12 +70,8 @@ public class ThuongHieuController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         try {
-            ThuongHieu thuongHieu = thuongHieuRepository.findById(id).orElse(null);
-            if (thuongHieu != null) {
-                thuongHieu.setTrangThai(thuongHieu.getTrangThai() != null ? !thuongHieu.getTrangThai() : false);
-                thuongHieuRepository.save(thuongHieu);
-                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
-            }
+            thuocTinhService.toggleStatusThuongHieu(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật trạng thái!");
         }

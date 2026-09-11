@@ -19,4 +19,7 @@ public interface MauSacRepository extends JpaRepository<MauSac, Long> {
     Optional<MauSac> findByTenMauSacIgnoreCase(String tenMauSac);
 
     boolean existsByMaMauSac(String maMauSac);
+
+    @Query("SELECT DISTINCT m.tenMauSac FROM MauSac m WHERE m.trangThai = true AND m.tenMauSac IS NOT NULL ORDER BY m.tenMauSac")
+    java.util.List<String> findDistinctActiveColorNames();
 }

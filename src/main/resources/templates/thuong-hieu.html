@@ -134,7 +134,7 @@
                 <div class="modal-content text-start">
                     <form th:action="@{'/thuong-hieu/update/' + ${item.id}}" method="POST">
                         <div class="modal-header">
-                            <h5 class="modal-title fw-bold">Chỉnh Sửa Thương Hiệu</h5>
+                            <h5 class="modal-title fw-bold" th:text="'Chỉnh Sửa Thương Hiệu - Mã: ' + ${item.maThuongHieu}">Chỉnh Sửa Thương Hiệu</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -146,13 +146,7 @@
                                 <label class="form-label fw-medium">Tên Thương Hiệu</label>
                                 <input type="text" class="form-control" name="tenThuongHieu" th:value="${item.tenThuongHieu}" required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-medium">Trạng Thái</label>
-                                <select class="form-select" name="trangThai">
-                                    <option value="true" th:selected="${item.trangThai == true}">Đang sử dụng</option>
-                                    <option value="false" th:selected="${item.trangThai == false}">Ngừng sử dụng</option>
-                                </select>
-                            </div>
+                            <input type="hidden" name="trangThai" th:value="${item.trangThai}">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -181,12 +175,6 @@
                         <div class="mb-3">
                             <label class="form-label fw-medium">Tên Thương Hiệu</label>
                             <input type="text" class="form-control" name="tenThuongHieu" placeholder="Nhập tên thương hiệu" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Trạng Thái</label>
-                            <select class="form-select bg-light" disabled>
-                                <option value="true" selected>Đang sử dụng</option>
-                            </select>
                             <input type="hidden" name="trangThai" value="true">
                         </div>
                     </div>
@@ -259,6 +247,7 @@
             });
         }
     </script>
+    <script th:src="@{/js/attribute-crud.js}"></script>
 </body>
 </html>
 

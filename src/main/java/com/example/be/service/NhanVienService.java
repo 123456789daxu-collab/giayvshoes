@@ -2,6 +2,7 @@ package com.example.be.service;
 
 import com.example.be.entity.NhanVien;
 import com.example.be.repository.NhanVienRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,18 +27,11 @@ public class NhanVienService {
         return nhanVienRepository.findById(id);
     }
 
+    @Autowired
+    private MaGeneratorService maGeneratorService;
+
     public String generateNextMaNhanVien() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("NV");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (nhanVienRepository.existsByMaNhanVien(code));
-        return code;
+        return maGeneratorService.generateMaNhanVien();
     }
 
     public NhanVien save(NhanVien nhanVien) {
@@ -103,6 +97,8 @@ public class NhanVienService {
         return saved;
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG toggleTrangThai DE DOI TRANG THAI)
+    /*
     @org.springframework.transaction.annotation.Transactional
     public void deleteById(Long id) {
         // Thực hiện xóa mềm (chuyển trạng thái về 0 - Nghỉ làm) thay vì xóa cứng
@@ -111,6 +107,7 @@ public class NhanVienService {
         nv.setTrangThai(0);
         nhanVienRepository.save(nv);
     }
+    */
 
     public List<NhanVien> search(String keyword) {
         return nhanVienRepository.searchByKeyword(keyword);

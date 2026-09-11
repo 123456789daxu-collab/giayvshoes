@@ -43,4 +43,13 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
     @Query("SELECT h FROM HoaDon h WHERE (h.khachHang IS NOT NULL AND h.khachHang.id = :khId) OR (h.sdtNguoiNhan IS NOT NULL AND h.sdtNguoiNhan = :sdt) ORDER BY h.ngayTao DESC")
     List<HoaDon> findByKhachHangIdOrSdtNguoiNhan(@Param("khId") Long khId, @Param("sdt") String sdt);
+
+    boolean existsByMaHoaDon(String maHoaDon);
+
+    java.util.Optional<HoaDon> findByMaHoaDon(String maHoaDon);
+
+    List<HoaDon> findByTrangThaiAndLoaiHoaDon(Integer trangThai, Boolean loaiHoaDon);
+
+    List<HoaDon> findByTrangThaiAndPhieuGiamGiaId(Integer trangThai, Long phieuGiamGiaId);
 }
+

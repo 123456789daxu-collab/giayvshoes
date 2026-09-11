@@ -440,7 +440,7 @@ function renderCard(p, globalIdx = 0) {
                     <div class="sp-price-main" style="font-size:17px;font-weight:900;color:#ef4444;line-height:1.1;">${formatPrice(p.gia)}</div>
                 </div>
                 <div class="sp-rating">
-                    <span class="star">★</span>
+                    <span class="star"><i data-lucide="star" style="width:13px;height:13px;fill:#f59e0b;color:#f59e0b;"></i></span>
                     ${p.danhGia}
                     <span>(${p.soLuotDanhGia})</span>
                 </div>
@@ -659,7 +659,7 @@ function renderProductModalContent() {
             </div>
             <!-- Info -->
             <div style="padding:32px;display:flex;flex-direction:column;gap:16px;position:relative;">
-                <button onclick="closeProductModal()" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:8px;background:var(--gray-100);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;z-index:10;">✕</button>
+                <button onclick="closeProductModal()" style="position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:8px;background:var(--gray-100);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;z-index:10;"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
 
                 <div>
                     <div style="font-size:11px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;">${v.ma || p.ma}</div>
@@ -667,7 +667,7 @@ function renderProductModalContent() {
                 </div>
 
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <span style="color:#f59e0b;">★★★★★</span>
+                    <span style="display:inline-flex;gap:2px;"><i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;"></i><i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;"></i><i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;"></i><i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;"></i><i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;"></i></span>
                     <span style="font-size:13px;color:var(--gray-500);">${p.danhGia} (${p.soLuotDanhGia} đánh giá)</span>
                 </div>
 
@@ -702,9 +702,9 @@ function renderProductModalContent() {
                 <div style="display:flex;gap:10px;margin-top:auto;">
                     <button onclick="addProductModalToCart()"
                         style="flex:1;padding:13px;background:var(--gradient);color:white;border:none;border-radius:var(--radius-md);font-size:14px;font-weight:800;cursor:pointer;font-family:var(--font);box-shadow:var(--shadow-primary);transition:all .2s;" ${stock > 0 ? '' : 'disabled style="background:#ccc;box-shadow:none;cursor:not-allowed;"'}>
-                        🛒 Thêm vào giỏ hàng
+                        <i data-lucide="shopping-cart" style="width:16px;height:16px;vertical-align:-2px;margin-right:6px;"></i>Thêm vào giỏ hàng
                     </button>
-                    <button style="width:46px;height:46px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:white;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">♡</button>
+                    <button style="width:46px;height:46px;border:1.5px solid var(--border);border-radius:var(--radius-md);background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i data-lucide="heart" style="width:18px;height:18px;"></i></button>
                 </div>
             </div>
         </div>`;

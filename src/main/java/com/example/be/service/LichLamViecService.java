@@ -37,9 +37,12 @@ public class LichLamViecService {
         return lichLamViecRepository.findById(id).orElse(null);
     }
 
+    // KHONG DUNG XOA CUNG
+    /*
     public void deleteById(Long id) {
         lichLamViecRepository.deleteById(id);
     }
+    */
 
     public List<LichLamViec> findByNgayLamViecBetween(LocalDate start, LocalDate end) {
         return lichLamViecRepository.findByNgayLamViecBetween(start, end);

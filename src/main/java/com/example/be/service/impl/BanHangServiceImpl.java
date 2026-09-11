@@ -33,27 +33,31 @@ public class BanHangServiceImpl implements BanHangService {
     @Autowired
     private ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
+    @Autowired
+    private DiaChiRepository diaChiRepository;
+
     @Override
     public List<HoaDon> getDanhSachHoaDonCho() {
-        // Assume trangThai = 0 is Waiting
-        return hoaDonRepository.findAll().stream()
-                .filter(hd -> hd.getTrangThai() != null && hd.getTrangThai() == 0)
-                .filter(hd -> Boolean.FALSE.equals(hd.getLoaiHoaDon())) // Chỉ lấy hóa đơn Tại quầy
-                .peek(hd -> {
-                    BigDecimal tongTienHang = chiTietHoaDonRepository.findAll().stream()
-                        .filter(ct -> ct.getHoaDon() != null && ct.getHoaDon().getId().equals(hd.getId()))
-                        .map(ChiTietHoaDon::getThanhTien)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    hd.setTongTienHang(tongTienHang);
-                })
-                .toList();
+        List<HoaDon> list = hoaDonRepository.findByTrangThaiAndLoaiHoaDon(0, false);
+        for (HoaDon hd : list) {
+            List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hd.getId());
+            BigDecimal tongTienHang = details.stream()
+                    .map(ChiTietHoaDon::getThanhTien)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            hd.setTongTienHang(tongTienHang);
+        }
+        return list;
     }
 
     @Override
     @Transactional
     public HoaDon taoHoaDonCho() {
         HoaDon hd = new HoaDon();
-        hd.setMaHoaDon("HD" + System.currentTimeMillis());
+        hd.setMaHoaDon(maGeneratorService.generateMaHoaDon());
         hd.setLoaiHoaDon("TAI_QUAY");
         hd.setNgayTao(LocalDateTime.now());
         hd.setTrangThai(0); // 0 = Chờ thanh toán
@@ -81,21 +85,15 @@ public class BanHangServiceImpl implements BanHangService {
                 chiTietHoaDonRepository.delete(ct);
             }
             
-            // Delete history records if any
-            List<com.example.be.entity.LichSuHoaDon> histories = lichSuHoaDonRepository.findByHoaDonIdOrderByNgayTaoDesc(id);
-            if(histories != null && !histories.isEmpty()) {
-                lichSuHoaDonRepository.deleteAll(histories);
-            }
-            
-            hoaDonRepository.delete(hd);
+            // KHONG DUNG XOA CUNG (CHUYEN TRANG THAI SANG DA HUY = 7)
+            hd.setTrangThai(7);
+            hoaDonRepository.save(hd);
         }
     }
 
     @Override
     public List<ChiTietHoaDon> getChiTietHoaDon(Long idHoaDon) {
-        return chiTietHoaDonRepository.findAll().stream()
-                .filter(ct -> ct.getHoaDon() != null && ct.getHoaDon().getId().equals(idHoaDon))
-                .toList();
+        return chiTietHoaDonRepository.findByHoaDonId(idHoaDon);
     }
 
     @Override
@@ -218,10 +216,23 @@ public class BanHangServiceImpl implements BanHangService {
             throw new RuntimeException("Giỏ hàng trống!");
         }
 
-        // Inventory has already been deducted during cart operations
+        // Kiểm tra có giao hàng hay nhận trực tiếp tại quầy
+        boolean isGiaoHang = diaChiGiao != null && !diaChiGiao.trim().isEmpty();
+        int targetStatus = isGiaoHang ? 1 : 6; // 1 = Đã xác nhận (chờ giao), 6 = Hoàn thành (khách mang về ngay)
+        hd.setTrangThai(targetStatus);
 
-        hd.setTrangThai(1); // 1 = Đã thanh toán
-        hd.setGhiChu(ghiChu);
+        StringBuilder noteBuilder = new StringBuilder();
+        if (ghiChu != null && !ghiChu.trim().isEmpty()) {
+            noteBuilder.append(ghiChu.trim()).append(" | ");
+        }
+        noteBuilder.append("PTTT: ").append(hinhThucThanhToan != null ? hinhThucThanhToan : "CASH");
+        if (isGiaoHang) {
+            noteBuilder.append(" | [Đơn giao hàng tại quầy]");
+        } else {
+            noteBuilder.append(" | [Mua trực tiếp tại quầy]");
+        }
+        hd.setGhiChu(noteBuilder.toString());
+
         if (tenKhachHang != null && !tenKhachHang.trim().isEmpty()) {
             hd.setTenNguoiNhan(tenKhachHang);
         } else if (hd.getKhachHang() == null) {
@@ -229,13 +240,34 @@ public class BanHangServiceImpl implements BanHangService {
         }
         
         // Shipping Details
-        hd.setPhiShip(phiShip);
+        BigDecimal shipFee = (phiShip != null && phiShip.compareTo(BigDecimal.ZERO) > 0) ? phiShip : BigDecimal.ZERO;
+        hd.setPhiShip(shipFee);
         hd.setSdtNguoiNhan(sdtNhan);
         hd.setDiaChiNhan(diaChiGiao);
 
+        // Tính lại tổng tiền thanh toán = (tiền hàng - giảm giá) + phí ship
+        BigDecimal tongHang = hd.getTongTienHang() != null ? hd.getTongTienHang() : BigDecimal.ZERO;
+        BigDecimal giamGia = hd.getTienGiamGia() != null ? hd.getTienGiamGia() : BigDecimal.ZERO;
+        BigDecimal finalTotal = tongHang.subtract(giamGia).max(BigDecimal.ZERO).add(shipFee);
+        hd.setTongTienThanhToan(finalTotal);
+
         hd.setNgayCapNhat(LocalDateTime.now());
-        
-        return hoaDonRepository.save(hd);
+        HoaDon saved = hoaDonRepository.save(hd);
+
+        // Ghi lịch sử hóa đơn để đồng bộ với Quản lý hóa đơn
+        try {
+            LichSuHoaDon history = LichSuHoaDon.builder()
+                    .hoaDon(saved)
+                    .hanhDong(isGiaoHang ? "Thanh toán & Đặt giao hàng" : "Thanh toán thành công tại quầy")
+                    .ngayTao(LocalDateTime.now())
+                    .ghiChu("Thanh toán đơn hàng " + saved.getMaHoaDon() + " (" + (isGiaoHang ? "Chờ đóng gói & giao hàng" : "Khách đã nhận hàng tại quầy") + ")")
+                    .build();
+            lichSuHoaDonRepository.save(history);
+        } catch (Exception e) {
+            System.err.println("Lỗi lưu lịch sử hóa đơn tại quầy: " + e.getMessage());
+        }
+
+        return saved;
     }
 
     private void tinhTongTien(HoaDon hd) {
@@ -266,5 +298,161 @@ public class BanHangServiceImpl implements BanHangService {
         hd.setTienGiamGia(tienGiamGia);
         hd.setTongTienThanhToan(tongTienHang.subtract(tienGiamGia).max(BigDecimal.ZERO));
         hoaDonRepository.save(hd);
+    }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getDanhSachKhachHang(String keyword) {
+        java.util.List<KhachHang> list = khachHangRepository.findAll();
+        String kw = keyword != null ? keyword.trim().toLowerCase() : "";
+        return list.stream()
+                .filter(kh -> kw.isEmpty() || 
+                              (kh.getHoTen() != null && kh.getHoTen().toLowerCase().contains(kw)) ||
+                              (kh.getSoDienThoai() != null && kh.getSoDienThoai().contains(kw)))
+                .map(kh -> {
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", kh.getId());
+                    map.put("hoTen", kh.getHoTen());
+                    map.put("soDienThoai", kh.getSoDienThoai());
+                    map.put("email", kh.getEmail());
+                    
+                    diaChiRepository.findByKhachHangIdAndMacDinhTrue(kh.getId()).ifPresent(diaChi -> {
+                        String dcFull = "";
+                        if (diaChi.getDiaChiChiTiet() != null) dcFull += diaChi.getDiaChiChiTiet();
+                        if (diaChi.getPhuongXa() != null) dcFull += ", " + diaChi.getPhuongXa();
+                        if (diaChi.getQuanHuyen() != null) dcFull += ", " + diaChi.getQuanHuyen();
+                        if (diaChi.getTinhThanh() != null) dcFull += ", " + diaChi.getTinhThanh();
+                        map.put("diaChiGiao", dcFull);
+                        map.put("sdtNhan", diaChi.getSdt() != null ? diaChi.getSdt() : kh.getSoDienThoai());
+                    });
+                    
+                    return map;
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getDanhSachSanPhamBanHang(String keyword) {
+        java.util.List<SanPhamChiTiet> list = sanPhamChiTietRepository.searchForSale(
+                keyword == null || keyword.isBlank() ? null : keyword.trim()
+        );
+        java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+        for (SanPhamChiTiet spct : list) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", spct.getId());
+            map.put("maSanPhamChiTiet", spct.getMa());
+            map.put("tenSanPham", spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "");
+            map.put("tenMauSac", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "");
+            map.put("sizeGiay", spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : "");
+            map.put("soLuongTon", spct.getSoLuongTon());
+            map.put("giaBan", spct.getGiaBan());
+
+            Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+            if (discount != null && discount > 0) {
+                BigDecimal multiplier = BigDecimal.valueOf(100 - discount).divide(BigDecimal.valueOf(100), 10, java.math.RoundingMode.HALF_UP);
+                BigDecimal giaSauGiam = spct.getGiaBan() != null ? spct.getGiaBan().multiply(multiplier).setScale(0, java.math.RoundingMode.HALF_UP) : BigDecimal.ZERO;
+                map.put("phanTramGiam", discount);
+                map.put("giaSauGiam", giaSauGiam);
+            } else {
+                map.put("phanTramGiam", 0);
+                map.put("giaSauGiam", spct.getGiaBan());
+            }
+
+            // Image URL
+            String imgUrl = null;
+            if (spct.getDanhSachHinhAnh() != null && !spct.getDanhSachHinhAnh().isEmpty()) {
+                imgUrl = spct.getDanhSachHinhAnh().get(0);
+            } else if (spct.getHinhAnh() != null && !spct.getHinhAnh().isBlank()) {
+                imgUrl = spct.getHinhAnh().split(",")[0].trim();
+            }
+            map.put("hinhAnh", imgUrl);
+
+            result.add(map);
+        }
+        return result;
+    }
+
+    @Override
+    public java.util.Map<String, Object> getHoaDonChiTietResponse(Long idHoaDon) {
+        HoaDon hd = hoaDonRepository.findById(idHoaDon).orElse(null);
+        if (hd == null) return null;
+
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", hd.getId());
+        map.put("maHoaDon", hd.getMaHoaDon());
+        map.put("tongTienHang", hd.getTongTienHang());
+        map.put("tienGiamGia", hd.getTienGiamGia());
+        map.put("tongTienThanhToan", hd.getTongTienThanhToan());
+
+        if (hd.getKhachHang() != null) {
+            java.util.Map<String, Object> khMap = new java.util.HashMap<>();
+            khMap.put("id", hd.getKhachHang().getId());
+            khMap.put("hoTen", hd.getKhachHang().getHoTen());
+            khMap.put("soDienThoai", hd.getKhachHang().getSoDienThoai());
+            map.put("khachHang", khMap);
+        }
+
+        if (hd.getPhieuGiamGia() != null) {
+            java.util.Map<String, Object> pggMap = new java.util.HashMap<>();
+            pggMap.put("id", hd.getPhieuGiamGia().getId());
+            pggMap.put("maVoucher", hd.getPhieuGiamGia().getMaVoucher());
+            pggMap.put("loaiGiamGia", hd.getPhieuGiamGia().getLoaiGiamGia());
+            pggMap.put("giaTriGiam", hd.getPhieuGiamGia().getGiaTriGiam());
+            map.put("phieuGiamGia", pggMap);
+        }
+
+        List<ChiTietHoaDon> list = getChiTietHoaDon(idHoaDon);
+        List<java.util.Map<String, Object>> cart = list.stream().map(ct -> {
+            java.util.Map<String, Object> item = new java.util.HashMap<>();
+            item.put("id", ct.getId());
+            item.put("soLuong", ct.getSoLuong());
+            item.put("donGia", ct.getDonGia());
+            item.put("thanhTien", ct.getThanhTien());
+
+            if (ct.getSanPhamChiTiet() != null) {
+                SanPhamChiTiet spct = ct.getSanPhamChiTiet();
+                item.put("idSanPhamChiTiet", spct.getId());
+                item.put("maSanPham", spct.getMa());
+                item.put("tenSanPham", spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "");
+                item.put("mauSac", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "");
+                item.put("size", spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : "");
+
+                String imgUrl = null;
+                if (spct.getDanhSachHinhAnh() != null && !spct.getDanhSachHinhAnh().isEmpty()) {
+                    imgUrl = spct.getDanhSachHinhAnh().get(0);
+                } else if (spct.getHinhAnh() != null && !spct.getHinhAnh().isBlank()) {
+                    imgUrl = spct.getHinhAnh().split(",")[0].trim();
+                }
+                item.put("hinhAnh", imgUrl);
+
+                boolean ngungKinhDoanh = (spct.getTrangThai() == null || spct.getTrangThai() != 1) ||
+                        (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1));
+                item.put("ngungKinhDoanh", ngungKinhDoanh);
+
+                BigDecimal giaBanGoc = ct.getDonGiaGoc() != null ? ct.getDonGiaGoc() : ct.getDonGia();
+                item.put("giaBanGoc", giaBanGoc);
+
+                if (giaBanGoc != null && ct.getDonGia() != null && giaBanGoc.compareTo(ct.getDonGia()) > 0) {
+                    BigDecimal diff = giaBanGoc.subtract(ct.getDonGia());
+                    BigDecimal phanTram = diff.multiply(new BigDecimal("100")).divide(giaBanGoc, 0, java.math.RoundingMode.HALF_UP);
+                    item.put("phanTramGiam", phanTram.intValue());
+                } else {
+                    item.put("phanTramGiam", 0);
+                }
+
+                if (spct.getGiaBan() != null) {
+                    BigDecimal giaHienTai = spct.getGiaBan();
+                    Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
+                    if (discount != null && discount > 0 && discount <= 100) {
+                        BigDecimal giam = giaHienTai.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
+                        giaHienTai = giaHienTai.subtract(giam);
+                    }
+                    item.put("giaHienTai", giaHienTai);
+                }
+            }
+            return item;
+        }).toList();
+
+        map.put("cart", cart);
+        return map;
     }
 }

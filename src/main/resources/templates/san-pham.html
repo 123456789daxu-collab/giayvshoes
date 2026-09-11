@@ -440,14 +440,8 @@
                         <textarea class="form-control" name="moTaChiTiet" id="moTaChiTiet" rows="3" placeholder="Nhập mô tả về giày, chất liệu, tính năng..." style="border-radius: 8px; resize: none;"></textarea>
                     </div>
 
-                    <!-- Row 5 -->
-                    <div class="mb-2">
-                        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase;">TRẠNG THÁI BÁN</label>
-                        <select class="form-select" name="trangThai" id="trangThai" style="height: 42px; border-radius: 8px;">
-                            <option value="1">Đang kinh doanh</option>
-                            <option value="0">Ngừng kinh doanh</option>
-                        </select>
-                    </div>
+                    <!-- Hidden trangThai field -->
+                    <input type="hidden" name="trangThai" id="trangThai" value="1">
                 </div>
                 <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #f1f5f9;">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 8px; font-weight: 500; padding: 8px 24px; background-color: #64748b; border: none;">Hủy bỏ</button>

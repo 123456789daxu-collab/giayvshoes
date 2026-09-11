@@ -52,19 +52,12 @@ public class KhachHangServiceImpl implements KhachHangService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng với ID: " + id));
     }
 
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
+
     @Override
     public String getNextMaKhachHang() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("KH");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (khachHangRepository.findByMaKhachHang(code).isPresent());
-        return code;
+        return maGeneratorService.generateMaKhachHang();
     }
 
     @Override

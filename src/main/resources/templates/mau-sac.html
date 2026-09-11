@@ -123,7 +123,7 @@
                                         <div class="modal-content text-start">
                                             <form th:action="@{'/mau-sac/update/' + ${item.id}}" method="POST">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title fw-bold">Chỉnh Sửa Màu Sắc</h5>
+                                                    <h5 class="modal-title fw-bold" th:text="'Chỉnh Sửa Màu Sắc - Mã: ' + ${item.maMauSac}">Chỉnh Sửa Màu Sắc</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
@@ -141,13 +141,7 @@
                                                             <input type="color" class="form-control form-control-color" name="maHex" th:value="${item.maHex != null ? item.maHex : '#000000'}" title="Chọn màu sắc" style="width: 50px;">
                                                         </div>
                                                     </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-medium">Trạng Thái</label>
-                                                        <select class="form-select" name="trangThai">
-                                                            <option value="true" th:selected="${item.trangThai == true}">Đang sử dụng</option>
-                                                            <option value="false" th:selected="${item.trangThai == false}">Ngừng sử dụng</option>
-                                                        </select>
-                                                    </div>
+                                                    <input type="hidden" name="trangThai" th:value="${item.trangThai}">
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -196,12 +190,6 @@
                             <div class="d-flex align-items-center gap-2">
                                 <input type="color" class="form-control form-control-color" name="maHex" value="#000000" title="Chọn màu sắc" style="width: 50px;">
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-medium">Trạng Thái</label>
-                            <select class="form-select bg-light" disabled>
-                                <option value="true" selected>Đang sử dụng</option>
-                            </select>
                             <input type="hidden" name="trangThai" value="true">
                         </div>
                     </div>
@@ -274,6 +262,7 @@
             });
         }
     </script>
+    <script th:src="@{/js/attribute-crud.js}"></script>
 </body>
 </html>
 

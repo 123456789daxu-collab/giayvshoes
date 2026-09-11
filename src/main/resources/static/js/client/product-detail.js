@@ -439,19 +439,19 @@ function handleAddToCart(isBuyNow = false) {
     }
 
     if (v.trangThai != null && v.trangThai != 1) {
-        showToast('❌ Biến thể này đã ngừng kinh doanh!', 'error');
+        showToast('Biến thể này đã ngừng kinh doanh!', 'error');
         return;
     }
 
     const max = v.soLuongTon != null ? v.soLuongTon : 0;
     if (max <= 0) {
-        showToast('❌ Sản phẩm đã hết hàng trong kho!', 'error');
+        showToast('Sản phẩm đã hết hàng trong kho!', 'error');
         return;
     }
 
     const requestedQty = parseInt(qtyInput?.value) || state.quantity || 1;
     if (requestedQty <= 0) {
-        showToast('❌ Số lượng phải lớn hơn 0!', 'error');
+        showToast('Số lượng phải lớn hơn 0!', 'error');
         return;
     }
 
@@ -474,7 +474,7 @@ function handleAddToCart(isBuyNow = false) {
 
     if (isBuyNow) {
         if (requestedQty > max) {
-            showToast(`❌ Không thể mua số lượng (${requestedQty}) vượt quá tồn kho (${max})!`, 'error');
+            showToast(`Không thể mua số lượng (${requestedQty}) vượt quá tồn kho (${max})!`, 'error');
             if (qtyInput) qtyInput.value = max > 0 ? max : 1;
             state.quantity = max > 0 ? max : 1;
             return;
@@ -492,7 +492,7 @@ function handleAddToCart(isBuyNow = false) {
     const totalRequested = currentQty + requestedQty;
 
     if (totalRequested > max) {
-        showToast(`❌ Không thể thêm vào giỏ hàng! Số lượng yêu cầu (${totalRequested}) vượt quá tồn kho (${max}).`, 'error');
+        showToast(`Không thể thêm vào giỏ hàng! Số lượng yêu cầu (${totalRequested}) vượt quá tồn kho (${max}).`, 'error');
         if (qtyInput) qtyInput.value = max > 0 ? max : 1;
         state.quantity = max > 0 ? max : 1;
         return;
@@ -511,7 +511,7 @@ function handleAddToCart(isBuyNow = false) {
         window.updateCartBadgeGlobal();
     }
 
-    showToast(`✓ Đã thêm ${requestedQty} sản phẩm vào giỏ hàng!`, 'success');
+    showToast(`Đã thêm ${requestedQty} sản phẩm vào giỏ hàng!`, 'success');
 }
 
 // Utils
@@ -601,7 +601,7 @@ async function loadRelatedProducts() {
                                 <span style="font-size: 16px; font-weight: 900; color: #ef4444; line-height: 1.2;">${formatPrice(price)}</span>
                             </div>
                             <div style="font-size: 12px; font-weight: 700; color: #f59e0b; display: flex; align-items: center; gap: 3px;">
-                                <span>★</span> <span>${realRating}</span> <span style="color: #94a3b8; font-weight: 500;">(${realCount})</span>
+                                <i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;vertical-align:-1px;margin-right:2px;"></i> <span>${realRating}</span> <span style="color: #94a3b8; font-weight: 500;">(${realCount})</span>
                             </div>
                         </div>
                     </div>
@@ -716,8 +716,8 @@ async function initReviewsModule() {
                 const data = res.ok ? await res.json() : null;
 
                 if (!data || !data.loggedIn) {
-                    showToast('🔒 Bạn cần đăng nhập để viết đánh giá cho sản phẩm!', 'error');
-                    if (confirm('🔒 Bạn cần đăng nhập tài khoản để viết đánh giá.\n\nBạn có muốn chuyển sang trang Đăng nhập ngay bây giờ?')) {
+                    showToast('Bạn cần đăng nhập để viết đánh giá cho sản phẩm!', 'error');
+                    if (confirm('Bạn cần đăng nhập tài khoản để viết đánh giá.\n\nBạn có muốn chuyển sang trang Đăng nhập ngay bây giờ?')) {
                         window.location.href = '/client/dang-nhap';
                     }
                     return;
@@ -734,7 +734,7 @@ async function initReviewsModule() {
                 if (textInput) textInput.focus();
 
             } catch (e) {
-                showToast('🔒 Vui lòng đăng nhập để viết đánh giá!', 'error');
+                showToast('Vui lòng đăng nhập để viết đánh giá!', 'error');
             }
         });
     }
@@ -791,7 +791,7 @@ async function initReviewsModule() {
 
                 const data = await resp.json();
                 if (resp.ok && data.success) {
-                    showToast('🎉 Cảm ơn bạn đã gửi đánh giá cho sản phẩm!', 'success');
+                    showToast('Cảm ơn bạn đã gửi đánh giá cho sản phẩm!', 'success');
                     if (textInput) textInput.value = '';
                     if (formContainer) formContainer.style.display = 'none';
                     // Tải lại danh sách đánh giá từ server
@@ -837,7 +837,7 @@ function renderReviewsDashboard(reviews) {
     if (avgScoreEl) avgScoreEl.textContent = avg;
     if (avgStarsEl) {
         const numStars = total > 0 ? Math.round(parseFloat(avg)) : 0;
-        avgStarsEl.textContent = '★'.repeat(numStars) + '☆'.repeat(5 - numStars);
+        avgStarsEl.innerHTML = '<i data-lucide="star" style="width:18px;height:18px;fill:#f59e0b;color:#f59e0b;"></i>'.repeat(numStars) + '<i data-lucide="star" style="width:18px;height:18px;color:#cbd5e1;"></i>'.repeat(5 - numStars); if(window.lucide) lucide.createIcons();
     }
 
     // Breakdown bars
@@ -856,7 +856,7 @@ function renderReviewsDashboard(reviews) {
         const pct = total > 0 ? Math.round((count / total) * 100) : 0;
         html += `
             <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#475569;">
-                <span style="width:30px;font-weight:700;text-align:right;color:#0f172a;">${star} ★</span>
+                <span style="width:30px;font-weight:700;text-align:right;color:#0f172a;">${star} <i data-lucide="star" style="width:13px;height:13px;fill:#f59e0b;color:#f59e0b;vertical-align:-1px;"></i></span>
                 <div style="flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
                     <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;transition:width 0.5s;"></div>
                 </div>
@@ -874,7 +874,7 @@ function renderReviewsList(reviews) {
     if (!reviews || reviews.length === 0) {
         listEl.innerHTML = `
             <div style="text-align:center;color:#94a3b8;padding:40px 20px;background:#f8fafc;border-radius:14px;border:1px dashed #cbd5e1;">
-                <div style="font-size:32px;margin-bottom:8px;">🌟</div>
+                <div style="margin-bottom:8px;"><i data-lucide="star" style="width:32px;height:32px;color:#f59e0b;fill:#f59e0b;"></i></div>
                 <div style="font-size:15px;font-weight:700;color:#475569;">Chưa có đánh giá nào cho sản phẩm này</div>
                 <div style="font-size:13px;color:#94a3b8;margin-top:4px;">Hãy mua hàng để là người đầu tiên chia sẻ cảm nhận!</div>
             </div>
@@ -886,7 +886,7 @@ function renderReviewsList(reviews) {
         const authorName = r.author || r.tenHienThi || 'Khách hàng';
         const initial = authorName.trim().charAt(0).toUpperCase() || 'U';
         const rating = parseInt(r.rating || r.soSao) || 5;
-        const starsStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        const starsStr = '<i data-lucide="star" style="width:14px;height:14px;fill:#f59e0b;color:#f59e0b;"></i>'.repeat(rating) + '<i data-lucide="star" style="width:14px;height:14px;color:#cbd5e1;"></i>'.repeat(5 - rating);
         const images = r.images || r.anhDanhGia || [];
         const dateStr = r.date || (r.ngayTao ? r.ngayTao.substring(0, 10) : 'Vừa xong');
 
@@ -923,7 +923,7 @@ function renderReviewsList(reviews) {
                         <div>
                             <div style="font-weight:800;color:#0f172a;font-size:14px;display:flex;align-items:center;gap:8px;">
                                 ${escHtml(authorName)}
-                                ${r.verified ? '<span style="background:#e0f2fe;color:#0284c7;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;display:inline-flex;align-items:center;gap:3px;">✓ Đã mua hàng</span>' : ''}
+                                ${r.verified ? '<span style="background:#e0f2fe;color:#0284c7;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;display:inline-flex;align-items:center;gap:3px;"><i data-lucide="check-circle" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>Đã mua hàng</span>' : ''}
                             </div>
                             <div style="font-size:12px;color:#94a3b8;margin-top:2px;">${escHtml(dateStr)}</div>
                         </div>
@@ -967,7 +967,7 @@ window.showImageModal = function(imgSrc) {
     modal.innerHTML = `
         <div style="position: relative; max-width: 90vw; max-height: 90vh;">
             <img src="${imgSrc}" style="max-width: 100%; max-height: 85vh; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-            <button style="position: absolute; top: -14px; right: -14px; width: 32px; height: 32px; border-radius: 50%; background: white; border: none; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center;">✕</button>
+            <button style="position: absolute; top: -14px; right: -14px; width: 32px; height: 32px; border-radius: 50%; background: white; border: none; font-size: 16px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
         </div>
     `;
     modal.addEventListener('click', () => modal.remove());

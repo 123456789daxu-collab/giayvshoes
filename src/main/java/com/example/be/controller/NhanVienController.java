@@ -83,7 +83,8 @@ public class NhanVienController {
 
     @GetMapping("/next-code")
     public ResponseEntity<?> getNextCode() {
-        return ResponseEntity.ok(java.util.Collections.singletonMap("maNhanVien", nhanVienService.generateNextMaNhanVien()));
+        String code = nhanVienService.generateNextMaNhanVien();
+        return ResponseEntity.ok(java.util.Map.of("maNhanVien", code, "code", code));
     }
 
     @GetMapping
@@ -136,6 +137,8 @@ public class NhanVienController {
         }
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG /toggle-trang-thai DE DOI TRANG THAI HOAT DONG / NGHI LAM)
+    /*
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         try {
@@ -145,6 +148,7 @@ public class NhanVienController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    */
 
     @GetMapping("/search")
     public ResponseEntity<List<NhanVien>> search(@RequestParam String keyword) {

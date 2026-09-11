@@ -1,12 +1,8 @@
 package com.example.be.controller;
 
-import com.example.be.entity.ChiTietHoaDon;
 import com.example.be.entity.HoaDon;
-import com.example.be.entity.KhachHang;
-import com.example.be.entity.SanPhamChiTiet;
-import com.example.be.repository.KhachHangRepository;
-import com.example.be.repository.SanPhamChiTietRepository;
 import com.example.be.service.BanHangService;
+import com.example.be.service.PhieuGiamGiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,20 +14,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/pos")
+@RequestMapping({"/api/pos", "/api/ban-hang"})
 public class BanHangRestController {
 
     @Autowired
     private BanHangService banHangService;
 
     @Autowired
-    private SanPhamChiTietRepository sanPhamChiTietRepository;
-
-    @Autowired
-    private KhachHangRepository khachHangRepository;
-
-    @Autowired
-    private com.example.be.repository.ChiTietDotGiamGiaRepository chiTietDotGiamGiaRepository;
+    private PhieuGiamGiaService phieuGiamGiaService;
 
     // --- 1. Order Management ---
 
@@ -58,54 +48,22 @@ public class BanHangRestController {
             banHangService.huyHoaDonCho(id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body("Lỗi khi hủy hóa đơn: " + e.getMessage());
         }
     }
 
     @GetMapping("/hoa-don/{id}/chi-tiet")
     public ResponseEntity<?> getChiTietHoaDon(@PathVariable Long id) {
-        HoaDon hd = banHangService.getDanhSachHoaDonCho().stream().filter(h -> h.getId().equals(id)).findFirst().orElse(null);
-        if (hd == null) return ResponseEntity.notFound().build();
-        
-        List<ChiTietHoaDon> list = banHangService.getChiTietHoaDon(id);
-        Map<String, Object> result = mapHoaDon(hd);
-        result.put("cart", list.stream().map(this::mapChiTiet).collect(Collectors.toList()));
+        Map<String, Object> result = banHangService.getHoaDonChiTietResponse(id);
+        if (result == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(result);
     }
 
     // --- 2. Cart Management ---
 
     @GetMapping("/san-pham")
-    public ResponseEntity<?> getSanPham() {
-        List<SanPhamChiTiet> list = sanPhamChiTietRepository.findAll();
-        List<Map<String, Object>> result = list.stream()
-                .filter(spct -> spct.getTrangThai() != null && spct.getTrangThai() == 1) // 1 = Đang bán
-                .map(spct -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", spct.getId());
-                    map.put("ma", spct.getMa());
-                    map.put("tenSanPham", spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "");
-                    map.put("mauSac", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "");
-                    map.put("size", spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : "");
-                    map.put("hinhAnh", resolveImageUrl(spct));
-                    map.put("thuongHieu", (spct.getSanPham() != null && spct.getSanPham().getThuongHieu() != null) ? spct.getSanPham().getThuongHieu().getTenThuongHieu() : "");
-                    map.put("danhMuc", (spct.getSanPham() != null && spct.getSanPham().getDanhMuc() != null) ? spct.getSanPham().getDanhMuc().getTenDanhMuc() : "");
-                    
-                    Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
-                    BigDecimal giaBan = spct.getGiaBan();
-                    if (discount != null && discount > 0 && discount <= 100) {
-                        BigDecimal giam = giaBan.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
-                        giaBan = giaBan.subtract(giam);
-                    }
-                    map.put("giaBan", giaBan);
-                    map.put("giaBanGoc", spct.getGiaBan());
-                    
-                    map.put("soLuongTon", spct.getSoLuongTon());
-                    return map;
-                })
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
+    public ResponseEntity<?> getSanPham(@RequestParam(required = false, defaultValue = "") String keyword) {
+        return ResponseEntity.ok(banHangService.getDanhSachSanPhamBanHang(keyword));
     }
 
     @PostMapping("/hoa-don/{id}/them-san-pham")
@@ -162,21 +120,11 @@ public class BanHangRestController {
         }
     }
 
-    // --- 3. Khách hàng & Phiếu giảm giá ---
+    // --- 4. Khách hàng & Phiếu giảm giá ---
 
     @GetMapping("/khach-hang")
-    public ResponseEntity<?> getKhachHang() {
-        List<KhachHang> list = khachHangRepository.findAll();
-        List<Map<String, Object>> result = list.stream()
-                .map(kh -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", kh.getId());
-                    map.put("hoTen", kh.getHoTen());
-                    map.put("soDienThoai", kh.getSoDienThoai());
-                    return map;
-                })
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
+    public ResponseEntity<?> getKhachHang(@RequestParam(required = false, defaultValue = "") String keyword) {
+        return ResponseEntity.ok(banHangService.getDanhSachKhachHang(keyword));
     }
 
     @PutMapping("/hoa-don/{id}/khach-hang")
@@ -190,18 +138,10 @@ public class BanHangRestController {
         }
     }
 
-    @Autowired
-    private com.example.be.repository.PhieuGiamGiaRepository phieuGiamGiaRepository;
-
     @GetMapping("/phieu-giam-gia")
     public ResponseEntity<?> getPhieuGiamGia() {
-        List<com.example.be.entity.PhieuGiamGia> list = phieuGiamGiaRepository.findAll();
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        List<com.example.be.entity.PhieuGiamGia> list = phieuGiamGiaService.getAvailableVouchers();
         List<Map<String, Object>> result = list.stream()
-                .filter(p -> p.getTrangThai() != null && p.getTrangThai() == 1) // 1 = Đang hoạt động
-                .filter(p -> p.getSoLuong() > (p.getSoLuongDaDung() == null ? 0 : p.getSoLuongDaDung())) // Còn lượt dùng
-                .filter(p -> p.getNgayBatDau() == null || !p.getNgayBatDau().isAfter(now))
-                .filter(p -> p.getNgayKetThuc() == null || !p.getNgayKetThuc().isBefore(now))
                 .map(p -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", p.getId());
@@ -255,69 +195,5 @@ public class BanHangRestController {
             map.put("phieuGiamGia", pggMap);
         }
         return map;
-    }
-
-    private Map<String, Object> mapChiTiet(ChiTietHoaDon ct) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", ct.getId());
-        map.put("soLuong", ct.getSoLuong());
-        map.put("donGia", ct.getDonGia());
-        map.put("thanhTien", ct.getThanhTien());
-        
-        if (ct.getSanPhamChiTiet() != null) {
-            SanPhamChiTiet spct = ct.getSanPhamChiTiet();
-            map.put("idSanPhamChiTiet", spct.getId());
-            map.put("maSanPham", spct.getMa());
-            map.put("tenSanPham", spct.getSanPham() != null ? spct.getSanPham().getTenSanPham() : "");
-            map.put("mauSac", spct.getMauSac() != null ? spct.getMauSac().getTenMauSac() : "");
-            map.put("size", spct.getCoGiay() != null ? spct.getCoGiay().getSizeGiay() : "");
-            map.put("hinhAnh", resolveImageUrl(spct));
-
-            // Đánh dấu sản phẩm ngừng kinh doanh
-            boolean ngungKinhDoanh = (spct.getTrangThai() == null || spct.getTrangThai() != 1) ||
-                (spct.getSanPham() != null && (spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() != 1));
-            map.put("ngungKinhDoanh", ngungKinhDoanh);
-            
-            // Lấy giá gốc đã lưu trong chi tiết hóa đơn (frozen price)
-            BigDecimal giaBanGoc = ct.getDonGiaGoc() != null ? ct.getDonGiaGoc() : ct.getDonGia();
-            map.put("giaBanGoc", giaBanGoc);
-            
-            if (giaBanGoc != null && ct.getDonGia() != null && giaBanGoc.compareTo(ct.getDonGia()) > 0) {
-                BigDecimal diff = giaBanGoc.subtract(ct.getDonGia());
-                BigDecimal phanTram = diff.multiply(new BigDecimal("100")).divide(giaBanGoc, 0, java.math.RoundingMode.HALF_UP);
-                map.put("phanTramGiam", phanTram.intValue());
-            } else {
-                map.put("phanTramGiam", 0);
-            }
-
-            // Tính giá hiện tại của sản phẩm để hiển thị cảnh báo nếu giá thay đổi
-            if (spct.getGiaBan() != null) {
-                BigDecimal giaHienTai = spct.getGiaBan();
-                Integer discount = chiTietDotGiamGiaRepository.findMaxActiveDiscountBySanPhamChiTietId(spct.getId(), java.time.LocalDateTime.now());
-                if (discount != null && discount > 0 && discount <= 100) {
-                    BigDecimal giam = giaHienTai.multiply(BigDecimal.valueOf(discount)).divide(BigDecimal.valueOf(100));
-                    giaHienTai = giaHienTai.subtract(giam);
-                }
-                map.put("giaHienTai", giaHienTai);
-            }
-        }
-        return map;
-    }
-
-    private String resolveImageUrl(SanPhamChiTiet s) {
-        if (s == null) return null;
-        if (s.getDanhSachHinhAnh() != null && !s.getDanhSachHinhAnh().isEmpty()) {
-            String first = s.getDanhSachHinhAnh().get(0);
-            if (first != null && !first.isBlank()) {
-                return first.trim();
-            }
-        }
-        if (s.getHinhAnh() != null && !s.getHinhAnh().isBlank() && !s.getHinhAnh().equals("[]") && !s.getHinhAnh().equals("[\"\"]")) {
-            String clean = s.getHinhAnh().replaceAll("[\\[\\]\"]", "").trim();
-            if (!clean.isEmpty()) {
-                return clean.split("\\s*,\\s*")[0].trim();
-            }
-        }
-        return null;
     }
 }

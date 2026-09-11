@@ -54,9 +54,12 @@ public class CaLamController {
         return ResponseEntity.notFound().build();
     }
 
+    // KHONG DUNG XOA CUNG (SU DUNG CAP NHAT TRANG THAI DE BAT/TAT CA LAM)
+    /*
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         caLamService.deleteById(id);
         return ResponseEntity.ok().build();
     }
+    */
 }

@@ -89,7 +89,7 @@ async function fetchFlashSaleData() {
             const activeCamp = fsState.campaigns[0];
             const heroTitle = document.querySelector('.fs-hero-title');
             if (heroTitle && activeCamp.tenDotGiamGia) {
-                heroTitle.innerHTML = `⚡ ${escapeHtml(activeCamp.tenDotGiamGia)}<br><span style="font-size:24px;font-weight:700;">GIẢM ĐẾN ${activeCamp.phanTramGiam || 50}%</span>`;
+                heroTitle.innerHTML = `<i data-lucide="zap" style="width:24px;height:24px;vertical-align:-3px;color:#fbbf24;fill:#fbbf24;margin-right:4px;"></i>${escapeHtml(activeCamp.tenDotGiamGia)}<br><span style="font-size:24px;font-weight:700;">GIẢM ĐẾN ${activeCamp.phanTramGiam || 50}%</span>`;
             }
             if (activeCamp.ngayKetThuc) {
                 startCountdown(activeCamp.ngayKetThuc);
@@ -145,7 +145,7 @@ async function fetchFlashSaleData() {
         console.error('Lỗi tải sản phẩm Flash Sale:', err);
         grid.innerHTML = `
             <div class="fs-empty-box">
-                <div class="fs-empty-icon">⚠️</div>
+                <div class="fs-empty-icon"><i data-lucide="alert-triangle" style="width:42px;height:42px;color:#f59e0b;"></i></div>
                 <h3 style="font-size:18px;font-weight:700;color:#334155;margin-bottom:6px;">Lỗi tải dữ liệu Flash Sale</h3>
                 <p style="color:#64748b;font-size:14px;">Không thể tải danh sách đợt giảm giá từ máy chủ. Vui lòng thử lại sau.</p>
             </div>
@@ -180,7 +180,7 @@ function renderProducts(list) {
     if (!list || list.length === 0) {
         grid.innerHTML = `
             <div class="fs-empty-box">
-                <div class="fs-empty-icon">🏷️</div>
+                <div class="fs-empty-icon"><i data-lucide="tag" style="width:42px;height:42px;color:#00adef;"></i></div>
                 <h3 style="font-size:18px;font-weight:700;color:#334155;margin-bottom:6px;">Không có sản phẩm nào trong đợt giảm giá này</h3>
                 <p style="color:#64748b;font-size:14px;max-width:500px;margin:0 auto 16px;">Hiện tại chưa có sản phẩm nào được áp dụng trong đợt giảm giá đang diễn ra hoặc không có kết quả phù hợp với bộ lọc.</p>
                 <a href="/client/san-pham" style="display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:999px;background:#0f172a;color:white;text-decoration:none;font-weight:600;font-size:13.5px;">
@@ -204,7 +204,7 @@ function renderProducts(list) {
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     -${pct}%
                 </div>
-                <div class="fs-card-hot-tag">🔥 ĐANG GIẢM GIÁ</div>
+                <div class="fs-card-hot-tag"><i data-lucide="flame" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"></i>ĐANG GIẢM GIÁ</div>
                 
                 <div class="fs-card-img-wrap">
                     <img src="${imgUrl}" alt="${escapeHtml(item.tenSanPham)}" class="fs-card-img" onerror="this.src='/images/white.png'">
@@ -222,7 +222,7 @@ function renderProducts(list) {
                     <div class="fs-progress-wrap">
                         <div class="fs-progress-bar">
                             <div class="fs-progress-fill" style="width: ${Math.min(100, Math.max(25, 100 - tonKho * 3))}%;"></div>
-                            <span class="fs-progress-text">⚡ CÒN ${tonKho} ĐÔI TRONG KHO</span>
+                            <span class="fs-progress-text"><i data-lucide="zap" style="width:12px;height:12px;vertical-align:-1px;margin-right:3px;"></i>CÒN ${tonKho} ĐÔI TRONG KHO</span>
                         </div>
                     </div>
 
@@ -263,7 +263,7 @@ function quickBuy(productId) {
 
     localStorage.setItem('vshoes_cart', JSON.stringify(cart));
     updateCartBadge();
-    showToast(`⚡ Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
+    showToast(`Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
 }
 
 function updateCartBadge() {
@@ -315,7 +315,7 @@ function showToast(msg) {
     const toast = document.createElement('div');
     toast.className = 'toast show';
     toast.style.cssText = 'background: #0f172a; color: white; border-left: 4px solid #ef4444; padding: 12px 18px; border-radius: 8px; margin-bottom: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13.5px;';
-    toast.innerHTML = `<span>⚡</span> <span>${escapeHtml(msg)}</span>`;
+    toast.innerHTML = `<i data-lucide="zap" style="width:16px;height:16px;margin-right:6px;"></i><span>${escapeHtml(msg)}</span>`;
     container.appendChild(toast);
 
     setTimeout(() => {

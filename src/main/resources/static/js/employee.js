@@ -257,15 +257,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3. Open Form for Adding Employee
     btnAdd.onclick = () => {
         isEditing = false;
-        document.getElementById("formTitle").textContent = "Thêm nhân viên mới";
+        document.getElementById("formTitle").textContent = "Thêm mới Nhân viên";
         form.reset();
         document.getElementById("empId").value = "";
         document.getElementById("empCode").value = getNextEmployeeCode();
         fetch("/api/nhan-vien/next-code")
             .then(res => res.json())
             .then(data => {
-                if (data && data.maNhanVien) {
-                    document.getElementById("empCode").value = data.maNhanVien;
+                if (data && (data.code || data.maNhanVien)) {
+                    document.getElementById("empCode").value = data.code || data.maNhanVien;
                 }
             })
             .catch(() => {});
@@ -618,9 +618,10 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .then(nv => {
                 if (nv) {
-                    document.getElementById("formTitle").textContent = "Sửa thông tin nhân viên";
+                    const code = nv.maNhanVien || "";
+                    document.getElementById("formTitle").textContent = "Chỉnh sửa Nhân viên" + (code ? " - Mã: " + code : "");
                     document.getElementById("empId").value = nv.id;
-                    document.getElementById("empCode").value = nv.maNhanVien || "";
+                    document.getElementById("empCode").value = code;
                     document.getElementById("empName").value = nv.hoTen || "";
                     document.getElementById("empEmail").value = nv.email || "";
                     document.getElementById("empPhone").value = nv.soDienThoai || "";
@@ -650,11 +651,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (window.addressHelper) window.addressHelper.updateHiddenAddress();
                     }
                     
-                    // Show and set status field when editing
-                    document.getElementById("statusGroup").style.display = "block";
+                    // Hide status field when editing (status is toggled via switch outside)
+                    document.getElementById("statusGroup").style.display = "none";
                     const btnDel = document.getElementById("btnDeleteEmployee");
                     if (btnDel) btnDel.style.display = "inline-flex";
-                    document.getElementById("empStatus").value = String(nv.trangThai);
+                    document.getElementById("empStatus").value = String(nv.trangThai != null ? nv.trangThai : 1);
                     
                     // Set Gender
                     if (nv.gioiTinh === false) {
@@ -831,7 +832,7 @@ function renderTable() {
             </td>
             <td style="text-align: center;">
                 <div class="btn-actions-cell" style="justify-content: center;">
-                    <button type="button" class="action-icon-btn edit" onclick="editEmployee(${nv.id})" title="Xem/Sửa">
+                    <button type="button" class="action-icon-btn edit" onclick="editEmployee(${nv.id})" title="Chỉnh sửa nhân viên">
                         <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
                     </button>
                     <label class="switch-control" title="Thay đổi trạng thái">
@@ -952,4 +953,102 @@ window.deleteEmployee = function(id) {
         .catch(err => {
             window.showToast("Lỗi hệ thống khi tải dữ liệu nhân viên!", "error");
         });
-}
+};
+
+// ================= ADDRESS CASCADE HELPER =================
+(function() {
+    function updateHiddenAddress() {
+        const province = document.getElementById('addrProvince');
+        const district = document.getElementById('addrDistrict');
+        const ward = document.getElementById('addrWard');
+        const street = document.getElementById('addrStreet');
+        const hidden = document.getElementById('empAddress');
+        if (!hidden) return;
+        const parts = [];
+        if (street && street.value.trim()) parts.push(street.value.trim());
+        if (ward && ward.value) parts.push(ward.options[ward.selectedIndex].textContent);
+        if (district && district.value) parts.push(district.options[district.selectedIndex].textContent);
+        if (province && province.value) parts.push(province.options[province.selectedIndex].textContent);
+        hidden.value = parts.join(', ');
+    }
+
+    async function loadProvinces() {
+        const sel = document.getElementById('addrProvince');
+        if (!sel) return;
+        try {
+            const res = await fetch('/api/address/provinces');
+            const data = await res.json();
+            data.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+            data.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.code;
+                opt.textContent = p.name;
+                sel.appendChild(opt);
+            });
+        } catch(e) { console.error('Lỗi tải tỉnh/TP:', e); }
+    }
+
+    async function loadDistricts(provinceCode) {
+        const sel = document.getElementById('addrDistrict');
+        const wardSel = document.getElementById('addrWard');
+        sel.innerHTML = '<option value="">Chọn quận huyện</option>';
+        wardSel.innerHTML = '<option value="">Chọn xã phường</option>';
+        if (!provinceCode) { updateHiddenAddress(); return; }
+        try {
+            const res = await fetch('/api/address/districts/' + provinceCode);
+            const data = await res.json();
+            (data.districts || []).forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.code;
+                opt.textContent = d.name;
+                sel.appendChild(opt);
+            });
+        } catch(e) { console.error('Lỗi tải quận/huyện:', e); }
+        updateHiddenAddress();
+    }
+
+    async function loadWards(districtCode) {
+        const sel = document.getElementById('addrWard');
+        sel.innerHTML = '<option value="">Chọn xã phường</option>';
+        if (!districtCode) { updateHiddenAddress(); return; }
+        try {
+            const res = await fetch('/api/address/wards/' + districtCode);
+            const data = await res.json();
+            (data.wards || []).forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.code;
+                opt.textContent = w.name;
+                sel.appendChild(opt);
+            });
+        } catch(e) { console.error('Lỗi tải phường/xã:', e); }
+        updateHiddenAddress();
+    }
+
+    function resetAddressFields() {
+        const p = document.getElementById('addrProvince');
+        const d = document.getElementById('addrDistrict');
+        const w = document.getElementById('addrWard');
+        const s = document.getElementById('addrStreet');
+        const h = document.getElementById('empAddress');
+        if (p) p.value = '';
+        if (d) { d.innerHTML = '<option value="">Chọn quận huyện</option>'; }
+        if (w) { w.innerHTML = '<option value="">Chọn xã phường</option>'; }
+        if (s) s.value = '';
+        if (h) h.value = '';
+    }
+
+    window.addressHelper = { resetAddressFields, updateHiddenAddress, loadProvinces, loadDistricts, loadWards };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadProvinces();
+        const pSel = document.getElementById('addrProvince');
+        const dSel = document.getElementById('addrDistrict');
+        const wSel = document.getElementById('addrWard');
+        const street = document.getElementById('addrStreet');
+        if (pSel) pSel.addEventListener('change', () => loadDistricts(pSel.value));
+        if (dSel) dSel.addEventListener('change', () => loadWards(dSel.value));
+        if (wSel) wSel.addEventListener('change', updateHiddenAddress);
+        if (street) street.addEventListener('input', updateHiddenAddress);
+    });
+})();
+

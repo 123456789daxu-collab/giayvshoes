@@ -225,7 +225,7 @@ async function handleRegister() {
         const data = await res.json();
         
         if (res.ok && data.success) {
-            showToast('🎉 Đăng ký tài khoản thành công!', 'success');
+            showToast('Đăng ký tài khoản thành công!', 'success');
             
             setTimeout(() => {
                 window.location.href = '/trang-chu';

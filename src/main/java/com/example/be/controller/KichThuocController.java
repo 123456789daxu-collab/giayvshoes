@@ -3,7 +3,7 @@ package com.example.be.controller;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.be.entity.CoGiay;
-import com.example.be.repository.CoGiayRepository;
+import com.example.be.service.ThuocTinhService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class KichThuocController {
 
     @Autowired
-    private CoGiayRepository coGiayRepository;
+    private ThuocTinhService thuocTinhService;
+
+    @Autowired
+    private com.example.be.service.MaGeneratorService maGeneratorService;
 
     @GetMapping
     public String index(Model model, 
@@ -28,56 +31,24 @@ public class KichThuocController {
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size) {
         Pageable pageable = PageRequest.of(page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
-        Page<CoGiay> pageData;
-        if ((keyword != null && !keyword.isEmpty()) || trangThai != null) {
-            pageData = coGiayRepository.search(keyword, trangThai, pageable);
-        } else {
-            pageData = coGiayRepository.findAll(pageable);
-        }
+        Page<CoGiay> pageData = thuocTinhService.searchCoGiay(keyword, trangThai, pageable);
         model.addAttribute("pageData", pageData);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
-        model.addAttribute("nextMaCoGiay", generateNextMaCoGiay());
+        model.addAttribute("nextMaCoGiay", maGeneratorService.generateMaCoGiay());
         return "kich-thuoc";
-    }
-
-    private String generateNextMaCoGiay() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        java.security.SecureRandom random = new java.security.SecureRandom();
-        String code;
-        do {
-            StringBuilder sb = new StringBuilder("CG");
-            for (int i = 0; i < 6; i++) {
-                sb.append(chars.charAt(random.nextInt(chars.length())));
-            }
-            code = sb.toString();
-        } while (coGiayRepository.existsByMaCoGiay(code));
-        return code;
     }
 
     @PostMapping("/add")
     public String add(@ModelAttribute CoGiay coGiay, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (coGiay.getSizeGiay() == null || coGiay.getSizeGiay() <= 0) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Kích thước không hợp lệ!");
-            return "redirect:" + (referer != null ? referer : "/kich-thuoc");
-        }
-
-        java.util.Optional<CoGiay> existing = coGiayRepository.findBySizeGiay(coGiay.getSizeGiay());
-        if (existing.isPresent()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Kích thước này đã tồn tại trong hệ thống.");
-            return "redirect:" + (referer != null ? referer : "/kich-thuoc");
-        }
-
-        if (coGiay.getMaCoGiay() == null || coGiay.getMaCoGiay().trim().isEmpty() || "(Tự động sinh)".equals(coGiay.getMaCoGiay().trim())) {
-            coGiay.setMaCoGiay(generateNextMaCoGiay());
-        }
-        coGiay.setTrangThai(true);
         try {
-            coGiayRepository.save(coGiay);
+            thuocTinhService.addCoGiay(coGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Thêm thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Mã kích thước có thể đã tồn tại.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Thêm thất bại! Kích thước hoặc mã có thể đã tồn tại.");
         }
         return "redirect:" + (referer != null ? referer : "/kich-thuoc");
     }
@@ -85,23 +56,13 @@ public class KichThuocController {
     @PostMapping("/update/{id}")
     public String update(@PathVariable Long id, @ModelAttribute CoGiay coGiay, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String referer = request.getHeader("Referer");
-        if (coGiay.getSizeGiay() == null || coGiay.getSizeGiay() <= 0) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Kích thước không hợp lệ!");
-            return "redirect:" + (referer != null ? referer : "/kich-thuoc");
-        }
-
-        java.util.Optional<CoGiay> existing = coGiayRepository.findBySizeGiay(coGiay.getSizeGiay());
-        if (existing.isPresent() && !existing.get().getId().equals(id)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Kích thước này đã trùng với kích thước khác.");
-            return "redirect:" + (referer != null ? referer : "/kich-thuoc");
-        }
-
-        coGiay.setId(id);
         try {
-            coGiayRepository.save(coGiay);
+            thuocTinhService.updateCoGiay(id, coGiay);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thành công");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Mã kích thước có thể đã tồn tại.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Cập nhật thất bại! Kích thước hoặc mã có thể đã tồn tại.");
         }
         return "redirect:" + (referer != null ? referer : "/kich-thuoc");
     }
@@ -109,14 +70,10 @@ public class KichThuocController {
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         try {
-            CoGiay coGiay = coGiayRepository.findById(id).orElse(null);
-            if(coGiay != null) {
-                coGiay.setTrangThai(coGiay.getTrangThai() != null ? !coGiay.getTrangThai() : false);
-                coGiayRepository.save(coGiay);
-                redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
-            }
+            thuocTinhService.toggleStatusCoGiay(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái thành công");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã có lỗi xảy ra!");
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi cập nhật trạng thái!");
         }
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/kich-thuoc");
