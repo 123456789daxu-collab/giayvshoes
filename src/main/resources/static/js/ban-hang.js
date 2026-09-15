@@ -404,7 +404,7 @@ const posApp = {
                     <td class="text-muted py-2">${item.maSanPham || 'N/A'}</td>
                     <td class="text-start py-2">
                         <div class="d-flex align-items-center">
-                            <img src="${item.hinhAnh || 'https://via.placeholder.com/32'}" class="product-img me-2 shadow-sm" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                            <img src="${item.hinhAnh || '/images/shoe1.png'}" class="product-img me-2 shadow-sm" onerror="this.src='/images/shoe1.png'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
                             <span class="fw-semibold text-dark">${item.tenSanPham}</span>
                         </div>
                     </td>
@@ -549,7 +549,7 @@ const posApp = {
                     <td>${p.ma || 'N/A'}</td>
                     <td class="text-start fw-semibold">
                         <div class="d-flex align-items-center">
-                            <img src="${p.hinhAnh || 'https://via.placeholder.com/32'}" class="product-img me-2" onerror="this.src='https://via.placeholder.com/32'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                            <img src="${p.hinhAnh || '/images/shoe1.png'}" class="product-img me-2" onerror="this.src='/images/shoe1.png'" style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
                             <span>${p.tenSanPham}</span>
                         </div>
                     </td>

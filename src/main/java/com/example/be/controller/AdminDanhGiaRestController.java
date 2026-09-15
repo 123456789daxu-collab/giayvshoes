@@ -42,9 +42,14 @@ public class AdminDanhGiaRestController {
             String phanHoi = payload.get("phanHoi");
             String nguoiPhanHoi = payload.getOrDefault("nguoiPhanHoi", "Shop VShoes");
             DanhGia dg = danhGiaService.replyReview(id, phanHoi, nguoiPhanHoi);
-            return ResponseEntity.ok(Map.of("success", true, "message", "Đã gửi phản hồi thành công!", "data", dg));
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã gửi phản hồi thành công!",
+                    "id", dg.getId()
+            ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            String msg = e.getMessage() != null ? e.getMessage() : "Lỗi xử lý phản hồi";
+            return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
     }
 
@@ -52,13 +57,15 @@ public class AdminDanhGiaRestController {
     public ResponseEntity<?> toggleVisibility(@PathVariable Long id) {
         try {
             DanhGia dg = danhGiaService.toggleVisibility(id);
+            int st = dg.getTrangThai() != null ? dg.getTrangThai() : 1;
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "trangThai", dg.getTrangThai(),
-                    "message", dg.getTrangThai() == 1 ? "Đã hiện đánh giá!" : "Đã ẩn đánh giá!"
+                    "trangThai", st,
+                    "message", st == 1 ? "Đã hiện đánh giá!" : "Đã ẩn đánh giá!"
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            String msg = e.getMessage() != null ? e.getMessage() : "Lỗi xử lý trạng thái";
+            return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
     }
 
@@ -68,7 +75,8 @@ public class AdminDanhGiaRestController {
             danhGiaService.deleteReview(id);
             return ResponseEntity.ok(Map.of("success", true, "message", "Đã xóa đánh giá thành công!"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            String msg = e.getMessage() != null ? e.getMessage() : "Lỗi xóa đánh giá";
+            return ResponseEntity.badRequest().body(Map.of("error", msg));
         }
     }
 }

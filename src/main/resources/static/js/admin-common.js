@@ -137,15 +137,35 @@ window.AdminNotify = {
     },
 
     /**
-     * Popup xác nhận hành động chung
+     * Popup xác nhận hành động chung (Hỗ trợ cả Object lẫn params: confirm(message, onConfirm, onCancel))
      */
-    confirm: function(options = {}) {
-        const title = options.title || 'Xác nhận thao tác?';
-        const text = options.text || 'Bạn có chắc chắn muốn thực hiện thao tác này?';
-        const icon = options.icon || 'question';
-        const confirmText = options.confirmText || 'Đồng ý';
-        const cancelText = options.cancelText || 'Hủy';
-        const confirmColor = options.confirmColor || '#0ea5e9';
+    confirm: function(options = {}, callback = null, cancelCallback = null) {
+        let title = 'Xác nhận thao tác?';
+        let text = 'Bạn có chắc chắn muốn thực hiện thao tác này?';
+        let icon = 'question';
+        let confirmText = 'Đồng ý';
+        let cancelText = 'Hủy';
+        let confirmColor = '#0ea5e9';
+        let onConfirm = null;
+        let onCancel = null;
+
+        if (typeof options === 'string') {
+            text = options;
+            if (typeof callback === 'function') onConfirm = callback;
+            if (typeof cancelCallback === 'function') onCancel = cancelCallback;
+        } else if (typeof options === 'function') {
+            onConfirm = options;
+            if (typeof callback === 'function') onCancel = callback;
+        } else if (typeof options === 'object' && options !== null) {
+            title = options.title || title;
+            text = options.text || text;
+            icon = options.icon || icon;
+            confirmText = options.confirmText || confirmText;
+            cancelText = options.cancelText || cancelText;
+            confirmColor = options.confirmColor || confirmColor;
+            onConfirm = options.onConfirm || (typeof callback === 'function' ? callback : null);
+            onCancel = options.onCancel || (typeof cancelCallback === 'function' ? cancelCallback : null);
+        }
 
         if (typeof Swal !== 'undefined') {
             return Swal.fire({
@@ -160,18 +180,18 @@ window.AdminNotify = {
                 borderRadius: '12px'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    if (options.onConfirm) options.onConfirm();
+                    if (onConfirm) onConfirm();
                 } else {
-                    if (options.onCancel) options.onCancel();
+                    if (onCancel) onCancel();
                 }
                 return result;
             });
         } else {
             if (confirm(text)) {
-                if (options.onConfirm) options.onConfirm();
+                if (onConfirm) onConfirm();
                 return Promise.resolve({ isConfirmed: true });
             } else {
-                if (options.onCancel) options.onCancel();
+                if (onCancel) onCancel();
                 return Promise.resolve({ isConfirmed: false });
             }
         }
@@ -180,19 +200,32 @@ window.AdminNotify = {
     /**
      * Popup xác nhận đổi/tắt/bật trạng thái đồng bộ
      */
-    confirmToggle: function(options = {}) {
-        let entityName = options.entityName || 'bản ghi';
-        let isActivating = options.isActivating !== undefined ? options.isActivating : null;
-        let actionWord = isActivating === true ? 'kích hoạt / mở bán' : (isActivating === false ? 'tắt hoạt động / ngừng kinh doanh' : 'thay đổi trạng thái');
-        let title = options.title || `Xác nhận ${actionWord}?`;
-        let text = options.text || `Bạn có chắc chắn muốn ${actionWord} cho ${entityName} này?`;
-        let onConfirm = options.onConfirm || options.callback || null;
-        let targetUrl = options.targetUrl || null;
-        let checkboxEl = options.checkboxEl || null;
+    confirmToggle: function(options = {}, callback = null) {
+        let entityName = 'bản ghi';
+        let isActivating = null;
+        let onConfirm = null;
+        let targetUrl = null;
+        let checkboxEl = null;
+        let onCancel = null;
 
-        if (options.event && options.event.preventDefault) {
-            options.event.preventDefault();
+        if (typeof options === 'string') {
+            entityName = options;
+            if (typeof callback === 'function') onConfirm = callback;
+        } else if (typeof options === 'object' && options !== null) {
+            entityName = options.entityName || entityName;
+            isActivating = options.isActivating !== undefined ? options.isActivating : null;
+            onConfirm = options.onConfirm || options.callback || (typeof callback === 'function' ? callback : null);
+            targetUrl = options.targetUrl || null;
+            checkboxEl = options.checkboxEl || null;
+            onCancel = options.onCancel;
+            if (options.event && options.event.preventDefault) {
+                options.event.preventDefault();
+            }
         }
+
+        let actionWord = isActivating === true ? 'kích hoạt / mở bán' : (isActivating === false ? 'tắt hoạt động / ngừng kinh doanh' : 'thay đổi trạng thái');
+        let title = `Xác nhận ${actionWord}?`;
+        let text = `Bạn có chắc chắn muốn ${actionWord} cho ${entityName} này?`;
 
         return this.confirm({
             title: title,
@@ -207,7 +240,7 @@ window.AdminNotify = {
             },
             onCancel: () => {
                 if (checkboxEl) checkboxEl.checked = !checkboxEl.checked;
-                if (options.onCancel) options.onCancel();
+                if (onCancel) onCancel();
             }
         });
     },
@@ -215,20 +248,30 @@ window.AdminNotify = {
     /**
      * Popup xác nhận xóa đồng bộ (nền đỏ cảnh báo)
      */
-    confirmDelete: function(options = {}) {
-        let entityName = options.entityName || 'bản ghi này';
-        let title = options.title || `Xác nhận xóa?`;
-        let text = options.text || `Bạn có chắc chắn muốn xóa ${entityName} không? Hành động này không thể hoàn tác.`;
-        let onConfirm = options.onConfirm || options.callback || null;
-        let onCancel = options.onCancel || null;
+    confirmDelete: function(options = {}, callback = null) {
+        let entityName = 'bản ghi này';
+        let onConfirm = null;
+        let onCancel = null;
+
+        if (typeof options === 'string') {
+            entityName = options;
+            if (typeof callback === 'function') onConfirm = callback;
+        } else if (typeof options === 'object' && options !== null) {
+            entityName = options.entityName || entityName;
+            onConfirm = options.onConfirm || options.callback || (typeof callback === 'function' ? callback : null);
+            onCancel = options.onCancel;
+        }
+
+        let title = `Xác nhận xóa?`;
+        let text = `Bạn có chắc chắn muốn xóa ${entityName} không? Hành động này không thể hoàn tác.`;
 
         return this.confirm({
             title: title,
             text: text,
             icon: 'warning',
             confirmColor: '#ef4444',
-            confirmText: options.confirmText || 'Có, Xóa!',
-            cancelText: options.cancelText || 'Hủy',
+            confirmText: 'Có, Xóa!',
+            cancelText: 'Hủy',
             onConfirm: () => {
                 if (onConfirm) onConfirm();
             },

@@ -169,20 +169,35 @@
                         <!-- THIẾT LẬP CHUNG CHO BIẾN THỂ -->
                         <div class="card bg-white border mb-4" style="border-radius: 8px; border-color: #e5e7eb !important;">
                             <div class="card-header bg-white border-bottom-0 pt-4 pb-2">
-                                <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Thiết lập chung cho tất cả biến thể</h6>
+                                <h6 class="fw-bold mb-0 text-dark text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;"><i class="bi bi-sliders me-2 text-primary"></i>Thiết lập chung cho tất cả biến thể</h6>
                             </div>
                             <div class="card-body p-4 pt-2">
-                                <div class="row g-4">
+                                <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Số lượng</label>
+                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Số lượng chung</label>
                                         <input type="text" class="form-control" id="globalSoLuong" placeholder="Ví dụ: 100" oninput="formatNumberInput(this)" style="border-radius: 6px; border-color: #d1d5db; padding: 10px 14px; text-align: left;">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Giá bán</label>
+                                        <label class="form-label fw-medium text-dark" style="font-size: 0.9rem;">Giá bán chung</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="globalGiaBan" placeholder="0" oninput="formatNumberInput(this)" style="border-radius: 6px 0 0 6px; border-color: #d1d5db; padding: 10px 14px; text-align: left;">
                                             <span class="input-group-text bg-white text-muted" style="border-radius: 0 6px 6px 0; border-color: #d1d5db;">VNĐ</span>
                                         </div>
+                                    </div>
+                                    <!-- Mục Tải ảnh chung đồng bộ cho tất cả biến thể -->
+                                    <div class="col-12 mt-3">
+                                        <label class="form-label fw-medium text-dark d-flex justify-content-between align-items-center mb-2" style="font-size: 0.9rem;">
+                                            <span><i class="bi bi-images me-1 text-primary"></i>Ảnh chung (Tự động đồng bộ sang tất cả màu)</span>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnSyncGlobalImages" onclick="applyGlobalImagesToAll()" style="border-radius: 6px; font-size: 12px; display: none;">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Đồng bộ lại sang tất cả màu
+                                            </button>
+                                        </label>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;" id="globalPreviewGrid"></div>
+                                        <div id="globalImageContainer" style="border: 2px dashed #0284c7; padding: 14px; border-radius: 8px; cursor: pointer; text-align: center; color: #0369a1; display: flex; align-items: center; justify-content: center; gap: 10px; background-color: #f0f9ff; transition: all 0.3s;" onclick="document.getElementById('globalImageUpload').click()">
+                                            <i class="bi bi-cloud-arrow-up fs-4 text-primary"></i>
+                                            <span class="fw-semibold" style="font-size: 13.5px;" id="globalUploadText">Tải ảnh chung (Tự động đồng bộ cho tất cả các màu)</span>
+                                        </div>
+                                        <input type="file" id="globalImageUpload" accept="image/*" multiple style="display: none;" onchange="previewGlobalImages(this)">
                                     </div>
                                 </div>
                             </div>

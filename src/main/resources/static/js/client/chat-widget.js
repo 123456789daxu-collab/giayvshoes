@@ -464,7 +464,7 @@
                         <div class="cw-prod-cards-container">
                             ${matchedProducts.map(function(p) {
                                 var rating = getProductRating(p);
-                                var img = p.hinhAnh || '/images/white.png';
+                                var img = p.hinhAnh || '/images/shoe1.png';
                                 var price = formatCurrency(p.giaBan || p.giaGoc || 0);
                                 var discountBadge = (p.phanTramGiam && p.phanTramGiam > 0) ? `<span class="cw-prod-discount">-${p.phanTramGiam}%</span>` : '';
                                 var colorText = p.mauSac ? ` · ${p.mauSac}` : '';
@@ -472,7 +472,7 @@
 
                                 return `
                                     <div class="cw-prod-mini-card" onclick="window.open('${link}', '_blank')" style="cursor: pointer;">
-                                        <img src="${img}" class="cw-prod-mini-img" alt="${escapeHTML(p.tenSanPham || '')}" onerror="this.src='/images/white.png'">
+                                        <img src="${img}" class="cw-prod-mini-img" alt="${escapeHTML(p.tenSanPham || '')}" onerror="this.src='/images/shoe1.png'">
                                         <div class="cw-prod-mini-info">
                                             <div class="cw-prod-mini-title" title="${escapeHTML(p.tenSanPham || '')}">
                                                 ${escapeHTML(p.tenSanPham || 'Giày thể thao VShoes')}

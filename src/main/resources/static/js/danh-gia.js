@@ -4,6 +4,14 @@
  * ============================================================
  */
 
+function getTodayDateString() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 const dgState = {
     viewMode: 'by-product', // 'by-product' (mặc định) | 'all-reviews'
     currentView: 'list',    // 'list' | 'detail'
@@ -539,7 +547,21 @@ function renderDetailReviewsList() {
         const stars = r.soSao || 5;
         const authorName = kh.hoTen || r.tenHienThi || 'Khách hàng';
         const initial = authorName.trim().charAt(0).toUpperCase() || 'K';
-        const images = r.anhDanhGia || [];
+        let images = [];
+        if (Array.isArray(r.anhDanhGia)) {
+            images = r.anhDanhGia;
+        } else if (typeof r.anhDanhGia === 'string' && r.anhDanhGia.trim()) {
+            try {
+                const parsed = JSON.parse(r.anhDanhGia);
+                if (Array.isArray(parsed)) images = parsed;
+                else if (typeof parsed === 'string' && parsed) images = [parsed];
+            } catch (e) {
+                const clean = r.anhDanhGia.replace(/[\[\]"]/g, '').trim();
+                if (clean) images = clean.split(',').map(s => s.trim()).filter(Boolean);
+            }
+        } else if (Array.isArray(r.images)) {
+            images = r.images;
+        }
 
         // Stars render using Bootstrap Icons
         const starsDisplay = '<i class="bi bi-star-fill text-warning me-1"></i>'.repeat(stars) + '<i class="bi bi-star text-muted me-1"></i>'.repeat(5 - stars);
@@ -583,6 +605,21 @@ function renderDetailReviewsList() {
             `;
         }
 
+        // Video player
+        const videoSrc = r.videoDanhGia || r.video;
+        let videoHtml = '';
+        if (videoSrc) {
+            let finalVideo = (videoSrc || '').trim();
+            if (finalVideo && !finalVideo.startsWith('/') && !finalVideo.startsWith('http') && !finalVideo.startsWith('data:')) {
+                finalVideo = '/upload/' + finalVideo;
+            }
+            videoHtml = `
+                <div class="dg-review-video-wrap mt-2">
+                    <video src="${finalVideo}" controls style="max-width: 260px; max-height: 160px; border-radius: 8px; border: 1px solid #e2e8f0; background:#000;"></video>
+                </div>
+            `;
+        }
+
         return `
             <div class="dg-review-detail-card" id="reviewCard_${r.id}">
                 <div class="dg-review-head">
@@ -605,6 +642,7 @@ function renderDetailReviewsList() {
                 </div>
 
                 ${imagesHtml}
+                ${videoHtml}
                 ${replyHtml}
             </div>
         `;
@@ -635,9 +673,12 @@ async function sendDirectReply(reviewId) {
             })
         });
 
-        if (!res.ok) throw new Error('API error');
+        let data = {};
+        try { data = await res.json(); } catch(err) {}
 
-        await loadData();
+        if (!res.ok || data.error) {
+            throw new Error(data.error || 'Lỗi từ máy chủ khi lưu phản hồi!');
+        }
 
         if (window.Swal) {
             Swal.fire({
@@ -649,9 +690,13 @@ async function sendDirectReply(reviewId) {
                 timer: 2000
             });
         }
+
+        await loadData();
+
     } catch (e) {
+        console.error('Lỗi gửi phản hồi:', e);
         if (window.Swal) {
-            Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể gửi phản hồi!' });
+            Swal.fire({ icon: 'error', title: 'Lỗi', text: e.message || 'Không thể gửi phản hồi!' });
         }
     }
 }
@@ -779,7 +824,8 @@ function getImageUrl(hinhAnh, seedId) {
             return parts[0].trim();
         }
     }
-    return '/images/white.png';
+    const fallbacks = ['/images/shoe1.png', '/images/shoe2.png', '/images/shoe3.png', '/images/shoe4.png'];
+    return fallbacks[Math.abs(seedId || 0) % fallbacks.length];
 }
 
 function escapeHtml(str) {

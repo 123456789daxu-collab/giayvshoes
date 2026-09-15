@@ -305,15 +305,17 @@ async function performLogout() {
 }
 
 function getImageUrlHeader(hinhAnh, defaultIdx = 0) {
+    const fallbacks = ['/images/shoe1.png', '/images/shoe2.png', '/images/shoe3.png', '/images/shoe4.png'];
+    const fallback = fallbacks[Math.abs(defaultIdx || 0) % fallbacks.length];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return '/images/white.png';
+        return fallback;
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return '/images/white.png';
+    if (!img) return fallback;
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return '/images/white.png';
+    if (!img) return fallback;
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

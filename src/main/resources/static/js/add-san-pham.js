@@ -216,13 +216,16 @@
                     <td style="vertical-align: middle;">
                         <button type="button" class="btn btn-link text-danger" onclick="openDeleteSizeModal('${colorObj.id}')"><i class="bi bi-trash-fill fs-5"></i></button>
                     </td>
-                    <td style="border-left: 1px solid #f1f5f9; background: #fff; vertical-align: middle; min-width: 200px;">
+                    <td style="border-left: 1px solid #f1f5f9; background: #fff; vertical-align: middle; min-width: 220px;">
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px;" id="previewGrid_${colorObj.id}"></div>
                         <div id="imagePreviewContainer_${colorObj.id}" style="border: 2px dashed #cbd5e1; padding: 15px; border-radius: 10px; cursor: pointer; text-align: center; color: #64748b; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #f8fafc; transition: all 0.3s;" onclick="document.getElementById('imageUpload_${colorObj.id}').click()">
                             <i class="bi bi-cloud-arrow-up fs-3" id="uploadIcon_${colorObj.id}" style="color: #64748b; transition: all 0.3s;"></i>
                             <div class="mt-1 fw-medium" style="font-size: 13px; line-height: 1.4; transition: all 0.3s;" id="uploadText_${colorObj.id}" data-original-text="Tải ảnh (Tối đa 6)<br/>(Màu ${colorObj.element.dataset.name})">Tải ảnh (Tối đa 6)<br/>(Màu ${colorObj.element.dataset.name})</div>
                         </div>
                         <input type="file" id="imageUpload_${colorObj.id}" accept="image/*" multiple style="display: none;" onchange="previewImages(this, '${colorObj.id}')">
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2 w-100 btn-sync-color" id="btnSyncFrom_${colorObj.id}" onclick="syncImagesToAllColors('${colorObj.id}')" style="display: none; border-radius: 6px; font-size: 11.5px; font-weight: 600; padding: 5px 8px;">
+                            <i class="bi bi-arrow-repeat me-1"></i>Đồng bộ ảnh này sang tất cả màu
+                        </button>
                     </td>
                 `;
                 
@@ -232,6 +235,15 @@
 
             document.getElementById('variantSection').style.display = 'block';
             
+            // Auto-assign global images if color images are empty
+            if (globalImages.length > 0) {
+                selectedColors.forEach(c => {
+                    if (!colorImagesMap[c.id] || colorImagesMap[c.id].length === 0) {
+                        colorImagesMap[c.id] = [...globalImages];
+                    }
+                });
+            }
+
             // Render previously uploaded images globally stored
             Object.keys(colorImagesMap).forEach(cId => {
                 renderPreviewGrid(cId);
@@ -239,6 +251,122 @@
         }
 
         let colorImagesMap = {};
+        let globalImages = [];
+
+        // Global images synchronization
+        function previewGlobalImages(input) {
+            if (input.files && input.files.length > 0) {
+                let filesToProcess = Array.from(input.files);
+                let spaceLeft = 6 - globalImages.length;
+                if (spaceLeft <= 0) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Đã đạt giới hạn 6 ảnh!', showConfirmButton: false, timer: 3000 });
+                    input.value = '';
+                    return;
+                }
+                if (filesToProcess.length > spaceLeft) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Chỉ có thể thêm ' + spaceLeft + ' ảnh nữa!', showConfirmButton: false, timer: 3000 });
+                    filesToProcess = filesToProcess.slice(0, spaceLeft);
+                }
+                let loadedCount = 0;
+                filesToProcess.forEach(file => {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        globalImages.push(e.target.result);
+                        loadedCount++;
+                        if (loadedCount === filesToProcess.length) {
+                            renderGlobalPreviewGrid();
+                            applyGlobalImagesToAll(true);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+            input.value = '';
+        }
+
+        function removeGlobalImage(index) {
+            globalImages.splice(index, 1);
+            renderGlobalPreviewGrid();
+        }
+
+        function renderGlobalPreviewGrid() {
+            const grid = document.getElementById('globalPreviewGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            globalImages.forEach((b64, index) => {
+                grid.innerHTML += `
+                    <div style="position: relative; width: 75px; height: 75px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #ffffff;">
+                        <img src="${b64}" style="width: 100%; height: 100%; object-fit: contain; padding: 2px;" />
+                        <button type="button" onclick="removeGlobalImage(${index})" style="position: absolute; top: 0; right: 0; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-bottom-left-radius: 6px;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            const btnSync = document.getElementById('btnSyncGlobalImages');
+            if (btnSync) {
+                btnSync.style.display = globalImages.length > 0 ? 'inline-flex' : 'none';
+            }
+            const uploadText = document.getElementById('globalUploadText');
+            if (uploadText) {
+                uploadText.innerHTML = globalImages.length > 0 
+                    ? `Đã chọn ${globalImages.length}/6 ảnh chung (Nhấn để thêm tiếp)`
+                    : 'Tải ảnh chung (Tự động đồng bộ cho tất cả các màu)';
+            }
+        }
+
+        function applyGlobalImagesToAll(silent = false) {
+            if (globalImages.length === 0) {
+                if (!silent) Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Chưa có ảnh chung nào để đồng bộ!', showConfirmButton: false, timer: 3000 });
+                return;
+            }
+            const allColorCheckboxes = Array.from(document.querySelectorAll('.color-checkbox:checked'));
+            if (allColorCheckboxes.length === 0) {
+                if (!silent) Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Ảnh chung đã lưu, sẽ tự động áp dụng khi tạo biến thể.', showConfirmButton: false, timer: 3000 });
+                return;
+            }
+            allColorCheckboxes.forEach(cb => {
+                colorImagesMap[cb.value] = [...globalImages];
+                renderPreviewGrid(cb.value);
+            });
+            if (!silent) {
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Đã đồng bộ ' + globalImages.length + ' ảnh sang tất cả các màu!',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        }
+
+        function syncImagesToAllColors(sourceColorId) {
+            const sourceImages = colorImagesMap[sourceColorId] || [];
+            if (sourceImages.length === 0) {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Màu này chưa có ảnh để đồng bộ!', showConfirmButton: false, timer: 3000 });
+                return;
+            }
+            const allColorCheckboxes = Array.from(document.querySelectorAll('.color-checkbox:checked'));
+            allColorCheckboxes.forEach(cb => {
+                colorImagesMap[cb.value] = [...sourceImages];
+                renderPreviewGrid(cb.value);
+            });
+            // Update global images too
+            globalImages = [...sourceImages];
+            renderGlobalPreviewGrid();
+
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Đã đồng bộ ' + sourceImages.length + ' ảnh sang tất cả các màu!',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
 
         function previewImages(input, colorId) {
             if (!colorImagesMap[colorId]) {
@@ -292,7 +420,7 @@
             
             images.forEach((b64, index) => {
                 grid.innerHTML += `
-                    <div style="position: relative; width: 90px; height: 90px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #ffffff;">
+                    <div style="position: relative; width: 85px; height: 85px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); background: #ffffff;">
                         <img src="${b64}" style="width: 100%; height: 100%; object-fit: contain; padding: 2px;" />
                         <button type="button" onclick="removeImage('${colorId}', ${index})" style="position: absolute; top: 0; right: 0; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-bottom-left-radius: 8px; transition: all 0.2s;" onmouseover="this.style.background='rgba(220, 38, 38, 1)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.9)';">
                             <i class="bi bi-x-lg"></i>
@@ -309,6 +437,12 @@
                 valToSet = JSON.stringify(images);
             }
             hiddenInputs.forEach(inp => inp.value = valToSet);
+
+            // Sync button visibility
+            const syncBtn = document.getElementById('btnSyncFrom_' + colorId);
+            if (syncBtn) {
+                syncBtn.style.display = images.length > 0 ? 'inline-block' : 'none';
+            }
             
             // Hide/Show upload button
             const container = document.getElementById('imagePreviewContainer_' + colorId);

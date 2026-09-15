@@ -37,9 +37,13 @@ public class DanhGia {
     @Column(name = "noi_dung", columnDefinition = "nvarchar(max)")
     private String noiDung;
 
-    /** Danh sách URL ảnh (JSON array, tối đa 5 ảnh), vd: ["/upload/dg_xxx.jpg", ...] */
+    /** Danh sách URL ảnh (JSON array, tối đa 3 ảnh), vd: ["/upload/dg_xxx.jpg", ...] */
     @Column(name = "anh_danh_gia", columnDefinition = "nvarchar(max)")
     private String anhDanhGia;
+
+    /** URL video đánh giá (tối đa 1 video), vd: "/upload/review_video_xxx.mp4" */
+    @Column(name = "video_danh_gia", columnDefinition = "nvarchar(max)")
+    private String videoDanhGia;
 
     /** Tên hiển thị (dùng khi khách vãng lai) */
     @Column(name = "ten_hien_thi", columnDefinition = "nvarchar(255)")

@@ -179,7 +179,7 @@ async function fetchProducts() {
                 ...p,
                 gia: giaActual,
                 giaGoc: giaGoc,
-                hinh: imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '/images/' + imgPath) : '/images/white.png',
+                hinh: imgPath ? (imgPath.startsWith('http') || imgPath.startsWith('/') ? imgPath : '/images/' + imgPath) : (shoeImgs[i % shoeImgs.length] || '/images/shoe1.png'),
                 sizes: uniqueSizes,
                 isNew: i < 4,
                 discountPct: Math.round(discountPct),
@@ -408,7 +408,7 @@ function renderCard(p, globalIdx = 0) {
         ? `<span class="sp-brand-label" style="background:${brand.color};">${brand.name}</span>`
         : '';
 
-    const fallbackImg = '/images/white.png';
+    const fallbackImg = '/images/shoe1.png';
 
     return `
     <div class="sp-card" onclick="window.location.href='/client/products/${p.id}'">

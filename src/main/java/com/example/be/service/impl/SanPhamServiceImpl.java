@@ -256,7 +256,22 @@ public class SanPhamServiceImpl implements SanPhamService {
                     savedUrls.add(fileUrl);
                 }
                 if (!savedUrls.isEmpty()) {
-                    variant.setHinhAnh(String.join(",", savedUrls));
+                    String combinedUrls = String.join(",", savedUrls);
+                    variant.setHinhAnh(combinedUrls);
+
+                    // Đồng bộ ảnh cho các biến thể khác của cùng sản phẩm nếu chúng đang rỗng hoặc là ảnh mặc định
+                    if (variant.getSanPham() != null) {
+                        List<com.example.be.entity.SanPhamChiTiet> otherVariants = sanPhamChiTietRepository.findBySanPhamId(variant.getSanPham().getId());
+                        for (com.example.be.entity.SanPhamChiTiet other : otherVariants) {
+                            if (!other.getId().equals(variant.getId())) {
+                                String oImg = other.getHinhAnh();
+                                if (oImg == null || oImg.isBlank() || oImg.startsWith("/images/shoe") || oImg.equals("[]") || oImg.equals("[\"\"]")) {
+                                    other.setHinhAnh(combinedUrls);
+                                    sanPhamChiTietRepository.save(other);
+                                }
+                            }
+                        }
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -333,6 +348,9 @@ public class SanPhamServiceImpl implements SanPhamService {
 
         if (variantSizes != null && variantColors != null) {
             java.util.Map<String, String> base64Cache = new java.util.HashMap<>();
+            java.util.List<com.example.be.entity.SanPhamChiTiet> createdVariants = new java.util.ArrayList<>();
+            String firstValidHinhAnh = null;
+
             for (int i = 0; i < variantSizes.size(); i++) {
                 com.example.be.entity.SanPhamChiTiet variant = new com.example.be.entity.SanPhamChiTiet();
                 variant.setSanPham(savedSp);
@@ -368,14 +386,31 @@ public class SanPhamServiceImpl implements SanPhamService {
                                 }
                             }
                             if (!savedUrls.isEmpty()) {
-                                variant.setHinhAnh(String.join(",", savedUrls));
+                                String hinhAnhStr = String.join(",", savedUrls);
+                                variant.setHinhAnh(hinhAnhStr);
+                                if (firstValidHinhAnh == null) {
+                                    firstValidHinhAnh = hinhAnhStr;
+                                }
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                 }
-                sanPhamChiTietRepository.save(variant);
+                createdVariants.add(variant);
+            }
+
+            // Đồng bộ ảnh: Nếu có biến thể chưa có ảnh riêng nhưng sản phẩm đã có ảnh,
+            // tự động đồng bộ ảnh đó sang cho các biến thể còn lại.
+            for (com.example.be.entity.SanPhamChiTiet v : createdVariants) {
+                if (v.getHinhAnh() == null || v.getHinhAnh().trim().isEmpty() || v.getHinhAnh().equals("[]")) {
+                    if (firstValidHinhAnh != null) {
+                        v.setHinhAnh(firstValidHinhAnh);
+                    } else {
+                        v.setHinhAnh("/images/shoe1.png");
+                    }
+                }
+                sanPhamChiTietRepository.save(v);
             }
         }
         syncTotalQuantity(savedSp.getId());
@@ -537,13 +572,20 @@ public class SanPhamServiceImpl implements SanPhamService {
     }
 
     private String saveBase64File(String uploadDir, String fileName, String base64String) throws java.io.IOException {
+        if (base64String == null || base64String.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = base64String.trim();
+        if (trimmed.startsWith("/upload/") || trimmed.startsWith("/images/") || trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
         java.nio.file.Path uploadPath = java.nio.file.Paths.get(uploadDir).toAbsolutePath().normalize();
         if (!java.nio.file.Files.exists(uploadPath)) {
             java.nio.file.Files.createDirectories(uploadPath);
         }
-        String base64Image = base64String;
-        if (base64String.contains(",")) {
-            base64Image = base64String.substring(base64String.indexOf(",") + 1);
+        String base64Image = trimmed;
+        if (trimmed.contains(",")) {
+            base64Image = trimmed.substring(trimmed.indexOf(",") + 1);
         }
         base64Image = base64Image.replace(" ", "+");
 
@@ -626,7 +668,8 @@ public class SanPhamServiceImpl implements SanPhamService {
         item.put("mauSac", s.getMauSac() != null ? s.getMauSac().getTenMauSac() : "");
         item.put("sizeGiay", s.getCoGiay() != null ? s.getCoGiay().getSizeGiay() : null);
         item.put("soLuongTon", s.getSoLuongTon() != null ? s.getSoLuongTon() : 0);
-        item.put("hinhAnh", resolveImageUrl(s));
+        item.put("hinhAnh", s.getHinhAnh() != null && !s.getHinhAnh().isBlank() ? s.getHinhAnh() : resolveImageUrl(s));
+        item.put("danhSachHinhAnh", s.getDanhSachHinhAnh());
         item.put("moTa", s.getSanPham() != null ? s.getSanPham().getMoTaChiTiet() : "");
         item.put("trangThai", s.getTrangThai() != null ? s.getTrangThai() : 1);
 

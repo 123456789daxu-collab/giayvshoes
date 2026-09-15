@@ -82,17 +82,28 @@ IF NOT EXISTS (SELECT 1 FROM san_pham WHERE ma_san_pham = 'SP002')
 
 -- 8. SẢN PHẨM CHI TIẾT (BIẾN THỂ)
 IF NOT EXISTS (SELECT 1 FROM san_pham_chi_tiet WHERE ma = 'SPCT001')
-    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong)
-    VALUES ('SPCT001', 1, 1, 2, 1500000, 2500000, 50, 1, 0.8);
+    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong, hinh_anh)
+    VALUES ('SPCT001', 1, 1, 2, 1500000, 2500000, 50, 1, 0.8, '/images/shoe1.png');
 
 IF NOT EXISTS (SELECT 1 FROM san_pham_chi_tiet WHERE ma = 'SPCT002')
-    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong)
-    VALUES ('SPCT002', 1, 2, 3, 1500000, 2500000, 50, 1, 0.8);
+    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong, hinh_anh)
+    VALUES ('SPCT002', 1, 2, 3, 1500000, 2500000, 50, 1, 0.8, '/images/shoe2.png');
 
 IF NOT EXISTS (SELECT 1 FROM san_pham_chi_tiet WHERE ma = 'SPCT003')
-    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong)
-    VALUES ('SPCT003', 2, 1, 2, 1200000, 2000000, 40, 1, 0.8);
+    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong, hinh_anh)
+    VALUES ('SPCT003', 2, 1, 2, 1200000, 2000000, 40, 1, 0.8, '/images/shoe3.png');
 
 IF NOT EXISTS (SELECT 1 FROM san_pham_chi_tiet WHERE ma = 'SPCT004')
-    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong)
-    VALUES ('SPCT004', 2, 2, 3, 1200000, 2000000, 40, 1, 0.8);
+    INSERT INTO san_pham_chi_tiet (ma, id_san_pham, id_mau_sac, id_co_giay, gia_nhap, gia_ban, so_luong_ton, trang_thai, trang_luong, hinh_anh)
+    VALUES ('SPCT004', 2, 2, 3, 1200000, 2000000, 40, 1, 0.8, '/images/shoe4.png');
+
+-- Cập nhật ảnh mặc định cho bất kỳ sản phẩm nào chưa có ảnh
+UPDATE san_pham_chi_tiet 
+SET hinh_anh = CASE 
+    WHEN id % 4 = 1 THEN '/images/shoe1.png'
+    WHEN id % 4 = 2 THEN '/images/shoe2.png'
+    WHEN id % 4 = 3 THEN '/images/shoe3.png'
+    ELSE '/images/shoe4.png'
+END
+WHERE hinh_anh IS NULL OR hinh_anh = '' OR hinh_anh = '[]' OR hinh_anh = '[""]';
+

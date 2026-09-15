@@ -123,11 +123,11 @@
                             <th:block th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}">
                                 <div th:each="imgUrl, stat : ${#strings.arraySplit(ct.hinhAnh, ',')}" 
                                      th:class="'carousel-item ' + ${stat.index == 0 ? 'active' : ''}">
-                                    <img th:src="${imgUrl}" onerror="this.onerror=null;this.src='/images/white.png';" class="d-block w-100" style="height: 350px; object-fit: contain; background: #ffffff;" alt="">
+                                    <img th:src="${imgUrl}" onerror="this.onerror=null;this.src='/images/shoe1.png';" class="d-block w-100" style="height: 350px; object-fit: contain; background: #ffffff;" alt="">
                                 </div>
                             </th:block>
                             <div th:unless="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh)}" class="carousel-item active">
-                                <img src="/images/white.png" class="d-block w-100 p-4" style="height: 350px; object-fit: contain; background: #ffffff;" alt="">
+                                <img src="/images/shoe1.png" class="d-block w-100 p-4" style="height: 350px; object-fit: contain; background: #ffffff;" alt="">
                             </div>
                         </div>
                         <button th:if="${ct.hinhAnh != null and !#strings.isEmpty(ct.hinhAnh) and #strings.contains(ct.hinhAnh, ',')}" class="carousel-control-prev" type="button" data-bs-target="#carouselVariant" data-bs-slide="prev" style="filter: invert(100%);">

@@ -695,8 +695,8 @@
                         const isChecked = selectedProductDetailIds.has(v.id) ? "checked" : "";
                         let imgUrl = v.hinhAnh;
                         if (imgUrl && imgUrl.includes(",")) imgUrl = imgUrl.split(",")[0];
-                        const hinhSrc = imgUrl || '/images/white.png';
-                        const hinhAnh = `<img src="${hinhSrc}" onerror="this.onerror=null;this.src='/images/white.png';" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">`;
+                        const hinhSrc = imgUrl || '/images/shoe1.png';
+                        const hinhAnh = `<img src="${hinhSrc}" onerror="this.onerror=null;this.src='/images/shoe1.png';" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0;">`;
                         const safeMauSac = (v.tenMauSac || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         const safeMaSP = (v.maSanPham || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         const safeKichCo = (v.tenKichCo || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -853,8 +853,8 @@
                 
                 let imgUrl = v.hinhAnh;
                 if (imgUrl && imgUrl.includes(",")) imgUrl = imgUrl.split(",")[0];
-                const hinhSrc = imgUrl || '/images/white.png';
-                const hinhAnh = `<img src="${hinhSrc}" onerror="this.onerror=null;this.src='/images/white.png';" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;">`;
+                const hinhSrc = imgUrl || '/images/shoe1.png';
+                const hinhAnh = `<img src="${hinhSrc}" onerror="this.onerror=null;this.src='/images/shoe1.png';" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #e2e8f0;">`;
                 
                 const discountedPrice = calculateDiscountedPrice(v.giaBan);
                 

@@ -281,22 +281,38 @@ function renderProductInfo() {
 
     // Render thumbnails: Only include real images of this variant / product
     let realThumbs = [];
-    if (v.hinhAnh && typeof v.hinhAnh === 'string') {
-        const splitImgs = v.hinhAnh.split(',').map((s, i) => getImageUrl(s.trim(), spctId + i)).filter(Boolean);
-        realThumbs.push(...splitImgs);
+    if (v.danhSachHinhAnh && Array.isArray(v.danhSachHinhAnh) && v.danhSachHinhAnh.length > 0) {
+        v.danhSachHinhAnh.forEach((img, i) => {
+            const u = getImageUrl(img, spctId + i);
+            if (u && !realThumbs.includes(u)) realThumbs.push(u);
+        });
+    } else if (v.hinhAnh && typeof v.hinhAnh === 'string') {
+        const splitImgs = v.hinhAnh.replace(/[\[\]"']/g, '').split(',');
+        splitImgs.forEach((s, i) => {
+            const u = getImageUrl(s.trim(), spctId + i);
+            if (u && !realThumbs.includes(u)) realThumbs.push(u);
+        });
     }
     
     // Add images from other variants of the same product if available
     if (state.variants && state.variants.length > 0) {
         state.variants.forEach((varItem, i) => {
-            if (varItem.hinhAnh && typeof varItem.hinhAnh === 'string') {
-                const varImgs = varItem.hinhAnh.split(',').map((s, idx) => getImageUrl(s.trim(), spctId + i + idx)).filter(Boolean);
-                realThumbs.push(...varImgs);
+            if (varItem.danhSachHinhAnh && Array.isArray(varItem.danhSachHinhAnh)) {
+                varItem.danhSachHinhAnh.forEach((img, idx) => {
+                    const u = getImageUrl(img, spctId + i + idx);
+                    if (u && !realThumbs.includes(u)) realThumbs.push(u);
+                });
+            } else if (varItem.hinhAnh && typeof varItem.hinhAnh === 'string') {
+                const varImgs = varItem.hinhAnh.replace(/[\[\]"']/g, '').split(',');
+                varImgs.forEach((s, idx) => {
+                    const u = getImageUrl(s.trim(), spctId + i + idx);
+                    if (u && !realThumbs.includes(u)) realThumbs.push(u);
+                });
             }
         });
     }
 
-    if (!realThumbs.includes(mainImg)) {
+    if (mainImg && !realThumbs.includes(mainImg)) {
         realThumbs.unshift(mainImg);
     }
 
@@ -309,8 +325,8 @@ function renderProductInfo() {
             thumbGridEl.style.display = 'none';
         } else {
             thumbGridEl.style.display = 'grid';
-            thumbGridEl.innerHTML = uniqueThumbs.slice(0, 5).map((t, idx) => `
-                <div class="thumbnail-item ${idx === 0 ? 'active' : ''}" onclick="setMainImage(this, '${t}')">
+            thumbGridEl.innerHTML = uniqueThumbs.slice(0, 6).map((t, idx) => `
+                <div class="thumbnail-item ${t === mainImg ? 'active' : (idx === 0 ? 'active' : '')}" onclick="setMainImage(this, '${t}')">
                     <img src="${t}" alt="Thumbnail" onerror="this.src='${fallbackDefault}'">
                 </div>
             `).join('');
@@ -913,6 +929,20 @@ function renderReviewsList(reviews) {
             `;
         }
 
+        let videoHtml = '';
+        const videoSrc = r.video || r.videoDanhGia;
+        if (videoSrc) {
+            let finalVideo = videoSrc.trim();
+            if (finalVideo && !finalVideo.startsWith('/') && !finalVideo.startsWith('http') && !finalVideo.startsWith('data:')) {
+                finalVideo = '/upload/' + finalVideo;
+            }
+            videoHtml = `
+                <div style="margin-top: 10px;">
+                    <video src="${finalVideo}" controls style="max-width: 280px; max-height: 180px; border-radius: 10px; border: 1.5px solid #e2e8f0; background:#000;"></video>
+                </div>
+            `;
+        }
+
         return `
             <div style="background:#f8fafc;border-radius:14px;border:1px solid #e8edf3;padding:18px 20px;display:flex;flex-direction:column;gap:8px;transition:all .2s;">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
@@ -932,6 +962,7 @@ function renderReviewsList(reviews) {
                 </div>
                 <p style="font-size:14px;color:#334155;line-height:1.6;margin:4px 0 0 0;">${escHtml(r.text || r.noiDung || '')}</p>
                 ${imagesHtml}
+                ${videoHtml}
 
                 ${r.phanHoi ? `
                     <div style="margin-top:12px;background:#ffffff;border-left:3.5px solid #00adef;border-radius:0 10px 10px 0;padding:12px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.03);border-top:1px solid #edf2f7;border-right:1px solid #edf2f7;border-bottom:1px solid #edf2f7;">
@@ -984,15 +1015,17 @@ function escHtml(str) {
 }
 
 function getImageUrl(hinhAnh, defaultIdx = 0) {
+    const fallbacks = ['/images/shoe1.png', '/images/shoe2.png', '/images/shoe3.png', '/images/shoe4.png'];
+    const fallback = fallbacks[Math.abs(defaultIdx || 0) % fallbacks.length];
     if (!hinhAnh || typeof hinhAnh !== 'string') {
-        return '/images/white.png';
+        return fallback;
     }
     let img = hinhAnh.replace(/[\[\]"']/g, '').trim();
-    if (!img) return '/images/white.png';
+    if (!img) return fallback;
     if (img.includes(',')) {
         img = img.split(',')[0].trim();
     }
-    if (!img) return '/images/white.png';
+    if (!img) return fallback;
     if (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
         return img;
     }

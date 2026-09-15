@@ -31,6 +31,18 @@ public class WebConfig implements WebMvcConfigurer {
         
         registry.addResourceHandler("/upload/**")
                 .addResourceLocations(uploadUri, targetUri, "file:src/main/resources/static/upload/", "file:target/classes/static/upload/", "classpath:/static/upload/");
+
+        Path imagesDir = Paths.get("src/main/resources/static/images").toAbsolutePath().normalize();
+        Path targetImagesDir = Paths.get("target/classes/static/images").toAbsolutePath().normalize();
+        
+        String imagesUri = imagesDir.toUri().toString();
+        if (!imagesUri.endsWith("/")) imagesUri += "/";
+        
+        String targetImagesUri = targetImagesDir.toUri().toString();
+        if (!targetImagesUri.endsWith("/")) targetImagesUri += "/";
+
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations(imagesUri, targetImagesUri, "file:src/main/resources/static/images/", "file:target/classes/static/images/", "classpath:/static/images/");
     }
 
     @Override

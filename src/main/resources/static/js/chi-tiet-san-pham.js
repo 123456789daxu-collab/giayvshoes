@@ -278,52 +278,136 @@
                 document.body.removeChild(a);
             }
         }
+        // Quản lý danh sách ảnh của các biến thể trong Modal
+        var variantImagesMap = {};
+
+        function initVariantModalImages(modalEl) {
+            var variantId = modalEl.getAttribute('data-variant-id');
+            if (!variantId) return;
+            var dataImages = modalEl.getAttribute('data-images') || '';
+            
+            var initialList = [];
+            if (dataImages && dataImages.trim() !== '' && dataImages !== '[]' && dataImages !== '[""]') {
+                var cleanStr = dataImages.replace(/[\[\]"']/g, '').trim();
+                if (cleanStr.length > 0) {
+                    initialList = cleanStr.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+                }
+            }
+            // Luôn khôi phục về danh sách ảnh gốc ban đầu từ máy chủ khi mở hoặc hủy modal
+            variantImagesMap[variantId] = [...initialList];
+            
+            var fileInput = document.getElementById('fileInput_' + variantId);
+            if (fileInput) fileInput.value = '';
+            
+            renderVariantImagesPreview(variantId);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var modals = document.querySelectorAll('.variant-edit-modal');
+            modals.forEach(function(m) {
+                m.addEventListener('show.bs.modal', function() {
+                    initVariantModalImages(m);
+                });
+                m.addEventListener('hidden.bs.modal', function() {
+                    initVariantModalImages(m);
+                });
+            });
+        });
+
         function previewVariantImage(input, variantId) {
-            var container = document.getElementById('previewContainer_' + variantId);
-            var base64Input = document.getElementById('imageBase64_' + variantId);
+            if (!variantImagesMap[variantId]) {
+                variantImagesMap[variantId] = [];
+            }
             
             if (input.files && input.files.length > 0) {
                 var files = Array.from(input.files);
+                var currentCount = variantImagesMap[variantId].length;
+                var spaceLeft = 6 - currentCount;
                 
-                // Giới hạn tối đa 6 ảnh
-                if (files.length > 6) {
-                    AdminNotify.warning("Bạn chỉ được phép chọn tối đa 6 ảnh!");
-                    files = files.slice(0, 6);
+                if (spaceLeft <= 0) {
+                    AdminNotify.warning("Đã đạt giới hạn tối đa 6 ảnh! Vui lòng xóa bớt ảnh cũ nếu muốn thêm ảnh mới.");
+                    input.value = '';
+                    return;
                 }
                 
-                // Xóa các ảnh cũ trong container
-                container.innerHTML = '';
-                var base64Array = [];
+                if (files.length > spaceLeft) {
+                    AdminNotify.warning("Chỉ có thể thêm tối đa " + spaceLeft + " ảnh nữa (tối đa 6 ảnh)!");
+                    files = files.slice(0, spaceLeft);
+                }
                 
+                var loaded = 0;
                 files.forEach(function(file) {
                     var reader = new FileReader();
                     reader.onload = function(e) {
-                        // Tạo thẻ img mới cho mỗi ảnh
-                        var img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.style.width = '100px';
-                        img.style.height = '100px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '8px';
-                        img.style.border = '1px solid #ccc';
-                        img.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                        container.appendChild(img);
-                        
-                        // Push vào mảng base64
-                        base64Array.push(e.target.result);
-                        
-                        // Cập nhật input hidden khi tất cả ảnh đã load xong
-                        if (base64Array.length === files.length) {
-                            base64Input.value = JSON.stringify(base64Array);
+                        variantImagesMap[variantId].push(e.target.result);
+                        loaded++;
+                        if (loaded === files.length) {
+                            renderVariantImagesPreview(variantId);
                         }
-                    }
+                    };
                     reader.readAsDataURL(file);
                 });
+            }
+            input.value = '';
+        }
+
+        function removeVariantImage(variantId, index) {
+            if (variantImagesMap[variantId]) {
+                variantImagesMap[variantId].splice(index, 1);
+                renderVariantImagesPreview(variantId);
+            }
+        }
+
+        function renderVariantImagesPreview(variantId) {
+            var container = document.getElementById('previewContainer_' + variantId);
+            var base64Input = document.getElementById('imageBase64_' + variantId);
+            var countBadge = document.getElementById('imageCountBadge_' + variantId);
+            if (!container) return;
+            
+            var images = variantImagesMap[variantId] || [];
+            container.innerHTML = '';
+            
+            if (images.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center py-2" style="font-size: 0.875rem;"><i class="bi bi-image me-1"></i> Chưa có ảnh nào (Tối đa 6 ảnh)</div>';
+            } else {
+                images.forEach(function(imgSrc, idx) {
+                    var card = document.createElement('div');
+                    card.style.cssText = 'position: relative; width: 85px; height: 85px; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.08); background: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;';
+                    
+                    var img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.onerror = function() { this.src = '/images/shoe1.png'; };
+                    img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; padding: 2px;';
+                    card.appendChild(img);
+                    
+                    var btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.innerHTML = '<i class="bi bi-x-lg"></i>';
+                    btnDel.title = 'Xóa ảnh này';
+                    btnDel.style.cssText = 'position: absolute; top: 0; right: 0; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-bottom-left-radius: 8px; transition: 0.2s;';
+                    btnDel.onmouseover = function() { this.style.background = '#dc2626'; };
+                    btnDel.onmouseout = function() { this.style.background = 'rgba(239, 68, 68, 0.9)'; };
+                    btnDel.onclick = function() { removeVariantImage(variantId, idx); };
+                    card.appendChild(btnDel);
+                    
+                    container.appendChild(card);
+                });
+            }
+            
+            if (base64Input) {
+                base64Input.value = JSON.stringify(images);
+            }
+            
+            if (countBadge) {
+                countBadge.textContent = 'Đã chọn ' + images.length + '/6 ảnh';
+                countBadge.className = images.length >= 6 
+                    ? 'badge bg-danger-subtle text-danger fw-medium px-2 py-1' 
+                    : 'badge bg-primary-subtle text-primary fw-medium px-2 py-1';
             }
         }
 
         function confirmSaveVariant(variantId) {
-            let form = document.getElementById('formVariant_' + variantId);
+            var form = document.getElementById('formVariant_' + variantId);
             if (!form) return;
             
             if (!form.checkValidity()) {

@@ -23,8 +23,8 @@ public class DanhGiaServiceImpl implements DanhGiaService {
 
     private static final String UPLOAD_DIR = "src/main/resources/static/upload/";
     private static final String UPLOAD_DIR_TARGET = "target/classes/static/upload/";
-    private static final int MAX_IMAGES = 5;
-    private static final long MAX_SIZE_BYTES = 5 * 1024 * 1024;
+    private static final int MAX_IMAGES = 3;
+    private static final long MAX_SIZE_BYTES = 35 * 1024 * 1024L; // 35MB
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
 
     @Override
@@ -275,6 +275,7 @@ public class DanhGiaServiceImpl implements DanhGiaService {
                 result.put("noiDung", dg.getNoiDung());
                 result.put("ngayTao", dg.getNgayTao());
                 result.put("anhDanhGia", dg.getAnhDanhGia());
+                result.put("videoDanhGia", dg.getVideoDanhGia());
             });
         }
         return result;
@@ -464,8 +465,8 @@ public class DanhGiaServiceImpl implements DanhGiaService {
         if (hoaDon == null) {
             throw new IllegalArgumentException("Không tìm thấy đơn hàng!");
         }
-        if (hoaDon.getTrangThai() == null || hoaDon.getTrangThai() != 6) {
-            throw new IllegalStateException("Chỉ đơn hàng đã hoàn thành mới có thể đánh giá!");
+        if (hoaDon.getTrangThai() == null || (hoaDon.getTrangThai() != 6 && hoaDon.getTrangThai() != 4)) {
+            throw new IllegalStateException("Chỉ đơn hàng đã giao hoặc hoàn thành mới có thể đánh giá!");
         }
         if (danhGiaRepository.existsByHoaDon_Id(hoaDonId)) {
             throw new IllegalStateException("Đơn hàng này đã được đánh giá rồi!");
@@ -518,7 +519,7 @@ public class DanhGiaServiceImpl implements DanhGiaService {
             for (int i = 0; i < count; i++) {
                 String base64 = anhBase64List.get(i);
                 if (base64 == null || base64.isBlank()) continue;
-                String url = saveBase64Image(base64, hoaDonId, i);
+                String url = saveBase64Media(base64, hoaDonId, "img", i);
                 if (url != null) savedUrls.add(url);
             }
             if (!savedUrls.isEmpty()) {
@@ -532,6 +533,11 @@ public class DanhGiaServiceImpl implements DanhGiaService {
             }
         }
 
+        String videoUrl = null;
+        if (payload.get("videoBase64") != null && !payload.get("videoBase64").toString().isBlank()) {
+            videoUrl = saveBase64Media(payload.get("videoBase64").toString(), hoaDonId, "vid", 0);
+        }
+
         SanPham primarySp = !sanPhamList.isEmpty() ? sanPhamList.get(0) : null;
         DanhGia danhGia = DanhGia.builder()
                 .hoaDon(hoaDon)
@@ -540,6 +546,7 @@ public class DanhGiaServiceImpl implements DanhGiaService {
                 .soSao(soSao)
                 .noiDung(noiDung)
                 .anhDanhGia(anhDanhGiaJson)
+                .videoDanhGia(videoUrl)
                 .tenHienThi(tenHienThi)
                 .ngayTao(LocalDateTime.now())
                 .trangThai(1)
@@ -555,6 +562,7 @@ public class DanhGiaServiceImpl implements DanhGiaService {
                     .soSao(soSao)
                     .noiDung(noiDung)
                     .anhDanhGia(anhDanhGiaJson)
+                    .videoDanhGia(videoUrl)
                     .tenHienThi(tenHienThi)
                     .ngayTao(LocalDateTime.now())
                     .trangThai(1)
@@ -594,11 +602,17 @@ public class DanhGiaServiceImpl implements DanhGiaService {
             tenHienThi = (sessionUser != null && sessionUser.getHoTen() != null) ? sessionUser.getHoTen() : "Khách hàng VHOES";
         }
 
+        String videoUrl = null;
+        if (payload.get("videoBase64") != null && !payload.get("videoBase64").toString().isBlank()) {
+            videoUrl = saveBase64Media(payload.get("videoBase64").toString(), null, "vid", 0);
+        }
+
         DanhGia danhGia = DanhGia.builder()
                 .sanPham(sanPham)
                 .khachHang(sessionUser)
                 .soSao(soSao)
                 .noiDung(noiDung)
+                .videoDanhGia(videoUrl)
                 .tenHienThi(tenHienThi)
                 .ngayTao(LocalDateTime.now())
                 .trangThai(1)
@@ -607,21 +621,25 @@ public class DanhGiaServiceImpl implements DanhGiaService {
         return danhGiaRepository.save(danhGia);
     }
 
-    private String saveBase64Image(String base64Data, Long hoaDonId, int index) {
+    private String saveBase64Media(String base64Data, Long hoaDonId, String type, int index) {
         try {
             String ext = ".jpg";
             String rawBase64 = base64Data;
             if (base64Data.contains(",")) {
-                String meta = base64Data.substring(0, base64Data.indexOf(","));
+                String meta = base64Data.substring(0, base64Data.indexOf(",")).toLowerCase();
                 rawBase64 = base64Data.substring(base64Data.indexOf(",") + 1);
                 if (meta.contains("png")) ext = ".png";
                 else if (meta.contains("webp")) ext = ".webp";
                 else if (meta.contains("gif")) ext = ".gif";
+                else if (meta.contains("mp4")) ext = ".mp4";
+                else if (meta.contains("webm")) ext = ".webm";
+                else if (meta.contains("quicktime") || meta.contains("mov")) ext = ".mov";
+                else if (meta.contains("video")) ext = ".mp4";
             }
             byte[] bytes = Base64.getDecoder().decode(rawBase64.trim());
             if (bytes.length > MAX_SIZE_BYTES) return null;
 
-            String fileName = "review_hd" + hoaDonId + "_" + System.currentTimeMillis() + "_" + index + ext;
+            String fileName = "review_" + type + "_hd" + (hoaDonId != null ? hoaDonId : "0") + "_" + System.currentTimeMillis() + "_" + index + ext;
             Path pathSrc = Paths.get(UPLOAD_DIR, fileName);
             Files.createDirectories(pathSrc.getParent());
             Files.write(pathSrc, bytes);
@@ -639,11 +657,23 @@ public class DanhGiaServiceImpl implements DanhGiaService {
     }
 
     private Map<String, Object> convertToMap(DanhGia d) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", d.getId());
-        m.put("soSao", d.getSoSao() != null ? d.getSoSao() : 5);
-        m.put("noiDung", d.getNoiDung() != null ? d.getNoiDung() : "");
-        m.put("anhDanhGia", d.getAnhDanhGia() != null ? d.getAnhDanhGia() : "[]");
+        List<String> images = new ArrayList<>();
+        if (d.getAnhDanhGia() != null && !d.getAnhDanhGia().isBlank()) {
+            String raw = d.getAnhDanhGia().trim();
+            if (raw.startsWith("[") && raw.endsWith("]")) {
+                raw = raw.substring(1, raw.length() - 1);
+                String[] parts = raw.split(",");
+                for (String p : parts) {
+                    String img = p.trim().replaceAll("^\"|\"$", "");
+                    if (!img.isBlank()) images.add(img);
+                }
+            } else if (!raw.isBlank()) {
+                images.add(raw);
+            }
+        }
+        m.put("anhDanhGia", images);
+        m.put("images", images);
+        m.put("videoDanhGia", d.getVideoDanhGia());
         m.put("phanHoi", d.getPhanHoi());
         m.put("nguoiPhanHoi", d.getNguoiPhanHoi());
         m.put("ngayPhanHoi", d.getNgayPhanHoi() != null ? d.getNgayPhanHoi().format(FMT) : null);
