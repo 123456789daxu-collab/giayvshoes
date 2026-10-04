@@ -135,12 +135,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     if (!res.ok) {
                         return res.text().then(text => {
+                            let msg = "Lỗi hệ thống: " + res.status;
                             try {
                                 const errObj = JSON.parse(text);
-                                throw new Error(errObj.message || "Không thể cập nhật trạng thái");
+                                msg = errObj.error || errObj.message || msg;
                             } catch(e) {
-                                throw new Error("Lỗi hệ thống: " + res.status + " " + res.statusText);
+                                if (text && text.trim().length > 0 && text.length < 300) {
+                                    msg = text.trim();
+                                }
                             }
+                            throw new Error(msg);
                         });
                     }
                     return res.json();
@@ -152,12 +156,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .catch(err => {
                     hideConfirmModal();
-                    // Clean up Java stack traces or database error details if any, to keep it neat
                     let msg = err.message || "Lỗi không xác định";
-                    if (msg.includes("Unexpected token") || msg.includes("is not valid JSON") || msg.includes("JSON")) {
+                    if (msg.includes("không đủ") || msg.includes("kho") || msg.includes("Kho")) {
+                        msg = "Số lượng trong kho không đủ";
+                    } else if (msg.includes("Unexpected token") || msg.includes("is not valid JSON") || msg.includes("JSON")) {
                         msg = "Dữ liệu trả về không hợp lệ. Vui lòng thử lại hoặc tải lại trang.";
                     } else if (msg.includes("Exception") || msg.includes("exception")) {
-                        msg = msg.split("\n")[0]; // Just show the first line of exception
+                        msg = msg.split("\n")[0];
                     }
                     showToast("Thất bại", msg, "error");
                 });
@@ -209,6 +214,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (cancelReasonError) cancelReasonError.style.display = "none";
 
+                if (currentInvoice && currentInvoice.trangThai !== 0) {
+                    showToast("Huỷ thất bại", "Đơn hàng đã được xác nhận, không được phép hủy đơn!", "error");
+                    hideCancelModal();
+                    return;
+                }
+
                 // Disable button to prevent double submit
                 btnSubmitCancelOrder.disabled = true;
                 btnSubmitCancelOrder.innerHTML = `<i data-lucide="loader" style="width:14px;height:14px;"></i> Đang huỷ...`;
@@ -235,12 +246,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     if (!res.ok) {
                         return res.text().then(text => {
+                            let msg = "Lỗi hệ thống: " + res.status;
                             try {
                                 const errObj = JSON.parse(text);
-                                throw new Error(errObj.message || "Không thể huỷ đơn hàng");
+                                msg = errObj.error || errObj.message || msg;
                             } catch(e) {
-                                throw new Error("Lỗi hệ thống: " + res.status + " " + res.statusText);
+                                if (text && text.trim().length > 0 && text.length < 300) {
+                                    msg = text.trim();
+                                }
                             }
+                            throw new Error(msg);
                         });
                     }
                     return res.json();
@@ -374,29 +389,50 @@ document.addEventListener("DOMContentLoaded", () => {
         const toastContainer = document.getElementById("toastContainer");
         if (!toastContainer) return;
 
+        if (message && typeof message === 'string' && (message.includes("không đủ") || message.includes("kho") || message.includes("Kho"))) {
+            message = "Số lượng trong kho không đủ";
+        }
+
         const toast = document.createElement("div");
         toast.className = `premium-toast toast-${type}`;
+        
+        let iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        
         if (type === "error") {
-            toast.style.borderLeftColor = "#ef4444";
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+        } else if (type === "warning") {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        } else if (type === "info") {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
         }
         
         toast.innerHTML = `
+            <div class="toast-icon-badge">${iconSvg}</div>
             <div class="toast-content-wrapper">
-                <span class="toast-title" style="color: ${type === 'success' ? '#10b981' : '#ef4444'}">${title}</span>
+                <span class="toast-title">${title}</span>
                 <span class="toast-msg">${message}</span>
             </div>
-            <button class="toast-close-btn">&times;</button>
+            <button class="toast-close-btn" title="Đóng">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+            <div class="toast-progress"></div>
         `;
         toastContainer.appendChild(toast);
 
-        toast.querySelector(".toast-close-btn").onclick = () => {
-            toast.remove();
-        };
+        const closeBtn = toast.querySelector(".toast-close-btn");
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 350);
+            };
+        }
 
         setTimeout(() => {
-            toast.classList.add("hide");
-            setTimeout(() => toast.remove(), 400);
-        }, 4000);
+            if (toast.parentElement) {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 350);
+            }
+        }, 4500);
     };
 
     // Load details
@@ -535,23 +571,10 @@ function renderInvoiceData(inv) {
         }
     }
 
-    // Show/hide Cancel Order button - và cập nhật text theo trạng thái
+    // Show/hide Cancel Order button - tất cả mọi đơn đều chỉ được hủy khi ở trạng thái chờ xác nhận (0), sau khi đổi trạng thái đã xác nhận thì không được phép hủy
     const btnCancelOrderEl = document.getElementById("btnCancelOrder");
     if (btnCancelOrderEl) {
-        if ([6, 7, 9].includes(inv.trangThai)) {
-            // Ẩn nút huỷ khi đơn đã hoàn thành, đã huỷ, hoặc đã hoàn tiền
-            btnCancelOrderEl.style.display = "none";
-        } else if (inv.trangThai === 8) {
-            // Yêu cầu huỷ: hiện nút với label "Xác nhận hủy đơn" + style đỏ đậm
-            btnCancelOrderEl.style.display = "inline-flex";
-            btnCancelOrderEl.innerHTML = `<i data-lucide="check-circle" style="width:14px;height:14px;"></i> Xác nhận hủy đơn`;
-            btnCancelOrderEl.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
-            btnCancelOrderEl.style.color = "#fff";
-            btnCancelOrderEl.style.border = "none";
-            btnCancelOrderEl.style.boxShadow = "0 3px 10px rgba(239,68,68,0.4)";
-            lucide.createIcons();
-        } else {
-            // Trạng thái bình thường: hiện nút huỷ với style mặc định
+        if (inv.trangThai === 0) {
             btnCancelOrderEl.style.display = "inline-flex";
             btnCancelOrderEl.innerHTML = `<i data-lucide="x-circle" style="width:14px;height:14px;"></i> Huỷ đơn hàng`;
             btnCancelOrderEl.style.background = "";
@@ -559,6 +582,9 @@ function renderInvoiceData(inv) {
             btnCancelOrderEl.style.border = "";
             btnCancelOrderEl.style.boxShadow = "";
             lucide.createIcons();
+        } else {
+            // Đã xác nhận (status >= 1) hoặc đã hủy/hoàn thành: KHÔNG được phép hủy đơn
+            btnCancelOrderEl.style.display = "none";
         }
     }
 
@@ -631,32 +657,44 @@ function renderInvoiceData(inv) {
         const isOnline = inv.loaiHoaDon === 'Trực tuyến' || inv.loaiHoaDon === 'Online';
         const noteText = (inv.ghiChu || '').trim().toUpperCase();
 
+        // Kiểm tra xem đơn hàng online đã được cổng thanh toán/khách xác nhận thành công chưa
+        const isGatewayConfirmed = noteText.includes('THANH TOÁN THÀNH CÔNG') ||
+                                   noteText.includes('XÁC NHẬN ĐÃ THANH TOÁN') ||
+                                   noteText.includes('ĐÃ THANH TOÁN QUA') ||
+                                   (inv.ngayThanhToan != null && inv.ngayThanhToan !== '');
+
         let title = "COD";
         let sub = "Thanh toán khi nhận hàng";
-        let isPaid = true;
+        let isPaid = false;
 
         if (noteText.includes('VNPAY')) {
             title = "Ví VNPAY";
             sub = "Thanh toán qua ví VNPAY";
+            isPaid = isGatewayConfirmed;
         } else if (noteText.includes('MOMO')) {
             title = "Ví MOMO";
             sub = "Thanh toán qua ví MOMO";
+            isPaid = isGatewayConfirmed;
         } else if (noteText.includes('ZALOPAY')) {
             title = "Ví ZaloPay";
             sub = "Thanh toán qua ví ZaloPay";
+            isPaid = isGatewayConfirmed;
         } else if (noteText.includes('VIETQR') || noteText.includes('CHUYỂN KHOẢN') || noteText.includes('TRANSFER')) {
             title = "VietQR";
             sub = "Chuyển khoản ngân hàng qua VietQR";
+            isPaid = isGatewayConfirmed;
         } else if (noteText.includes('TIỀN MẶT') || noteText.includes('CASH')) {
             title = "Tiền Mặt";
             sub = "Thanh toán bằng tiền mặt";
+            isPaid = true;
         } else if (isOnline) {
             title = "COD";
             sub = "Thanh toán khi nhận hàng (COD)";
-            isPaid = false;
+            isPaid = (inv.trangThai === 4 || inv.trangThai === 6 || (inv.ngayThanhToan != null && inv.ngayThanhToan !== ''));
         } else {
             title = "Tiền Mặt";
             sub = "Thanh toán bằng tiền mặt tại quầy";
+            isPaid = true;
         }
 
         paymentMethodTitle.textContent = title;
@@ -669,7 +707,7 @@ function renderInvoiceData(inv) {
             } else if (inv.trangThai === 9) {
                 paymentStatusText.textContent = "Đã hoàn tiền";
                 paymentStatusText.style.color = "#64748b";
-            } else if (!isPaid && inv.trangThai === 0) {
+            } else if (!isPaid) {
                 paymentStatusText.textContent = "Chờ thanh toán";
                 paymentStatusText.style.color = "#ea580c";
             } else {
@@ -680,12 +718,17 @@ function renderInvoiceData(inv) {
     }
     
     // Update Timeline Steps
-    updateTimeline(inv.trangThai, inv.ngayTao, inv.nguoiTao);
+    updateTimeline(inv.trangThai, inv.ngayTao, inv.nguoiTao, inv);
 }
 
-function updateTimeline(status, ngayTaoStr, actor) {
+function updateTimeline(status, ngayTaoStr, actor, inv) {
     const isCancelled = (Number(status) === 7 || Number(status) === 8);
     const ngayTao = new Date(ngayTaoStr);
+
+    // Kiểm tra nếu là đơn Bán hàng tại quầy (mua trực tiếp, không giao hàng)
+    const isOnline = inv && (inv.loaiHoaDon === 'Trực tuyến' || inv.loaiHoaDon === 'Online' || inv.loaiHoaDon === true);
+    const isGiaoHang = inv && ((inv.diaChiGiao && inv.diaChiGiao.trim() !== '' && inv.diaChiGiao !== '-') || (inv.phiShip && Number(inv.phiShip) > 0));
+    const isTaiQuayDirect = !isOnline && !isGiaoHang;
 
     // SVG inline cho trạng thái hủy
     const svgClock = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
@@ -745,8 +788,57 @@ function updateTimeline(status, ngayTaoStr, actor) {
             }
         }
 
+    } else if (isTaiQuayDirect) {
+        // ── CHẾ ĐỘ BÁN HÀNG TẠI QUẦY (Mua trực tiếp, không giao hàng) ──
+        // Ẩn tất cả các bước vận chuyển giao hàng: step-1, step-2, step-3, step-4
+        [1, 2, 3, 4].forEach(st => {
+            const el = document.getElementById(`step-${st}`);
+            if (el) el.style.display = 'none';
+        });
+
+        // Chỉ hiển thị 2 bước: step-0 (Chờ xác nhận) và step-6 (Hoàn thành)
+        const step0 = document.getElementById('step-0');
+        const step6 = document.getElementById('step-6');
+
+        if (step0) {
+            step0.style.display = '';
+            step0.classList.remove('completed', 'active-step', 'cancel-pending-admin', 'cancel-done-admin', 'cancel-confirmed-admin');
+            const circle0 = step0.querySelector('.step-circle');
+            const lbl0 = step0.querySelector('.step-label');
+            const time0 = document.getElementById('time-0');
+            if (circle0) circle0.innerHTML = `<i data-lucide="clipboard-list"></i>`;
+            if (lbl0) { lbl0.textContent = 'Chờ xác nhận'; lbl0.style.color = ''; }
+
+            step0.classList.add('completed');
+            if (Number(status) === 0) {
+                step0.classList.add('active-step');
+            }
+            if (time0) {
+                time0.textContent = ngayTao.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'}) + ' ' + ngayTao.toLocaleDateString('vi-VN');
+            }
+        }
+
+        if (step6) {
+            step6.style.display = '';
+            step6.classList.remove('completed', 'active-step', 'cancel-pending-admin', 'cancel-done-admin', 'cancel-confirmed-admin');
+            const circle6 = step6.querySelector('.step-circle');
+            const lbl6 = step6.querySelector('.step-label');
+            const time6 = document.getElementById('time-6');
+            if (circle6) circle6.innerHTML = `<i data-lucide="check-square"></i>`;
+            if (lbl6) { lbl6.textContent = 'Hoàn thành'; lbl6.style.color = ''; }
+
+            if (Number(status) === 6) {
+                step6.classList.add('completed', 'active-step');
+                if (time6) {
+                    const compTime = inv && inv.ngayCapNhat ? new Date(inv.ngayCapNhat) : ngayTao;
+                    time6.textContent = compTime.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'}) + ' ' + compTime.toLocaleDateString('vi-VN');
+                }
+            } else {
+                if (time6) time6.textContent = '-';
+            }
+        }
     } else {
-        // ── CHẾ ĐỘ BÌNH THƯỜNG: restore tất cả step ──
+        // ── CHẾ ĐỘ ĐƠN HÀNG CÓ GIAO HÀNG (Online / Giao hàng tại quầy): restore tất cả 6 step ──
         const defaultLabels = {
             0: { label: 'Chờ xác nhận', icon: 'clipboard-list' },
             1: { label: 'Đã xác nhận',  icon: 'check-circle' },
@@ -788,6 +880,43 @@ function updateTimeline(status, ngayTaoStr, actor) {
                 if (timeEl) timeEl.textContent = '-';
             }
         });
+
+        // Tải ngày giờ thực tế từ lịch sử hóa đơn để hiển thị chính xác từng bước
+        if (inv && inv.id) {
+            fetch(`/api/hoa-don/${inv.id}/history`)
+                .then(res => res.json())
+                .then(historyList => {
+                    if (Array.isArray(historyList) && historyList.length > 0) {
+                        historyList.forEach(item => {
+                            if (!item.ngayTao) return;
+                            const d = new Date(item.ngayTao);
+                            const dStr = d.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'}) + ' ' + d.toLocaleDateString('vi-VN');
+                            const note = ((item.ghiChu || '') + ' ' + (item.hanhDong || '')).toLowerCase();
+
+                            if (note.includes('tạo đơn hàng') || note.includes('tự động tạo')) {
+                                const t = document.getElementById('time-0');
+                                if (t) t.textContent = dStr;
+                            } else if (note.includes('đã xác nhận')) {
+                                const t = document.getElementById('time-1');
+                                if (t) t.textContent = dStr;
+                            } else if (note.includes('đang xử lý')) {
+                                const t = document.getElementById('time-2');
+                                if (t) t.textContent = dStr;
+                            } else if (note.includes('đang giao')) {
+                                const t = document.getElementById('time-3');
+                                if (t) t.textContent = dStr;
+                            } else if (note.includes('đã giao')) {
+                                const t = document.getElementById('time-4');
+                                if (t) t.textContent = dStr;
+                            } else if (note.includes('hoàn thành')) {
+                                const t = document.getElementById('time-6');
+                                if (t) t.textContent = dStr;
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.debug("Could not fetch history timestamps:", err));
+        }
     }
 
     lucide.createIcons();
@@ -855,7 +984,6 @@ function renderPaymentHistory() {
     
     const tr = document.createElement("tr");
     const grandTotalStr = new Intl.NumberFormat('vi-VN').format(currentInvoice.tongTien || 0) + ' đ';
-    const dateStr = currentInvoice.ngayTao ? new Date(currentInvoice.ngayTao).toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: '2-digit'}) : '';
     
     const txnCode = "155" + String(currentInvoice.id).padStart(5, '0');
     
@@ -864,36 +992,57 @@ function renderPaymentHistory() {
     
     const isOnline = currentInvoice.loaiHoaDon === 'Trực tuyến' || currentInvoice.loaiHoaDon === 'Online';
     const noteText = (currentInvoice.ghiChu || '').trim().toUpperCase();
+
+    const isGatewayConfirmed = noteText.includes('THANH TOÁN THÀNH CÔNG') ||
+                               noteText.includes('XÁC NHẬN ĐÃ THANH TOÁN') ||
+                               noteText.includes('ĐÃ THANH TOÁN QUA') ||
+                               (currentInvoice.ngayThanhToan != null && currentInvoice.ngayThanhToan !== '');
+
+    let isPaid = false;
     
     if (noteText.includes('VNPAY')) {
         method = 'Ví VNPAY';
         desc = 'Thanh toán qua ví VNPAY';
+        isPaid = isGatewayConfirmed;
     } else if (noteText.includes('MOMO')) {
         method = 'Ví MOMO';
         desc = 'Thanh toán qua ví MOMO';
+        isPaid = isGatewayConfirmed;
     } else if (noteText.includes('ZALOPAY')) {
         method = 'Ví ZaloPay';
         desc = 'Thanh toán qua ví ZaloPay';
+        isPaid = isGatewayConfirmed;
     } else if (noteText.includes('VIETQR') || noteText.includes('CHUYỂN KHOẢN') || noteText.includes('TRANSFER')) {
         method = 'VietQR';
         desc = 'Chuyển khoản qua VietQR';
+        isPaid = isGatewayConfirmed;
     } else if (noteText.includes('TIỀN MẶT') || noteText.includes('CASH')) {
         method = 'Tiền Mặt';
         desc = 'Thanh toán bằng tiền mặt';
+        isPaid = true;
     } else if (isOnline) {
         method = 'COD';
         desc = 'Thanh toán khi nhận hàng (COD)';
+        isPaid = (currentInvoice.trangThai === 4 || currentInvoice.trangThai === 6 || (currentInvoice.ngayThanhToan != null && currentInvoice.ngayThanhToan !== ''));
     } else {
         method = 'Tiền Mặt';
         desc = 'Thanh toán bằng tiền mặt tại quầy';
+        isPaid = true;
     }
+
+    const payDate = currentInvoice.ngayThanhToan ? new Date(currentInvoice.ngayThanhToan) : (isPaid ? (currentInvoice.ngayTao ? new Date(currentInvoice.ngayTao) : new Date()) : null);
+    const dateStr = payDate ? payDate.toLocaleString('vi-VN', {hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: '2-digit'}) : '<span style="color: #ea580c; font-style: italic; font-weight: 500;">Chưa thanh toán</span>';
+
+    const statusNote = isPaid 
+        ? `<span style="color: #10b981; font-weight: 600;">${desc}</span>` 
+        : `<span style="color: #ea580c; font-weight: 600;">${desc} (Chờ thanh toán)</span>`;
     
     tr.innerHTML = `
         <td style="font-weight: 600;">${grandTotalStr}</td>
         <td>${dateStr}</td>
         <td style="font-weight: 600;">${txnCode}</td>
         <td>${method}</td>
-        <td>${desc}</td>
+        <td>${statusNote}</td>
     `;
     tbody.appendChild(tr);
 }

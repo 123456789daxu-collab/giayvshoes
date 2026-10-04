@@ -17,6 +17,8 @@ public interface SanPhamService {
     boolean existsByMaSanPham(String maSanPham);
     String generateNextMaSanPham();
 
+    java.math.BigDecimal findMaxGiaBan();
+
     List<SanPham> getAll();
     long countTotalProducts();
     long countActiveProducts();
@@ -46,4 +48,6 @@ public interface SanPhamService {
     java.util.Map<String, Object> getDetailBySpctId(Long spctId);
     java.util.Map<String, Object> reduceStock(Long id, Integer quantity);
     java.util.Map<String, Object> increaseStock(Long id, Integer quantity);
+    void syncTotalQuantity(Long sanPhamId);
+    void syncAllProductQuantities();
 }

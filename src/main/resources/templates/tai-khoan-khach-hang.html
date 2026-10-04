@@ -48,8 +48,8 @@
                             <button type="button" class="status-btn" onclick="toggleStatusFilter(this, '0')">Ngừng hoạt
                                 động</button>
                         </div>
-                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc" style="width: 32px; height: 32px;">
-                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                        <button class="fi-reset-btn" onclick="resetFilters()" title="Làm mới bộ lọc">
+                            <i data-lucide="refresh-cw"></i>
                         </button>
                     </div>
                 </div>
@@ -88,15 +88,15 @@
             </div>
 
             <!-- ROW CHỨA CÁC NÚT THAO TÁC XUẤT/NHẬP/THÊM -->
-            <div class="action-row">
-                <button class="btn-icon" title="Nhập Excel" onclick="triggerImportExcel()">
-                    <i data-lucide="upload" style="width: 18px; height: 18px;"></i>
+            <div class="action-row" style="display: flex; gap: 8px; align-items: center;">
+                <button class="btn-import-excel" title="Nhập Excel" onclick="triggerImportExcel()">
+                    <i data-lucide="file-up"></i> Nhập Excel
                 </button>
-                <button class="btn-icon" title="Xuất Excel" onclick="triggerExportExcel()">
-                    <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                <button class="btn-export-excel" title="Xuất Excel" onclick="triggerExportExcel()">
+                    <i data-lucide="file-spreadsheet"></i> Xuất Excel
                 </button>
-                <button class="btn-icon" title="Tải file mẫu / PDF" onclick="triggerPdfDownload()">
-                    <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
+                <button class="btn-admin-outline" title="Tải file mẫu / PDF" onclick="triggerPdfDownload()">
+                    <i data-lucide="file-text"></i> File mẫu
                 </button>
                 <button class="btn-primary-action" onclick="openAddCustomerModal()">
                     <i data-lucide="plus" style="width: 18px; height: 18px;"></i>

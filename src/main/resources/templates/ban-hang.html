@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bán hàng tại quầy | VShoes</title>
+    <link rel="icon" type="image/png" href="/images/logo.png?v=3">
+    <link rel="shortcut icon" href="/favicon.ico?v=3">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -11,6 +13,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
+    <link rel="stylesheet" href="/css/global-typography.css?v=2.0">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.2">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
     <link rel="stylesheet" href="/css/ban-hang.css?v=99">
@@ -118,11 +122,11 @@
                                 <div class="row g-3">
                                     <div class="col-md-3">
                                         <span class="text-muted fw-semibold d-block mb-2" style="font-size: 0.95rem;"><i class="fa-solid fa-user me-1" style="color: #008dd5;"></i> Người nhận</span>
-                                        <input type="text" class="form-control rounded-3 border-0 py-2 px-3" id="tenNguoiNhan" placeholder="Tên khách" readonly style="border: 1px solid #e5e7eb !important; background-color: #f8fafc !important; font-size: 0.95rem;">
+                                        <input type="text" class="form-control rounded-3 py-2 px-3 bg-white" id="tenNguoiNhan" placeholder="Nhập tên người nhận" oninput="posApp.onMainShippingChange()" style="border: 1px solid #cbd5e1 !important; font-size: 0.95rem;">
                                     </div>
                                     <div class="col-md-3">
                                         <span class="text-muted fw-semibold d-block mb-2" style="font-size: 0.95rem;"><i class="fa-solid fa-phone me-1" style="color: #008dd5;"></i> Số điện thoại</span>
-                                        <input type="text" class="form-control rounded-3 border-0 py-2 px-3" id="sdtNhan" placeholder="SĐT nhận" readonly style="border: 1px solid #e5e7eb !important; background-color: #f8fafc !important; font-size: 0.95rem;">
+                                        <input type="tel" class="form-control rounded-3 py-2 px-3 bg-white" id="sdtNhan" placeholder="Nhập số điện thoại" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, ''); posApp.onMainShippingChange();" style="border: 1px solid #cbd5e1 !important; font-size: 0.95rem;">
                                     </div>
                                     <div class="col-md-4">
                                         <span class="text-muted fw-semibold d-block mb-2" style="font-size: 0.95rem;"><i class="fa-solid fa-location-dot me-1" style="color: #008dd5;"></i> Địa chỉ nhận</span>
@@ -329,6 +333,68 @@
         </div>
     </div>
 
+    <!-- Add To Cart Quantity Modal -->
+    <div class="modal fade" id="addToCartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom pb-3">
+                    <h5 class="modal-title fw-bold fs-6 text-dark d-flex align-items-center">
+                        <i class="fa-solid fa-cart-plus text-primary me-2 fs-5"></i>Thêm sản phẩm vào giỏ hàng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Product Info Header -->
+                    <div class="d-flex gap-3 align-items-center mb-3 p-3 bg-light rounded-3 border">
+                        <img id="addCartModalImg" src="/images/white.png" class="rounded-3 shadow-sm border" style="width: 72px; height: 72px; object-fit: cover;" alt="Product">
+                        <div class="flex-grow-1 min-w-0">
+                            <h6 class="fw-bold mb-1 text-truncate text-dark" id="addCartModalProductName" style="font-size: 0.95rem;">Tên sản phẩm</h6>
+                            <div class="text-muted small mb-1">Mã: <span id="addCartModalProductCode" class="fw-semibold text-dark">N/A</span></div>
+                            <div class="d-flex flex-wrap gap-2 small">
+                                <span class="badge bg-white text-dark border">Màu: <strong id="addCartModalColor">-</strong></span>
+                                <span class="badge bg-white text-dark border">Size: <strong id="addCartModalSize">-</strong></span>
+                                <span class="badge bg-white text-dark border">Kho: <strong id="addCartModalStock" class="text-primary">0</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <span class="text-muted fw-semibold">Đơn giá bán:</span>
+                        <span class="fw-bold fs-5 text-danger" id="addCartModalPrice">0 đ</span>
+                    </div>
+
+                    <!-- Quantity Stepper -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted text-uppercase mb-2 d-block text-center">Số lượng thêm</label>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="input-group d-flex align-items-center justify-content-center shadow-sm" id="modalStepperContainer" style="max-width: 190px; border: 1px solid #cbd5e1; border-radius: 50rem; padding: 4px; background: white;">
+                                <button class="btn btn-sm btn-light rounded-circle shadow-none" type="button" id="btnModalAddMinus" onclick="posApp.changeModalAddQty(-1)" style="width: 36px; height: 36px; font-weight: bold;">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control border-0 text-center fw-bold fs-6 p-0 shadow-none bg-transparent" id="addCartModalQtyInput" value="1" min="1" oninput="posApp.onModalAddQtyInput()" style="width: 60px;">
+                                <button class="btn btn-sm btn-light rounded-circle shadow-none" type="button" id="btnModalAddPlus" onclick="posApp.changeModalAddQty(1)" style="width: 36px; height: 36px; font-weight: bold;">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="modalStockErrorMsg" class="text-center mt-2 d-none">
+                            <small class="text-danger fw-semibold" id="modalStockErrorText">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>Số lượng trong kho không đủ
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btnConfirmAddToCart" onclick="posApp.confirmAddToCart()">
+                        <i class="fa-solid fa-check me-1"></i>Xác nhận thêm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Customer List Modal -->
     <div class="modal fade" id="customerModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
@@ -414,12 +480,12 @@
                 <div class="modal-body p-4">
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label text-muted fw-semibold small">Người nhận</label>
-                            <input type="text" class="form-control rounded-3 border-0 py-2" id="modalTenNguoiNhan" placeholder="Nhập tên người nhận" readonly style="background-color: #f1f5f9 !important;">
+                            <label class="form-label text-muted fw-semibold small">Người nhận <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3 py-2 bg-white" id="modalTenNguoiNhan" placeholder="Nhập tên người nhận" style="border: 1px solid #cbd5e1 !important;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label text-muted fw-semibold small">Số điện thoại</label>
-                            <input type="text" class="form-control rounded-3 border-0 py-2" id="modalSdtNhan" placeholder="Nhập số điện thoại" readonly style="background-color: #f1f5f9 !important;">
+                            <label class="form-label text-muted fw-semibold small">Số điện thoại <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control rounded-3 py-2 bg-white" id="modalSdtNhan" placeholder="Nhập số điện thoại" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="border: 1px solid #cbd5e1 !important;">
                         </div>
                     </div>
                     
@@ -469,7 +535,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    <script src="/js/ban-hang.js?v=106"></script>
+    <script src="/js/ban-hang.js?v=110"></script>
 </body>
 </html>
 

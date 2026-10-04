@@ -16,7 +16,7 @@ public class CaLamService {
     }
 
     public List<CaLam> findAll() {
-        return caLamRepository.findAll();
+        return caLamRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     public CaLam save(CaLam caLam) {

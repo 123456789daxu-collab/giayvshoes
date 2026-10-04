@@ -124,12 +124,15 @@ public class HoaDon {
         return this.diaChiNhan;
     }
 
+    @Transient
+    private LocalDateTime ngayCapNhat;
+
     public void setNgayCapNhat(LocalDateTime val) {
-        this.ngayThanhToan = val;
+        this.ngayCapNhat = val;
     }
 
     public LocalDateTime getNgayCapNhat() {
-        return this.ngayThanhToan;
+        return this.ngayCapNhat;
     }
 
     // Jackson / API compatibility for loaiHoaDon String or Boolean values

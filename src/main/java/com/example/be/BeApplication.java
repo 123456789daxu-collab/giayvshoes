@@ -19,8 +19,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import com.example.be.config.DatabaseAutoCreationConfig;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class BeApplication {
 
     public static void main(String[] args) {

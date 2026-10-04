@@ -99,13 +99,13 @@
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <span class="card-title-table" style="margin-bottom: 0;">Danh sách phiếu giảm giá</span>
-                            <div class="action-row" style="margin-bottom: 0;">
+                            <div class="action-row" style="margin-bottom: 0; display: flex; gap: 8px;">
+                                <button class="btn-export-excel" onclick="exportVouchersExcel()" title="Xuất Excel">
+                                    <i data-lucide="file-spreadsheet"></i> Xuất Excel
+                                </button>
                                 <button class="btn-primary-action" onclick="openAddVoucherForm()">
                                     <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
                                     Thêm mới
-                                </button>
-                                <button class="btn-icon" title="Xuất Excel" onclick="exportVouchersExcel()">
-                                    <i data-lucide="download" style="width: 18px; height: 18px;"></i>
                                 </button>
                             </div>
                         </div>

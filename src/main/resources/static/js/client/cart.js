@@ -22,9 +22,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupActions();
     updateCartBadgeGlobal();
     loadRecommendedProducts();
+
+    // Live sync without F5 when products / discounts / vouchers change status
+    const syncCartLive = async () => {
+        await syncCartPricesWithBackend();
+        renderCart();
+        loadRecommendedProducts();
+    };
+
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => syncCartLive();
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') syncCartLive();
+    });
+    window.addEventListener('focus', () => syncCartLive());
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') syncCartLive();
+    });
+    setInterval(() => {
+        if (document.visibilityState === 'visible') syncCartLive();
+    }, 4000);
 });
 
-async function syncCartPricesWithBackend() {
+async function syncCartPricesWithBackend(isLive = false) {
     try {
         let cart = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
         if (!cart || cart.length === 0) {
@@ -49,26 +71,50 @@ async function syncCartPricesWithBackend() {
             const statusMap = new Map();
             statusList.forEach(s => statusMap.set(s.id, s));
 
+            let newlyStopped = [];
             for (let item of cart) {
+                const wasActive = item.isStopped !== true;
                 const s = statusMap.get(item.id);
                 if (s) {
-                    item.isStopped = s.isStopped === true || (s.trangThai != null && s.trangThai != 1);
+                    const isNowStopped = s.isStopped === true || (s.trangThai != null && s.trangThai != 1);
+                    if (wasActive && isNowStopped) {
+                        newlyStopped.push(item.tenSanPham || 'Sản phẩm');
+                    }
+                    item.isStopped = isNowStopped;
                     item.trangThai = s.trangThai;
                     item.soLuongTon = s.soLuongTon != null ? s.soLuongTon : 0;
                     if (s.giaBan != null) item.giaBan = s.giaBan;
-                    if (s.giaGoc != null) item.giaGoc = s.giaGoc;
-                    if (s.phanTramGiam != null) item.phanTramGiam = s.phanTramGiam;
+                    item.giaGoc = s.giaGoc || null;
+                    item.phanTramGiam = s.phanTramGiam || null;
                     if (s.tenSanPham) item.tenSanPham = s.tenSanPham;
                     if (s.ma) item.ma = s.ma;
                     if (s.hinhAnh) item.hinhAnh = s.hinhAnh;
                 } else {
+                    if (wasActive) {
+                        newlyStopped.push(item.tenSanPham || 'Sản phẩm');
+                    }
                     item.isStopped = true;
                     item.trangThai = 0;
+                }
+            }
+
+            if (newlyStopped.length > 0) {
+                const spText = newlyStopped.length === 1 ? `"${newlyStopped[0]}"` : `${newlyStopped.length} sản phẩm`;
+                showToast(`Sản phẩm ${spText} đã ngừng kinh doanh.`, 'warning');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Thông báo',
+                        html: `Sản phẩm <strong>${spText}</strong> đã ngừng kinh doanh.`,
+                        icon: 'warning',
+                        confirmButtonColor: '#00adef',
+                        confirmButtonText: 'Đã hiểu'
+                    });
                 }
             }
         }
 
         state.cart = cart;
+        state.checkedIds = state.checkedIds.filter(id => !cart.some(item => item.id === id && item.isStopped));
         localStorage.setItem('vshoes_cart', JSON.stringify(cart));
     } catch (err) {
         console.error('Lỗi đồng bộ giỏ hàng:', err);
@@ -178,7 +224,7 @@ function setupCheckboxHandlers() {
             const item = state.cart.find(i => i.id === id);
             if (item && item.isStopped) {
                 e.target.checked = false;
-                showToast(`Sản phẩm "${item.tenSanPham}" đã ngừng bán, không thể chọn!`, 'error');
+                showToast(`Sản phẩm "${item.tenSanPham}" đã ngừng kinh doanh.`, 'error');
                 return;
             }
             if (e.target.checked) {
@@ -274,13 +320,37 @@ function deleteItem(id) {
     const item = state.cart.find(i => i.id === id);
     if (!item) return;
     
-    if (confirm(`Bạn muốn xóa "${item.tenSanPham}" khỏi giỏ hàng?`)) {
-        state.cart = state.cart.filter(i => i.id !== id);
-        state.checkedIds = state.checkedIds.filter(x => x !== id);
-        saveCart();
-        renderCart();
-        updateCartBadgeGlobal();
-        showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Xóa sản phẩm?',
+            html: `Bạn có chắc muốn xóa <strong>"${item.tenSanPham}"</strong> khỏi giỏ hàng?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Xóa sản phẩm',
+            cancelButtonText: 'Hủy',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                state.cart = state.cart.filter(i => i.id !== id);
+                state.checkedIds = state.checkedIds.filter(x => x !== id);
+                saveCart();
+                renderCart();
+                updateCartBadgeGlobal();
+                showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+            }
+        });
+    } else {
+        if (confirm(`Bạn muốn xóa "${item.tenSanPham}" khỏi giỏ hàng?`)) {
+            state.cart = state.cart.filter(i => i.id !== id);
+            state.checkedIds = state.checkedIds.filter(x => x !== id);
+            saveCart();
+            renderCart();
+            updateCartBadgeGlobal();
+            showToast('Đã xóa sản phẩm khỏi giỏ hàng', 'success');
+        }
     }
 }
 
@@ -292,13 +362,37 @@ function setupActions() {
             return;
         }
         
-        if (confirm(`Bạn muốn xóa ${state.checkedIds.length} sản phẩm đã chọn?`)) {
-            state.cart = state.cart.filter(item => !state.checkedIds.includes(item.id));
-            state.checkedIds = [];
-            saveCart();
-            renderCart();
-            updateCartBadgeGlobal();
-            showToast('Đã xóa các sản phẩm được chọn', 'success');
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Xóa các sản phẩm đã chọn?',
+                html: `Bạn có chắc muốn xóa <strong>${state.checkedIds.length}</strong> sản phẩm đã chọn khỏi giỏ hàng?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Xóa tất cả',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true,
+                focusCancel: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    state.cart = state.cart.filter(item => !state.checkedIds.includes(item.id));
+                    state.checkedIds = [];
+                    saveCart();
+                    renderCart();
+                    updateCartBadgeGlobal();
+                    showToast('Đã xóa các sản phẩm được chọn', 'success');
+                }
+            });
+        } else {
+            if (confirm(`Bạn muốn xóa ${state.checkedIds.length} sản phẩm đã chọn?`)) {
+                state.cart = state.cart.filter(item => !state.checkedIds.includes(item.id));
+                state.checkedIds = [];
+                saveCart();
+                renderCart();
+                updateCartBadgeGlobal();
+                showToast('Đã xóa các sản phẩm được chọn', 'success');
+            }
         }
     });
     
@@ -309,10 +403,9 @@ function setupActions() {
             return;
         }
         
-        // Filter checked items and ensure none are stopped or out of stock
         const stoppedSelected = state.cart.filter(item => state.checkedIds.includes(item.id) && item.isStopped);
         if (stoppedSelected.length > 0) {
-            showToast(`Sản phẩm "${stoppedSelected[0].tenSanPham}" đã ngừng kinh doanh. Vui lòng xóa trước khi thanh toán!`, 'error');
+            showToast(`Sản phẩm "${stoppedSelected[0].tenSanPham}" đã ngừng kinh doanh.`, 'error');
             return;
         }
 
@@ -463,4 +556,33 @@ async function loadRecommendedProducts() {
         console.warn('Lỗi tải sản phẩm đề xuất:', e);
         if (container) container.innerHTML = '';
     }
+}
+
+function showToast(msg, type = 'success') {
+    if (typeof Swal !== 'undefined') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+        Toast.fire({
+            icon: type === 'error' ? 'error' : (type === 'warning' ? 'warning' : 'success'),
+            title: msg
+        });
+        return;
+    }
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `cart-toast cart-toast-${type}`;
+    toast.style.cssText = 'background:#1e293b; color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:500; box-shadow:0 10px 25px rgba(0,0,0,0.15);';
+    toast.textContent = msg;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
 }

@@ -22,6 +22,14 @@ public class DotGiamGiaController {
     @Autowired
     private DotGiamGiaService dotGiamGiaService;
 
+    @Autowired
+    private com.example.be.repository.DotGiamGiaRepository dotGiamGiaRepository;
+
+    @GetMapping("/active")
+    public ResponseEntity<?> getActiveCampaigns() {
+        return ResponseEntity.ok(dotGiamGiaRepository.findActiveCampaigns());
+    }
+
     @GetMapping("/next-code")
     public ResponseEntity<?> getNextCode() {
         return ResponseEntity.ok(Map.of("code", dotGiamGiaService.generateNextMaCampaign()));

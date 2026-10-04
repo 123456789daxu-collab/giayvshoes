@@ -84,7 +84,16 @@ public class ClientTrackingRestController {
 
     @GetMapping("/{id}/history")
     public ResponseEntity<?> getHistory(@PathVariable Long id) {
-        return ResponseEntity.ok(hoaDonService.getHistoryByHoaDonId(id));
+        List<com.example.be.entity.LichSuHoaDon> historyList = hoaDonService.getHistoryByHoaDonId(id);
+        List<java.util.Map<String, Object>> response = historyList.stream().map(h -> {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", h.getId());
+            map.put("hanhDong", h.getHanhDong());
+            map.put("ngayTao", h.getNgayTao());
+            map.put("ghiChu", h.getGhiChu());
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
     /**

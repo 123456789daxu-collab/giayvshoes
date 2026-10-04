@@ -256,8 +256,26 @@ async function checkCurrentUserStatus() {
             if (btnLogout) {
                 btnLogout.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    if (confirm('Bạn có chắc chắn muốn đăng xuất tài khoản?')) {
-                        await performLogout();
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Đăng xuất?',
+                            text: 'Bạn có chắc chắn muốn đăng xuất tài khoản?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonColor: '#94a3b8',
+                            confirmButtonText: 'Đăng xuất',
+                            cancelButtonText: 'Hủy',
+                            reverseButtons: true
+                        }).then(async (res) => {
+                            if (res.isConfirmed) {
+                                await performLogout();
+                            }
+                        });
+                    } else {
+                        if (confirm('Bạn có chắc chắn muốn đăng xuất tài khoản?')) {
+                            await performLogout();
+                        }
                     }
                 });
             }

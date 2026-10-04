@@ -21,9 +21,31 @@ public class SanPhamServiceImpl implements SanPhamService {
     @Autowired
     private SanPhamRepository sanPhamRepository;
 
+    @jakarta.annotation.PostConstruct
+    @Override
+    public void syncAllProductQuantities() {
+        try {
+            List<SanPham> all = sanPhamRepository.findAll();
+            for (SanPham sp : all) {
+                syncTotalQuantity(sp.getId());
+            }
+        } catch (Exception e) {
+            System.err.println("Init sync error: " + e.getMessage());
+        }
+    }
+
     @Override
     public Page<SanPham> search(String keyword, Integer trangThai, Integer soLuongTon, Long idThuongHieu, Long idLoaiGiay, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice, Pageable pageable) {
-        return sanPhamRepository.search(keyword, trangThai, soLuongTon, idThuongHieu, idLoaiGiay, minPrice, maxPrice, pageable);
+        Page<SanPham> page = sanPhamRepository.search(keyword, trangThai, soLuongTon, idThuongHieu, idLoaiGiay, minPrice, maxPrice, pageable);
+        for (SanPham sp : page.getContent()) {
+            syncTotalQuantity(sp.getId());
+        }
+        return page;
+    }
+
+    @Override
+    public java.math.BigDecimal findMaxGiaBan() {
+        return sanPhamRepository.findMaxGiaBan();
     }
 
     @Override
@@ -258,20 +280,6 @@ public class SanPhamServiceImpl implements SanPhamService {
                 if (!savedUrls.isEmpty()) {
                     String combinedUrls = String.join(",", savedUrls);
                     variant.setHinhAnh(combinedUrls);
-
-                    // Đồng bộ ảnh cho các biến thể khác của cùng sản phẩm nếu chúng đang rỗng hoặc là ảnh mặc định
-                    if (variant.getSanPham() != null) {
-                        List<com.example.be.entity.SanPhamChiTiet> otherVariants = sanPhamChiTietRepository.findBySanPhamId(variant.getSanPham().getId());
-                        for (com.example.be.entity.SanPhamChiTiet other : otherVariants) {
-                            if (!other.getId().equals(variant.getId())) {
-                                String oImg = other.getHinhAnh();
-                                if (oImg == null || oImg.isBlank() || oImg.startsWith("/images/shoe") || oImg.equals("[]") || oImg.equals("[\"\"]")) {
-                                    other.setHinhAnh(combinedUrls);
-                                    sanPhamChiTietRepository.save(other);
-                                }
-                            }
-                        }
-                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -400,15 +408,10 @@ public class SanPhamServiceImpl implements SanPhamService {
                 createdVariants.add(variant);
             }
 
-            // Đồng bộ ảnh: Nếu có biến thể chưa có ảnh riêng nhưng sản phẩm đã có ảnh,
-            // tự động đồng bộ ảnh đó sang cho các biến thể còn lại.
+            // Nếu có biến thể chưa có ảnh, tự động gán ảnh trắng (/images/white.png)
             for (com.example.be.entity.SanPhamChiTiet v : createdVariants) {
-                if (v.getHinhAnh() == null || v.getHinhAnh().trim().isEmpty() || v.getHinhAnh().equals("[]")) {
-                    if (firstValidHinhAnh != null) {
-                        v.setHinhAnh(firstValidHinhAnh);
-                    } else {
-                        v.setHinhAnh("/images/shoe1.png");
-                    }
+                if (v.getHinhAnh() == null || v.getHinhAnh().trim().isEmpty() || v.getHinhAnh().equals("[]") || v.getHinhAnh().equals("[\"\"]")) {
+                    v.setHinhAnh("/images/white.png");
                 }
                 sanPhamChiTietRepository.save(v);
             }
@@ -609,7 +612,9 @@ public class SanPhamServiceImpl implements SanPhamService {
         return "/upload/" + fileName;
     }
 
-    private void syncTotalQuantity(Long sanPhamId) {
+    @Override
+    public void syncTotalQuantity(Long sanPhamId) {
+        if (sanPhamId == null) return;
         SanPham sanPham = findById(sanPhamId);
         if (sanPham != null) {
             List<com.example.be.entity.SanPhamChiTiet> variants = sanPhamChiTietRepository.findBySanPhamId(sanPhamId);
@@ -617,7 +622,7 @@ public class SanPhamServiceImpl implements SanPhamService {
             java.math.BigDecimal minGiaBan = null;
             java.math.BigDecimal minGiaNhap = null;
             for (com.example.be.entity.SanPhamChiTiet v : variants) {
-                if (v.getSoLuongTon() != null && v.getTrangThai() != null && v.getTrangThai() == 1) {
+                if (v.getSoLuongTon() != null && (v.getTrangThai() == null || v.getTrangThai() == 1)) {
                     totalQuantity += v.getSoLuongTon();
                 }
                 if (v.getGiaBan() != null) {

@@ -101,28 +101,40 @@ public class ThongKeServiceImpl implements ThongKeService {
             dto.setGiaTriTrungBinhDon(BigDecimal.ZERO);
         }
 
-        // Tiền mặt & Chuyển khoản (truy vấn lich_su_thanh_toan / thanh_toan_hoa_don nếu có)
+        // Tiền mặt & Chuyển khoản (truy vấn hoa_don và lich_su_thanh_toan)
         try {
-            String sqlTienMat = "SELECT SUM(lstt.so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereHd + " AND (lstt.phuong_thuc_thanh_toan LIKE '%Tien%' OR lstt.phuong_thuc_thanh_toan LIKE '%t%');";
-            Query qTm = entityManager.createNativeQuery(sqlTienMat);
-            if (startDate != null) qTm.setParameter("startDate", startDate);
-            if (endDate != null) qTm.setParameter("endDate", endDate);
-            BigDecimal tm = safeToBigDecimal(qTm.getSingleResult());
-
-            String sqlCk = "SELECT SUM(lstt.so_tien) FROM lich_su_thanh_toan lstt JOIN hoa_don hd ON lstt.id_hoa_don = hd.id " + whereHd + " AND (lstt.phuong_thuc_thanh_toan LIKE '%ChuyenKhoan%' OR lstt.phuong_thuc_thanh_toan LIKE '%bank%' OR lstt.phuong_thuc_thanh_toan LIKE '%chuy%n%');";
+            String sqlCk = "SELECT ISNULL(SUM(hd.tong_tien), 0) FROM hoa_don hd " + whereHd +
+                    " AND (" +
+                    "   UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%TRANSFER%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%VNPAY%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%MOMO%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%ZALOPAY%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%VIETQR%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%BANK%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%CHUYEN%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE N'%CHUYỂN%' " +
+                    "   OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE N'%KHOẢN%' " +
+                    "   OR EXISTS (SELECT 1 FROM lich_su_thanh_toan lstt WHERE lstt.id_hoa_don = hd.id AND (" +
+                    "       UPPER(lstt.phuong_thuc_thanh_toan) LIKE '%CHUYEN%' " +
+                    "       OR UPPER(lstt.phuong_thuc_thanh_toan) LIKE '%BANK%' " +
+                    "       OR UPPER(lstt.phuong_thuc_thanh_toan) LIKE '%TRANSFER%' " +
+                    "       OR UPPER(lstt.phuong_thuc_thanh_toan) LIKE '%VNPAY%' " +
+                    "       OR UPPER(lstt.phuong_thuc_thanh_toan) LIKE '%MOMO%' " +
+                    "       OR UPPER(lstt.phuong_thuc_thanh_toan) LIKE '%ZALOPAY%'))" +
+                    ")";
             Query qCk = entityManager.createNativeQuery(sqlCk);
             if (startDate != null) qCk.setParameter("startDate", startDate);
             if (endDate != null) qCk.setParameter("endDate", endDate);
             BigDecimal ck = safeToBigDecimal(qCk.getSingleResult());
 
-            if (tm.compareTo(BigDecimal.ZERO) == 0 && ck.compareTo(BigDecimal.ZERO) == 0) {
-                // Fallback nếu chưa phân loại thanh toán
-                dto.setTongTienMat(dto.getTongDoanhThu());
-                dto.setTongTienChuyenKhoan(BigDecimal.ZERO);
-            } else {
-                dto.setTongTienMat(tm);
-                dto.setTongTienChuyenKhoan(ck);
+            BigDecimal tongDoanhThu = dto.getTongDoanhThu() != null ? dto.getTongDoanhThu() : BigDecimal.ZERO;
+            if (ck.compareTo(tongDoanhThu) > 0) {
+                ck = tongDoanhThu;
             }
+            BigDecimal tm = tongDoanhThu.subtract(ck).max(BigDecimal.ZERO);
+
+            dto.setTongTienChuyenKhoan(ck);
+            dto.setTongTienMat(tm);
         } catch (Exception e) {
             dto.setTongTienMat(dto.getTongDoanhThu());
             dto.setTongTienChuyenKhoan(BigDecimal.ZERO);

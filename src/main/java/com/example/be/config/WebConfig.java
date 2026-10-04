@@ -43,6 +43,9 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/images/**")
                 .addResourceLocations(imagesUri, targetImagesUri, "file:src/main/resources/static/images/", "file:target/classes/static/images/", "classpath:/static/images/");
+
+        registry.addResourceHandler("/favicon.ico", "/favicon.png")
+                .addResourceLocations("file:src/main/resources/static/", "file:target/classes/static/", "classpath:/static/");
     }
 
     @Override
@@ -56,11 +59,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(nhanVienAuthInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                    "/css/**", "/js/**", "/images/**", "/webjars/**",
+                    "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/favicon.png",
                     "/trang-chu", "/client/**", "/api/san-pham/**", "/api/phieu-giam-gia/check", 
                     "/api/phieu-giam-gia/list", "/api/hoa-don/ban-hang", "/api/hoa-don/*/send-email", 
-                    "/api/hoa-don/test-email", "/upload/**", "/api/auth/**", "/api/client/**", 
-                    "/api/address/**", "/ws-chat/**", "/client-chat-widget", "/api/chat/history/**",
+                    "/api/hoa-don/test-email", "/api/hoa-don/*/confirm-online-payment", "/upload/**", "/api/auth/**", "/api/client/**", 
+                    "/api/address/**",
                     "/api/payment/vnpay/**", "/dang-nhap", "/logout", "/error"
                 );
     }

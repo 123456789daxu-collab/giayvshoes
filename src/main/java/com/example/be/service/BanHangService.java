@@ -18,8 +18,10 @@ public interface BanHangService {
     
     HoaDon capNhatKhachHang(Long idHoaDon, Long idKhachHang);
     HoaDon capNhatPhieuGiamGia(Long idHoaDon, Long idPhieuGiamGia);
+    HoaDon capNhatGiaoHang(Long idHoaDon, Boolean isGiaoHang, String tenNguoiNhan, String sdtNhan, String diaChiGiao, BigDecimal phiShip);
     
     HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang, BigDecimal phiShip, String sdtNhan, String diaChiGiao);
+    HoaDon thanhToan(Long idHoaDon, String hinhThucThanhToan, BigDecimal tienKhachDua, String ghiChu, String tenKhachHang, BigDecimal phiShip, String sdtNhan, String diaChiGiao, Long idPhieuGiamGia);
     
     java.util.List<java.util.Map<String, Object>> getDanhSachKhachHang(String keyword);
     java.util.List<java.util.Map<String, Object>> getDanhSachSanPhamBanHang(String keyword);

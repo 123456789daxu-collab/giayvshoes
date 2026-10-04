@@ -36,6 +36,8 @@ public class HoaDonService {
     private EmailService emailService;
     @org.springframework.beans.factory.annotation.Autowired
     private MaGeneratorService maGeneratorService;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.example.be.repository.LichSuThanhToanRepository lichSuThanhToanRepository;
 
 
     public HoaDonService(HoaDonRepository hoaDonRepository,
@@ -54,9 +56,83 @@ public class HoaDonService {
         this.sanPhamRepository = sanPhamRepository;
     }
 
+    /**
+     * Tự động chuyển các đơn hàng ở trạng thái "Đã giao" (trạng thái 4)
+     * sang trạng thái "Hoàn thành" (trạng thái 6) nếu đã ở trạng thái đã giao trong vòng 3 ngày (quá 3 ngày).
+     */
+    @Transactional
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 60000, initialDelay = 5000)
+    public int autoTransitionDeliveredToCompleted() {
+        try {
+            List<HoaDon> deliveredOrders = hoaDonRepository.findByTrangThai(4);
+            if (deliveredOrders == null || deliveredOrders.isEmpty()) {
+                return 0;
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime threshold = now.minusDays(3);
+            int completedCount = 0;
+
+            for (HoaDon hd : deliveredOrders) {
+                try {
+                    // Xác định thời điểm đơn hàng chuyển sang trạng thái "Đã giao" (4)
+                    List<LichSuHoaDon> histories = lichSuHoaDonRepository.findByHoaDonIdOrderByNgayTaoDesc(hd.getId());
+                    LocalDateTime deliveredTime = null;
+
+                    if (histories != null && !histories.isEmpty()) {
+                        for (LichSuHoaDon h : histories) {
+                            String note = ((h.getGhiChu() != null ? h.getGhiChu() : "") + " " + (h.getHanhDong() != null ? h.getHanhDong() : "")).toLowerCase();
+                            if (note.contains("đã giao") || note.contains("da giao")) {
+                                deliveredTime = h.getNgayTao();
+                                break;
+                            }
+                        }
+                        if (deliveredTime == null) {
+                            deliveredTime = histories.get(0).getNgayTao();
+                        }
+                    }
+
+                    if (deliveredTime == null) {
+                        deliveredTime = (hd.getNgayCapNhat() != null) ? hd.getNgayCapNhat() : hd.getNgayTao();
+                    }
+
+                    // Kiểm tra nếu đã quá 3 ngày kể từ khi Đã giao
+                    if (deliveredTime != null && deliveredTime.isBefore(threshold)) {
+                        hd.setTrangThai(6); // 6 = Hoàn thành
+                        if (hd.getNgayThanhToan() == null) {
+                            hd.setNgayThanhToan(now);
+                        }
+                        hd.setNgayCapNhat(now);
+                        HoaDon updated = hoaDonRepository.save(hd);
+
+                        LichSuHoaDon history = LichSuHoaDon.builder()
+                                .hoaDon(updated)
+                                .hanhDong("Tự động hoàn thành")
+                                .ngayTao(now)
+                                .ghiChu("Hệ thống tự động chuyển trạng thái sang: Hoàn thành (sau 3 ngày kể từ khi giao hàng thành công)")
+                                .build();
+                        lichSuHoaDonRepository.save(history);
+
+                        completedCount++;
+                        System.out.println("--- [TỰ ĐỘNG HOÀN THÀNH] Đơn hàng " + hd.getMaHoaDon() + " đã tự động chuyển sang Hoàn thành (Đã giao lúc: " + deliveredTime + ") ---");
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Lỗi khi tự động hoàn thành đơn hàng " + hd.getMaHoaDon() + ": " + ex.getMessage());
+                }
+            }
+
+            return completedCount;
+        } catch (Exception e) {
+            System.err.println("Lỗi quét tự động hoàn thành đơn hàng: " + e.getMessage());
+            return 0;
+        }
+    }
+
     public List<HoaDonDTO> search(String keyword, Integer trangThai, String loaiHoaDon, 
                                   BigDecimal minPrice, BigDecimal maxPrice, 
                                   LocalDateTime startDate, LocalDateTime endDate) {
+        autoTransitionDeliveredToCompleted();
+
         Boolean loaiHoaDonBool = null;
         if ("Tại quầy".equalsIgnoreCase(loaiHoaDon) || "Tai quay".equalsIgnoreCase(loaiHoaDon)) {
             loaiHoaDonBool = false;
@@ -285,6 +361,7 @@ public class HoaDonService {
                 .sdtNguoiNhan(h.getSdtNguoiNhan() != null ? h.getSdtNguoiNhan() : sdtKh)
                 .soLuong(soLuong)
                 .ngayTao(h.getNgayTao())
+                .ngayThanhToan(h.getNgayThanhToan())
                 .tongTien(tongTienHieuQua)
                 .loaiHoaDon(loaiHdStr)
                 .trangThai(h.getTrangThai())
@@ -304,6 +381,7 @@ public class HoaDonService {
     }
 
     public java.util.Optional<HoaDonDTO> findById(Long id) {
+        autoTransitionDeliveredToCompleted();
         return hoaDonRepository.findById(id).map(this::mapToDTO);
     }
 
@@ -339,31 +417,49 @@ public class HoaDonService {
             Integer oldStatus = existing.getTrangThai();
             Integer newStatus = hoaDonDetails.getTrangThai();
 
+            // Quy định hủy đơn: tất cả mọi đơn đều chỉ được hủy khi ở trạng thái chờ xác nhận (0), sau khi đổi trạng thái đã xác nhận (>= 1) thì không được phép hủy
+            if (newStatus != null && (newStatus == 7 || newStatus == 8)) {
+                if (oldStatus != null && oldStatus != 0) {
+                    throw new IllegalArgumentException("Đơn hàng đã được xác nhận, không được phép hủy đơn!");
+                }
+            }
+
             // 1. Kiểm tra và xử lý tồn kho TRƯỚC TIÊN khi thay đổi trạng thái
             if (newStatus != null && !newStatus.equals(oldStatus)) {
-                boolean oldDecremented = isStockDecrementedStatus(oldStatus);
+                boolean oldDecremented = isInvoiceStockDeducted(existing, oldStatus);
                 boolean newDecremented = isStockDecrementedStatus(newStatus);
                 
                 if (!oldDecremented && newDecremented) {
                     reduceStockForInvoice(existing.getId());
+                    markInvoiceStockDeducted(existing);
                 } else if (oldDecremented && !newDecremented) {
                     restoreStockForInvoice(existing.getId());
+                    unmarkInvoiceStockDeducted(existing);
                 }
             }
 
             // 2. Cập nhật thông tin hóa đơn
-            existing.setTenNguoiNhan(hoaDonDetails.getTenNguoiNhan());
-            if (hoaDonDetails.getSdtNguoiNhan() != null && !hoaDonDetails.getSdtNguoiNhan().trim().isEmpty()) {
-                String sdt = hoaDonDetails.getSdtNguoiNhan().trim();
-                if (!sdt.matches("\\d{10}")) {
-                    throw new IllegalArgumentException("Số điện thoại người nhận phải đúng 10 chữ số!");
-                }
+            if (hoaDonDetails.getTenNguoiNhan() != null) {
+                existing.setTenNguoiNhan(hoaDonDetails.getTenNguoiNhan());
             }
-            existing.setSdtNguoiNhan(hoaDonDetails.getSdtNguoiNhan());
-            existing.setLoaiHoaDon(hoaDonDetails.getLoaiHoaDon());
-            existing.setTrangThai(newStatus);
-            existing.setTongTienThanhToan(hoaDonDetails.getTongTienThanhToan());
-            existing.setGhiChu(hoaDonDetails.getGhiChu());
+            if (hoaDonDetails.getSdtNguoiNhan() != null) {
+                existing.setSdtNguoiNhan(hoaDonDetails.getSdtNguoiNhan());
+            }
+            if (hoaDonDetails.getLoaiHoaDon() != null) {
+                existing.setLoaiHoaDon(hoaDonDetails.getLoaiHoaDon());
+            }
+            if (newStatus != null) {
+                existing.setTrangThai(newStatus);
+            }
+            if (hoaDonDetails.getTongTienThanhToan() != null) {
+                existing.setTongTienThanhToan(hoaDonDetails.getTongTienThanhToan());
+            }
+            if (hoaDonDetails.getGhiChu() != null) {
+                existing.setGhiChu(hoaDonDetails.getGhiChu());
+            }
+            if (hoaDonDetails.getNgayThanhToan() != null) {
+                existing.setNgayThanhToan(hoaDonDetails.getNgayThanhToan());
+            }
             existing.setNgayCapNhat(LocalDateTime.now());
             HoaDon updated = hoaDonRepository.save(existing);
 
@@ -474,13 +570,20 @@ public class HoaDonService {
 
             Integer oldStatus = existing.getTrangThai();
             if (newTrangThai != null && !newTrangThai.equals(oldStatus)) {
+                // Quy định hủy đơn: tất cả mọi đơn đều chỉ được hủy khi ở trạng thái chờ xác nhận (0), sau khi đổi trạng thái đã xác nhận (>= 1) thì không được phép hủy
+                if ((newTrangThai == 7 || newTrangThai == 8) && oldStatus != null && oldStatus != 0) {
+                    throw new IllegalArgumentException("Đơn hàng đã được xác nhận, không được phép hủy đơn!");
+                }
+
                 // Xử lý tồn kho khi trạng thái thay đổi
-                boolean oldDecremented = isStockDecrementedStatus(oldStatus);
+                boolean oldDecremented = isInvoiceStockDeducted(existing, oldStatus);
                 boolean newDecremented = isStockDecrementedStatus(newTrangThai);
                 if (!oldDecremented && newDecremented) {
                     reduceStockForInvoice(existing.getId());
+                    markInvoiceStockDeducted(existing);
                 } else if (oldDecremented && !newDecremented) {
                     restoreStockForInvoice(existing.getId());
+                    unmarkInvoiceStockDeducted(existing);
                 }
 
                 existing.setTrangThai(newTrangThai);
@@ -542,45 +645,22 @@ public class HoaDonService {
             throw new IllegalArgumentException("Trạng thái đơn hàng không hợp lệ!");
         }
 
-        if (currentStatus == 7) {
-            throw new IllegalArgumentException("Đơn hàng này đã được hủy trước đó!");
-        }
-        if (currentStatus == 6) {
-            throw new IllegalArgumentException("Đơn hàng đã hoàn thành, không thể hủy!");
-        }
-        if (currentStatus == 3 || currentStatus == 4 || currentStatus == 5) {
-            throw new IllegalArgumentException("Đơn hàng đang trong quá trình vận chuyển, vui lòng liên hệ Hotline 1900 6789 để được hỗ trợ!");
-        }
-        if (currentStatus == 8) {
-            throw new IllegalArgumentException("Đơn hàng đã gửi yêu cầu hủy trước đó, vui lòng chờ Quản trị viên xử lý!");
+        // Quy định: Tất cả mọi đơn đều chỉ được hủy khi ở trạng thái chờ xác nhận (0), sau khi đổi trạng thái đã xác nhận thì không được phép hủy
+        if (currentStatus != 0) {
+            throw new IllegalArgumentException("Đơn hàng đã được xác nhận, không được phép hủy đơn!");
         }
 
         String fullReason = (reason != null && !reason.trim().isEmpty()) ? reason.trim() : "Khách hàng hủy trên website";
-        Integer targetStatus;
-        String actionName;
-        String logNote;
+        Integer targetStatus = 7;
+        String actionName = "Khách hàng hủy đơn hàng";
+        String logNote = "Khách hàng tự hủy đơn hàng trên website khi ở trạng thái Chờ xác nhận. Lý do: " + fullReason;
 
-        if (currentStatus == 0) {
-            // Chờ xác nhận -> Đã huỷ
-            targetStatus = 7;
-            actionName = "Khách hàng hủy đơn hàng";
-            logNote = "Khách hàng tự hủy đơn hàng trên website. Lý do: " + fullReason;
-        } else if (currentStatus == 1 || currentStatus == 2) {
-            // Đã xác nhận / Đang xử lý -> Yêu cầu huỷ
-            targetStatus = 8;
-            actionName = "Khách hàng yêu cầu hủy đơn";
-            logNote = "Khách hàng gửi yêu cầu hủy đơn hàng. Lý do: " + fullReason;
-        } else {
-            targetStatus = 7;
-            actionName = "Khách hàng hủy đơn hàng";
-            logNote = "Lý do: " + fullReason;
-        }
-
-        // Xử lý hoàn kho nếu chuyển sang 7 (Đã hủy) mà đơn trước đó đã trừ kho
-        boolean oldDecremented = isStockDecrementedStatus(currentStatus);
+        // Xử lý hoàn kho nếu đơn trước đó đã trừ kho
+        boolean oldDecremented = isInvoiceStockDeducted(hd, currentStatus);
         boolean newDecremented = isStockDecrementedStatus(targetStatus);
         if (oldDecremented && !newDecremented) {
             restoreStockForInvoice(hd.getId());
+            unmarkInvoiceStockDeducted(hd);
         }
 
         hd.setTrangThai(targetStatus);
@@ -700,13 +780,13 @@ public class HoaDonService {
                 com.example.be.entity.PhieuGiamGia pgg = pggOpt.get();
                 LocalDateTime now = LocalDateTime.now();
                 if (pgg.getTrangThai() == null || pgg.getTrangThai() != 1) {
-                    throw new IllegalArgumentException("Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!");
+                    throw new IllegalArgumentException("Phiếu giảm giá không thể áp dụng");
                 }
                 if (pgg.getNgayBatDau() != null && now.isBefore(pgg.getNgayBatDau())) {
-                    throw new IllegalArgumentException("Chưa tới ngày áp dụng phiếu giảm giá này!");
+                    throw new IllegalArgumentException("Phiếu giảm giá không thể áp dụng");
                 }
                 if (pgg.getNgayKetThuc() != null && now.isAfter(pgg.getNgayKetThuc())) {
-                    throw new IllegalArgumentException("Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!");
+                    throw new IllegalArgumentException("Phiếu giảm giá không thể áp dụng");
                 }
                 if (pgg.getSoLuong() != null && pgg.getSoLuongDaDung() != null && pgg.getSoLuongDaDung() >= pgg.getSoLuong()) {
                     throw new IllegalArgumentException("Phiếu giảm giá này đã hết lượt sử dụng, vui lòng chọn phiếu giảm giá khác!");
@@ -730,10 +810,10 @@ public class HoaDonService {
                         String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm ID " + spctId;
 
                         boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
-                        boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
+                        boolean isVariantActive = (spct.getTrangThai() == null || spct.getTrangThai() == 1);
 
                         if (!isProductActive || !isVariantActive) {
-                            throw new IllegalArgumentException("Sản phẩm '" + tenSp + "' đã ngừng kinh doanh và không thể thanh toán!");
+                            throw new IllegalArgumentException("Sản phẩm '" + tenSp + "' đã ngừng kinh doanh.");
                         }
 
                         int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
@@ -938,6 +1018,31 @@ public class HoaDonService {
         return status == 1 || status == 2 || status == 3 || status == 4 || status == 6;
     }
 
+    private boolean isInvoiceStockDeducted(HoaDon hd, Integer status) {
+        if (hd == null) return false;
+        String note = (hd.getGhiChu() != null) ? hd.getGhiChu().toUpperCase() : "";
+        if (note.contains("[ĐÃ TRỪ KHO]")) {
+            return true;
+        }
+        return isStockDecrementedStatus(status);
+    }
+
+    private void markInvoiceStockDeducted(HoaDon hd) {
+        if (hd == null) return;
+        String note = hd.getGhiChu() != null ? hd.getGhiChu() : "";
+        if (!note.contains("[ĐÃ TRỪ KHO]")) {
+            hd.setGhiChu(cleanGhiChu(note + " | [ĐÃ TRỪ KHO]"));
+        }
+    }
+
+    private void unmarkInvoiceStockDeducted(HoaDon hd) {
+        if (hd == null) return;
+        String note = hd.getGhiChu() != null ? hd.getGhiChu() : "";
+        if (note.contains("[ĐÃ TRỪ KHO]")) {
+            hd.setGhiChu(cleanGhiChu(note.replace("[ĐÃ TRỪ KHO]", "[ĐÃ HOÀN KHO]")));
+        }
+    }
+
     @Transactional
     public void reduceStockForInvoice(Long hoaDonId) {
         List<ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hoaDonId);
@@ -948,16 +1053,7 @@ public class HoaDonService {
                 int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                 int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
                 if (stock < qty) {
-                    String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
-                    String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
-                    String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
-                    String variant = (!mauSac.isEmpty() || !coGiay.isEmpty())
-                            ? " [" + mauSac + ((!mauSac.isEmpty() && !coGiay.isEmpty()) ? " - " : "") + coGiay + "]"
-                            : "";
-                    throw new IllegalArgumentException(
-                        "Số lượng trong kho hiện đang không đủ để xác nhận đơn hàng! " +
-                        "Sản phẩm '" + tenSp + variant + "' — Kho còn: " + stock + ", cần: " + qty + "."
-                    );
+                    throw new IllegalArgumentException("Số lượng trong kho không đủ");
                 }
             }
         }
@@ -1002,7 +1098,7 @@ public class HoaDonService {
             java.math.BigDecimal minGiaBan = null;
             java.math.BigDecimal minGiaNhap = null;
             for (SanPhamChiTiet v : variants) {
-                if (v.getSoLuongTon() != null) {
+                if (v.getSoLuongTon() != null && (v.getTrangThai() == null || v.getTrangThai() == 1)) {
                     totalQuantity += v.getSoLuongTon();
                 }
                 if (v.getGiaBan() != null) {
@@ -1061,7 +1157,7 @@ public class HoaDonService {
                     int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                     int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
                     boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
-                    boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
+                    boolean isVariantActive = (spct.getTrangThai() == null || spct.getTrangThai() == 1);
                     String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
                     String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
                     String coGiay = (spct.getCoGiay() != null) ? String.valueOf(spct.getCoGiay().getSizeGiay()) : "";
@@ -1114,7 +1210,7 @@ public class HoaDonService {
                     int stock = spct.getSoLuongTon() != null ? spct.getSoLuongTon() : 0;
                     int qty = ct.getSoLuong() != null ? ct.getSoLuong() : 0;
                     boolean isProductActive = (spct.getSanPham() == null || spct.getSanPham().getTrangThai() == null || spct.getSanPham().getTrangThai() == 1);
-                    boolean isVariantActive = (spct.getTrangThai() != null && spct.getTrangThai() == 1);
+                    boolean isVariantActive = (spct.getTrangThai() == null || spct.getTrangThai() == 1);
 
                     String tenSp = (spct.getSanPham() != null) ? spct.getSanPham().getTenSanPham() : "Sản phẩm";
                     String mauSac = (spct.getMauSac() != null) ? spct.getMauSac().getTenMauSac() : "";
@@ -1152,22 +1248,92 @@ public class HoaDonService {
             }
         }
 
-        // Cập nhật ghi chú & trạng thái thanh toán — KHÔNG tự động chuyển trạng thái đơn hàng
-        // (Admin vẫn cần xác nhận và xử lý đơn)
+        // Cập nhật trạng thái đơn hàng: Đơn chuyển khoản để trạng thái là đang chờ (0 - Chờ xác nhận)
+        hd.setTrangThai(0);
         String currentNote = hd.getGhiChu() != null ? hd.getGhiChu() : "";
+
+        // KHÔNG trừ tồn kho ở đây, khi admin xác nhận đơn thì mới trừ số lượng
         String vnpayNote = " | [VNPAY THANH TOÁN THÀNH CÔNG] Mã GD: " + transNo
-                + " | Số tiền: " + paidAmount + " VNĐ lúc " + LocalDateTime.now();
-        hd.setGhiChu(currentNote + vnpayNote);
+                + " | Số tiền: " + paidAmount + " VNĐ lúc " + LocalDateTime.now()
+                + " | [CHỜ ADMIN XÁC NHẬN]";
+        hd.setGhiChu(cleanGhiChu(currentNote + vnpayNote));
+        hd.setNgayThanhToan(LocalDateTime.now());
 
         hoaDonRepository.save(hd);
+
+        // Ghi lịch sử thanh toán
+        if (lichSuThanhToanRepository != null) {
+            try {
+                com.example.be.entity.LichSuThanhToan lstt = com.example.be.entity.LichSuThanhToan.builder()
+                        .hoaDon(hd)
+                        .soTien(BigDecimal.valueOf(paidAmount))
+                        .phuongThucThanhToan("Chuyển khoản (VNPay)")
+                        .trangThaiThanhToan(1)
+                        .ngayThanhToan(LocalDateTime.now())
+                        .ghiChu("VNPay thanh toán thành công (Mã GD: " + transNo + ")")
+                        .build();
+                lichSuThanhToanRepository.save(lstt);
+            } catch (Exception e) {
+                System.err.println("Lỗi lưu lịch sử thanh toán VNPay: " + e.getMessage());
+            }
+        }
 
         // Ghi lịch sử
         LichSuHoaDon history = LichSuHoaDon.builder()
                 .hoaDon(hd)
-                .hanhDong("VNPay thanh toán thành công")
+                .hanhDong("Thanh toán thành công")
                 .ngayTao(LocalDateTime.now())
-                .ghiChu("Mã GD VNPay: " + transNo + " | Số tiền: " + paidAmount + " VNĐ")
+                .ghiChu("VNPay thanh toán thành công (Mã GD: " + transNo + " | Số tiền: " + paidAmount + " VNĐ). Đơn hàng ở trạng thái Chờ xác nhận, chờ Admin duyệt.")
                 .build();
         lichSuHoaDonRepository.save(history);
+    }
+
+    /**
+     * Xác nhận thanh toán online cho MoMo, ZaloPay, VietQR khi khách hàng xác nhận trên trang thanh toán.
+     */
+    @Transactional
+    public HoaDonDTO confirmOnlinePayment(Long id, Map<String, Object> body) {
+        HoaDon hd = hoaDonRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+
+        String method = (body != null && body.get("method") != null) ? body.get("method").toString().toUpperCase() : "ONLINE";
+        String currentNote = hd.getGhiChu() != null ? hd.getGhiChu() : "";
+
+        // Đơn chuyển khoản để trạng thái là đang chờ (0 - Chờ xác nhận), khi admin xác nhận mới trừ kho
+        hd.setTrangThai(0);
+
+        if (!currentNote.contains("XÁC NHẬN ĐÃ THANH TOÁN")) {
+            currentNote = currentNote + " | [KHÁCH XÁC NHẬN ĐÃ THANH TOÁN QUA " + method + "] | [CHỜ ADMIN XÁC NHẬN]";
+        }
+        hd.setGhiChu(cleanGhiChu(currentNote));
+        hd.setNgayThanhToan(LocalDateTime.now());
+        HoaDon saved = hoaDonRepository.save(hd);
+
+        // Ghi lịch sử thanh toán
+        if (lichSuThanhToanRepository != null) {
+            try {
+                com.example.be.entity.LichSuThanhToan lstt = com.example.be.entity.LichSuThanhToan.builder()
+                        .hoaDon(saved)
+                        .soTien(saved.getTongTien() != null ? saved.getTongTien() : BigDecimal.ZERO)
+                        .phuongThucThanhToan("Chuyển khoản (" + method + ")")
+                        .trangThaiThanhToan(1)
+                        .ngayThanhToan(LocalDateTime.now())
+                        .ghiChu("Khách hàng xác nhận thanh toán online qua " + method)
+                        .build();
+                lichSuThanhToanRepository.save(lstt);
+            } catch (Exception e) {
+                System.err.println("Lỗi lưu lịch sử thanh toán online: " + e.getMessage());
+            }
+        }
+
+        LichSuHoaDon history = LichSuHoaDon.builder()
+                .hoaDon(saved)
+                .hanhDong("Khách xác nhận thanh toán")
+                .ngayTao(LocalDateTime.now())
+                .ghiChu("Khách hàng xác nhận đã chuyển khoản qua " + method + ". Đơn hàng ở trạng thái Chờ xác nhận, chờ Admin duyệt.")
+                .build();
+        lichSuHoaDonRepository.save(history);
+
+        return mapToDTO(saved);
     }
 }

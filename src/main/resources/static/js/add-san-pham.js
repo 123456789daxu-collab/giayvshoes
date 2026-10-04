@@ -790,13 +790,45 @@
             </div>
             `;
             
-            listHtml += `<button type="button" class="btn text-white w-100 py-3 fw-bold" style="background-color: #334155; border: none; border-radius: 8px; font-size: 1rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);" onmouseover="this.style.backgroundColor='#475569'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';" onmouseout="this.style.backgroundColor='#334155'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';" onclick="removeColorGroup('${colorId}')"><i class="bi bi-trash3-fill me-2 fs-5" style="vertical-align: middle;"></i><span style="vertical-align: middle;">Xóa Toàn Bộ Màu Này</span></button>`;
+            listHtml += `<button type="button" class="btn text-white w-100 py-3 fw-bold" style="background-color: #334155; border: none; border-radius: 8px; font-size: 1rem; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);" onmouseover="this.style.backgroundColor='#475569'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';" onmouseout="this.style.backgroundColor='#334155'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'" onclick="removeColorGroup('${colorId}')"><i class="bi bi-trash3-fill me-2 fs-5" style="vertical-align: middle;"></i><span style="vertical-align: middle;">Xóa Toàn Bộ Màu Này</span></button>`;
             
-            modalBody.innerHTML += listHtml;
+            modalBody.innerHTML = listHtml;
             
-            const myModal = new bootstrap.Modal(document.getElementById('deleteSizeModal'));
-            myModal.show();
+            const modalEl = document.getElementById('deleteSizeModal');
+            if (modalEl) {
+                let myModal = (typeof bootstrap !== 'undefined' && bootstrap.Modal) ? bootstrap.Modal.getOrCreateInstance(modalEl) : null;
+                if (myModal) {
+                    myModal.show();
+                } else if (typeof $ !== 'undefined' && $(modalEl).modal) {
+                    $(modalEl).modal('show');
+                }
+            }
         }
+
+        window.closeDeleteSizeModal = function() {
+            const modalEl = document.getElementById('deleteSizeModal');
+            if (!modalEl) return;
+            try {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const modalObj = bootstrap.Modal.getInstance(modalEl);
+                    if (modalObj) {
+                        modalObj.hide();
+                    }
+                }
+            } catch(e) { console.warn(e); }
+            if (typeof $ !== 'undefined' && $(modalEl).modal) {
+                try { $(modalEl).modal('hide'); } catch(e) {}
+            }
+            // Fallback direct cleanup
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.removeAttribute('aria-modal');
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        };
 
         function removeSpecificSize(colorId, sizeId) {
             Swal.fire({
@@ -814,16 +846,10 @@
                     if (group) group.remove();
                     
                     const remaining = document.querySelectorAll(`.variant-hidden-group[data-color-id="${colorId}"]`);
-                    const modalEl = document.getElementById('deleteSizeModal');
-                    let modalObj = bootstrap.Modal.getInstance(modalEl);
-                    if (!modalObj) {
-                        modalObj = new bootstrap.Modal(modalEl);
-                    }
-                    
                     if (remaining.length === 0) {
                         const row = document.querySelector(`.variant-row-${colorId}`);
                         if (row) row.remove();
-                        if (modalObj) modalObj.hide();
+                        closeDeleteSizeModal();
                     } else {
                         let names = Array.from(remaining).map(g => g.dataset.sizeName).join(', ');
                         let labelEl = document.getElementById(`size-names-${colorId}`);
@@ -849,9 +875,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.querySelectorAll(`.variant-row-${colorId}`).forEach(el => el.remove());
-                    const modalEl = document.getElementById('deleteSizeModal');
-                    const modalObj = bootstrap.Modal.getInstance(modalEl);
-                    if (modalObj) modalObj.hide();
+                    closeDeleteSizeModal();
                 }
             });
         };

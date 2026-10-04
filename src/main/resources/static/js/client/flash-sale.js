@@ -16,6 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
     initFilters();
     fetchFlashSaleData();
     updateCartBadge();
+
+    // Live sync without F5 when products / discounts / vouchers change status
+    const syncFlashSaleLive = () => {
+        fetchFlashSaleData();
+    };
+
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => syncFlashSaleLive();
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') syncFlashSaleLive();
+    });
+    window.addEventListener('focus', () => syncFlashSaleLive());
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') syncFlashSaleLive();
+    });
 });
 
 /* =============================================

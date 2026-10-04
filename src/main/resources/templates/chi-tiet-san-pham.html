@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
-    <link rel="stylesheet" href="/css/admin-common.css?v=2.1">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.2">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
@@ -81,12 +81,12 @@
                                 <i class="bi bi-search fi-search-icon"></i>
                                 <input type="text" id="searchInput" class="fi-input" placeholder="Nhập tên sản phẩm hoặc mã...">
                             </div>
-                            <button type="button" id="btnSearch" class="btn-search">Tìm kiếm</button>
-                            <button type="button" id="btnReset" class="btn-reset">Làm mới</button>
+                            <button type="button" id="btnSearch" class="btn-search"><i class="bi bi-search"></i> Tìm kiếm</button>
+                            <button type="button" id="btnReset" class="fi-reset-btn" title="Làm mới bộ lọc"><i class="bi bi-arrow-clockwise"></i></button>
                         </div>
                         <div>
                             <button type="button" class="btn-qr" onclick="showProductQR()"><i class="bi bi-qr-code-scan"></i> QR Code sản phẩm</button>
-                            <button type="button" class="btn-excel ms-2" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
+                            <button type="button" class="btn-export-excel ms-2" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
                         </div>
                     </div>
 
@@ -232,15 +232,15 @@
                                        th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a class="btn me-2 px-3 py-2 toggle-status-btn" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; border-radius: 6px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center;" title="Chuyển đổi trạng thái"
-                                       th:data-id="${ct.id}" th:data-action="${ct.trangThai == 1 ? 'Ngừng kinh doanh' : 'Mở kinh doanh'}" href="javascript:void(0);">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </a>
                                     <button class="btn me-2 px-3 py-2" style="background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; border-radius: 6px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center;" title="Chỉnh sửa"
                                             data-bs-toggle="modal" 
                                             th:data-bs-target="'#editVariantModal' + ${ct.id}">
                                         <i class="bi bi-pencil-square"></i>
                                     </button>
+                                    <a class="btn me-2 px-3 py-2 toggle-status-btn" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; border-radius: 6px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center;" title="Chuyển đổi trạng thái"
+                                       th:data-id="${ct.id}" th:data-action="${ct.trangThai == 1 ? 'Ngừng kinh doanh' : 'Mở kinh doanh'}" href="javascript:void(0);">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
 
 
                                 <!-- Modal Thư Viện Ảnh (Carousel) -->

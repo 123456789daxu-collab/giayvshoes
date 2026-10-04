@@ -170,10 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 str = str.replace(/đ|Đ/g, "d");
                 return str.toLowerCase().replace(/\s/g, "");
             };
-            if (!document.getElementById("empPhone").value) {
-                document.getElementById("empPhone").value = "0987654321";
-            }
-            
+
             document.getElementById("avatarEmployeeName").textContent = fullName;
 
             window.showToast("Đã tự động điền thông tin CCCD thành công!");
@@ -419,15 +416,20 @@ document.addEventListener("DOMContentLoaded", () => {
     form.onsubmit = (e) => {
         e.preventDefault();
         
-        const id = document.getElementById("empId").value;
-        const password = document.getElementById("empPassword").value;
+        // Update hidden full address before extracting data
+        if (window.addressHelper && typeof window.addressHelper.updateHiddenAddress === "function") {
+            window.addressHelper.updateHiddenAddress();
+        }
+
+        const id = document.getElementById("empId") ? document.getElementById("empId").value : "";
+        const password = document.getElementById("empPassword") ? document.getElementById("empPassword").value : "";
         
         // Advanced validation
-        const hoTen = document.getElementById("empName").value.trim();
-        const phone = document.getElementById("empPhone").value.trim();
-        const email = document.getElementById("empEmail").value.trim();
-        const dob = document.getElementById("empDob").value;
-        const cccd = document.getElementById("empCccd").value.trim();
+        const hoTen = document.getElementById("empName") ? document.getElementById("empName").value.trim() : "";
+        const phone = document.getElementById("empPhone") ? document.getElementById("empPhone").value.trim() : "";
+        const email = document.getElementById("empEmail") ? document.getElementById("empEmail").value.trim() : "";
+        const dob = document.getElementById("empDob") ? document.getElementById("empDob").value : "";
+        const cccd = document.getElementById("empCccd") ? document.getElementById("empCccd").value.trim() : "";
 
         if (!hoTen) {
             window.showToast("Vui lòng không để trống Họ và tên!", "warning");
@@ -463,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         // CCCD is optional and does not block employee creation
-        const validCccd = (cccd && /^[0-9]{12}$/.test(cccd)) ? cccd : null;
+        const validCccd = (cccd && /^[0-9]{12}$/.test(cccd)) ? cccd : (cccd || null);
 
         if (!dob) {
             window.showToast("Vui lòng không để trống Ngày sinh!", "warning");
@@ -487,27 +489,51 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Get gender radio selection
-        const gioiTinh = document.getElementById("genderMale").checked;
+        // Get gender selection
+        const genderMaleEl = document.getElementById("genderMale");
+        const genderSelectEl = document.getElementById("empGenderSelect");
+        let gioiTinh = true;
+        if (genderMaleEl) {
+            gioiTinh = genderMaleEl.checked;
+        } else if (genderSelectEl) {
+            gioiTinh = genderSelectEl.value === "true";
+        }
 
-        let roleValue = document.getElementById("empRole").value || "Nhân viên";
+        const roleEl = document.getElementById("empRole");
+        let roleValue = (roleEl && roleEl.value) ? roleEl.value : "Nhân viên";
         if (roleValue !== "Quản lý" && roleValue !== "Nhân viên") {
             roleValue = "Nhân viên";
+        }
+
+        const statusEl = document.getElementById("empStatus");
+        let trangThaiVal = statusEl && statusEl.value !== "" ? Number(statusEl.value) : 1;
+        if (isNaN(trangThaiVal)) trangThaiVal = 1;
+
+        const codeEl = document.getElementById("empCode");
+        const maNhanVienVal = codeEl && codeEl.value ? codeEl.value.trim() : null;
+
+        const addressEl = document.getElementById("empAddress");
+        const streetEl = document.getElementById("addrStreet");
+        let diaChiVal = "";
+        if (addressEl && addressEl.value.trim()) {
+            diaChiVal = addressEl.value.trim();
+        } else if (streetEl && streetEl.value.trim()) {
+            diaChiVal = streetEl.value.trim();
         }
         
         // Build request payload matching NhanVien entity
         const payload = {
-            maNhanVien: document.getElementById("empCode").value.trim() || null,
-            hoTen: document.getElementById("empName").value.trim(),
-            email: email,
+            maNhanVien: maNhanVienVal || null,
+            hoTen: hoTen,
+            email: email || null,
             soDienThoai: phone,
             matKhau: password || null,
             chucVu: roleValue,
             cccd: validCccd,
-            trangThai: Number(document.getElementById("empStatus").value),
+            trangThai: trangThaiVal,
             gioiTinh: gioiTinh,
-            ngaySinh: document.getElementById("empDob").value || null,
-            diaChi: document.getElementById("empAddress").value.trim()
+            ngaySinh: dob || null,
+            diaChi: diaChiVal
         };
 
         let requestUrl = "/api/nhan-vien";
@@ -522,7 +548,9 @@ document.addEventListener("DOMContentLoaded", () => {
         AdminNotify.confirm(
             id ? 'Bạn có chắc chắn muốn cập nhật thông tin nhân viên này?' : 'Bạn có chắc chắn muốn lưu thông tin nhân viên mới này?',
             () => {
-                AdminNotify.loading('Đang xử lý...', 'Vui lòng chờ trong giây lát');
+                if (typeof AdminNotify !== 'undefined' && typeof AdminNotify.loading === 'function') {
+                    AdminNotify.loading('Đang xử lý...', 'Vui lòng chờ trong giây lát');
+                }
                 
                 // Post/Put to backend
                 fetch(requestUrl, {
@@ -539,7 +567,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 })
                 .then((savedEmployee) => {
                     // Upload avatar if a new one is selected
-                    const avatarFile = document.getElementById("empAvatar").files[0];
+                    const avatarEl = document.getElementById("empAvatar");
+                    const avatarFile = avatarEl && avatarEl.files ? avatarEl.files[0] : null;
                     if (avatarFile) {
                         const formData = new FormData();
                         formData.append("file", avatarFile);
@@ -554,7 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     return savedEmployee;
                 })
                 .then((savedEmployee) => {
-                    AdminNotify.closeLoading();
+                    if (typeof AdminNotify !== 'undefined' && typeof AdminNotify.closeLoading === 'function') {
+                        AdminNotify.closeLoading();
+                    }
                     if (!id && savedEmployee) {
                         AdminNotify.success('Tài khoản nhân viên đã được tạo. Mật khẩu đăng nhập đã được gửi vào email của nhân viên.');
                     } else {
@@ -564,7 +595,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     loadEmployees();
                 })
                 .catch((error) => {
-                    AdminNotify.closeLoading();
+                    if (typeof AdminNotify !== 'undefined' && typeof AdminNotify.closeLoading === 'function') {
+                        AdminNotify.closeLoading();
+                    }
                     AdminNotify.error(error.message);
                 });
             }
@@ -664,7 +697,7 @@ function loadEmployees() {
             return res.json();
         })
         .then(data => {
-            allEmployees = data || [];
+            allEmployees = (data || []).sort((a, b) => (b.id || 0) - (a.id || 0));
             applyLocalFilter();
         })
         .catch(err => {

@@ -102,6 +102,40 @@ public class DatabaseRepair implements CommandLineRunner {
             jdbcTemplate.update("UPDATE khach_hang SET email = CONCAT('khach_', id, '@vshoes.com') WHERE email = 'lehung14042006@gmail.com' OR email LIKE '%hung8197128904%'");
             jdbcTemplate.update("UPDATE khach_hang SET email = 'lehung14042006@gmail.com' WHERE so_dien_thoai = '0787417354'");
 
+            // Cập nhật lại tổng tiền cho các hóa đơn có tong_tien = 0 nhưng có chi tiết hàng
+            jdbcTemplate.update(
+                "UPDATE hd " +
+                "SET hd.tong_tien = ISNULL(sub.total, 0) " +
+                "FROM hoa_don hd " +
+                "CROSS APPLY (" +
+                "    SELECT SUM(ct.thanh_tien) as total " +
+                "    FROM chi_tiet_hoa_don ct " +
+                "    WHERE ct.id_hoa_don = hd.id" +
+                ") sub " +
+                "WHERE (hd.tong_tien IS NULL OR hd.tong_tien = 0) AND sub.total > 0"
+            );
+
+            // Đồng bộ lịch sử thanh toán cho các hóa đơn đã thanh toán/hoàn thành mà chưa có trong lich_su_thanh_toan
+            jdbcTemplate.update(
+                "INSERT INTO lich_su_thanh_toan (id_hoa_don, so_tien, phuong_thuc_thanh_toan, trang_thai_thanh_toan, ngay_thanh_toan, ghi_chu) " +
+                "SELECT " +
+                "    hd.id, " +
+                "    hd.tong_tien, " +
+                "    CASE " +
+                "        WHEN UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%TRANSFER%' OR UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%VIETQR%' THEN N'Chuyển khoản (VietQR)' " +
+                "        WHEN UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%VNPAY%' THEN N'Chuyển khoản (VNPay)' " +
+                "        WHEN UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%MOMO%' THEN N'Chuyển khoản (MoMo)' " +
+                "        WHEN UPPER(ISNULL(hd.ghi_chu, '')) LIKE '%ZALOPAY%' THEN N'Chuyển khoản (ZaloPay)' " +
+                "        ELSE N'Tiền mặt' " +
+                "    END, " +
+                "    1, " +
+                "    ISNULL(hd.ngay_thanh_toan, hd.ngay_tao), " +
+                "    ISNULL(hd.ghi_chu, N'Thanh toán hóa đơn') " +
+                "FROM hoa_don hd " +
+                "WHERE NOT EXISTS (SELECT 1 FROM lich_su_thanh_toan lstt WHERE lstt.id_hoa_don = hd.id) " +
+                "  AND hd.tong_tien > 0"
+            );
+
 
 
 

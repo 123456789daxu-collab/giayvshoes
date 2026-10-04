@@ -81,26 +81,6 @@
             cursor: pointer;
             border: none;
             box-shadow: 0 2px 6px rgba(15, 45, 74, 0.4);
-        }
-        .fi-reset-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
-            color: #475569;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-        .fi-reset-btn:hover {
-            background-color: #e2e8f0;
-            color: #0f172a;
-        }
-
         /* === ACTION BUTTONS === */
         .btn-excel { height: 40px; padding: 0 18px; font-size: 0.85rem; border-radius: 8px; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease-in-out; }
         .btn-excel:hover { background: #dcfce7; color: #15803d; border-color: #86efac; transform: translateY(-1px); }
@@ -133,13 +113,7 @@
         .btn-icon:hover { color: #0f172a; background: #f1f5f9; }
 
         /* === PAGINATION === */
-        .pagination-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; border-top: 1px solid #f1f5f9; margin-top: 8px; }
-        .pagination-info { font-size: 0.78rem; color: #64748b; }
-        .pagination { margin: 0; gap: 4px; }
-        .page-link { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 6px !important; border: 1px solid #e2e8f0; color: #475569; font-size: 0.8rem; font-weight: 500; padding: 0; text-decoration: none; transition: all .15s; }
-        .page-link:hover { background: #f8fafc; border-color: #cbd5e1; }
-        .page-item.active .page-link { background: #0ea5e9; border-color: #0ea5e9; color: white; }
-        .page-item.disabled .page-link { color: #cbd5e1; pointer-events: none; }
+        /* Handled cleanly by admin-common.css */
 
 
         /* === MODAL === */
@@ -196,17 +170,17 @@
                                 <input type="text" class="form-control border-start-0 ps-0 shadow-none py-2" name="keyword" th:value="${keyword}" placeholder="Tìm theo mã / tên sản phẩm..." style="border-radius: 0 6px 6px 0; font-size: 0.95rem;">
                             </div>
                         </div>
-                        <div class="col-md-7 text-end">
-                            <a href="/san-pham" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Đặt lại
+                        <div class="col-md-7 text-end d-inline-flex align-items-center justify-content-end">
+                            <a href="/san-pham" class="fi-reset-btn me-2" title="Làm mới bộ lọc">
+                                <i class="bi bi-arrow-clockwise"></i>
                             </a>
-                            <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai}, sort=${sort})}" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
+                            <a th:href="@{/san-pham/export/excel(page=${currentPage}, keyword=${keyword}, idThuongHieu=${idThuongHieu}, idLoaiGiay=${idLoaiGiay}, minPrice=${minPrice}, maxPrice=${maxPrice}, trangThai=${trangThai}, sort=${sort})}" class="btn-export-excel me-2">
                                 <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
                             </a>
-                            <a href="/san-pham/chi-tiet-global" class="btn btn-outline-info rounded-3 px-3 py-2 me-2 shadow-sm" style="font-size: 0.95rem; font-weight: 500; color: #00adef; border-color: #00adef; background-color: white;">
+                            <a href="/san-pham/chi-tiet-global" class="btn-admin-outline me-2">
                                 <i class="bi bi-grid-3x3-gap me-1"></i> Chi tiết sản phẩm
                             </a>
-                            <a href="/san-pham/create" class="btn rounded-3 px-3 py-2 shadow-sm text-white" style="font-size: 0.95rem; font-weight: 500; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); border: none; box-shadow: 0 4px 12px rgba(0, 173, 239, 0.2); transition: all 0.2s;" onmouseover="this.style.background='#00adef'; this.style.boxShadow='0 6px 20px rgba(0, 173, 239, 0.35)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='linear-gradient(135deg, #0f2d4a 0%, #00adef 100%)'; this.style.boxShadow='0 4px 12px rgba(0, 173, 239, 0.2)'; this.style.transform='translateY(0)';">
+                            <a href="/san-pham/create" class="btn-admin-primary">
                                 <i class="bi bi-plus-lg me-1"></i> Thêm sản phẩm
                             </a>
                         </div>
@@ -246,9 +220,6 @@
                                        class="fi-slider"
                                        oninput="onPriceSliderInput(this.value)"
                                        onchange="document.getElementById('filterForm').submit()">
-                                <button type="button" class="fi-reset-btn" onclick="resetPriceSlider()" title="Đặt lại mức giá tối đa">
-                                    <i class="bi bi-arrow-clockwise" style="font-size: 1.15rem;"></i>
-                                </button>
                             </div>
                         </div>
                     </div>

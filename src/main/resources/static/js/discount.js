@@ -261,6 +261,9 @@
                             throw new Error(data.message || "Không thể cập nhật trạng thái");
                         }
                         AdminNotify.success("Cập nhật trạng thái thành công!");
+                        if (typeof window.notifyVshoesSync === 'function') {
+                            window.notifyVshoesSync('CAMPAIGN_STATUS_CHANGED');
+                        }
                         loadCampaignsTable();
                     } catch (err) {
                         if (checkboxEl) checkboxEl.checked = !isChecked;

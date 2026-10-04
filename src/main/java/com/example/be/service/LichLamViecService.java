@@ -16,7 +16,7 @@ public class LichLamViecService {
     }
 
     public List<LichLamViec> findAll() {
-        return lichLamViecRepository.findAll();
+        return lichLamViecRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     public LichLamViec save(LichLamViec lichLamViec) {

@@ -85,34 +85,14 @@ public class ViewController {
         return "hoa-don-chi-tiet";
     }
 
-    @GetMapping("/ca-lam")
-    public String caLam() {
-        return "ca-lam";
-    }
-
     @GetMapping("/trang-chu")
     public String trangChu() {
         return "trang-chu";
     }
 
-    @GetMapping("/lich-lam-viec")
-    public String lichLamViec() {
-        return "lich-lam-viec";
-    }
-
-    @GetMapping("/giao-ca")
-    public String giaoCa() {
-        return "giao-ca";
-    }
-
     @GetMapping("/ho-so-ca-nhan")
     public String hoSoCaNhan() {
         return "ho-so-ca-nhan";
-    }
-
-    @GetMapping("/them-lich-lam-viec")
-    public String themLichLamViec() {
-        return "them-lich-lam-viec";
     }
 
     @GetMapping("/client")

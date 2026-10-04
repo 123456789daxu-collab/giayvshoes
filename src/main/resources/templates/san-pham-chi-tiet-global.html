@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
-    <link rel="stylesheet" href="/css/admin-common.css?v=2.1">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.2">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     
@@ -85,11 +85,11 @@
                                 <i class="bi bi-search fi-search-icon"></i>
                                 <input type="text" id="searchInput" class="fi-input" placeholder="Nhập tên sản phẩm hoặc mã..." th:value="${keyword}">
                             </div>
-                            <button type="button" id="btnSearch" class="btn-search">Tìm kiếm</button>
-                            <button type="button" id="btnReset" class="btn-reset">Làm mới</button>
+                            <button type="button" id="btnSearch" class="btn-search"><i class="bi bi-search"></i> Tìm kiếm</button>
+                            <button type="button" id="btnReset" class="fi-reset-btn" title="Làm mới bộ lọc"><i class="bi bi-arrow-clockwise"></i></button>
                         </div>
                         <div>
-                            <button type="button" class="btn-excel ms-2" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
+                            <button type="button" class="btn-export-excel ms-2" onclick="exportToExcel()"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
                         </div>
                     </div>
 
@@ -244,16 +244,16 @@
                                            th:href="@{'/san-pham/variant-detail/' + ${ct.id}}">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <label class="switch-control" title="Chuyển đổi trạng thái" style="margin: 0 4px;">
-                                            <input type="checkbox" th:checked="${ct.trangThai == 1}"
-                                                   th:onchange="'confirmToggleVariantStatus(' + ${ct.id} + ', ' + ${ct.trangThai} + ', this)'">
-                                            <span class="switch-slider"></span>
-                                        </label>
                                         <button type="button" class="action-icon-btn edit" title="Chỉnh sửa"
                                                 data-bs-toggle="modal" 
                                                 th:data-bs-target="'#editVariantModal' + ${ct.id}">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
+                                        <label class="switch-control" title="Chuyển đổi trạng thái" style="margin: 0 4px;">
+                                            <input type="checkbox" th:checked="${ct.trangThai == 1}"
+                                                   th:onchange="'confirmToggleVariantStatus(' + ${ct.id} + ', ' + ${ct.trangThai} + ', this)'">
+                                            <span class="switch-slider"></span>
+                                        </label>
                                     </div>
                                 </td>
 
@@ -686,8 +686,13 @@
                 AdminStatus.confirmToggle({
                     entityName: 'Biến thể sản phẩm',
                     checkboxEl: checkboxEl,
-                    currentStatus: isCurrentlyActive,
+                    isActivating: !isCurrentlyActive,
+                    title: isCurrentlyActive ? 'Ngừng kinh doanh biến thể?' : 'Mở kinh doanh biến thể?',
+                    text: isCurrentlyActive ? 'Biến thể này sẽ chuyển sang trạng thái Ngừng Kinh Doanh.' : 'Biến thể này sẽ được mở bán lại.',
                     onConfirm: () => {
+                        if (typeof window.notifyVshoesSync === 'function') {
+                            window.notifyVshoesSync('STATUS_CHANGED');
+                        }
                         window.location.href = '/san-pham/toggle-status-variant/' + id;
                     }
                 });
@@ -703,6 +708,9 @@
                     cancelButtonText: 'Hủy'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        if (typeof window.notifyVshoesSync === 'function') {
+                            window.notifyVshoesSync('STATUS_CHANGED');
+                        }
                         window.location.href = '/san-pham/toggle-status-variant/' + id;
                     } else if (checkboxEl) {
                         checkboxEl.checked = isCurrentlyActive;

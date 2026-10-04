@@ -23,19 +23,29 @@ public interface SanPhamChiTietRepository extends JpaRepository<SanPhamChiTiet, 
     @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId")
     Page<SanPhamChiTiet> findBySanPhamId(@Param("sanPhamId") Long sanPhamId, Pageable pageable);
     
-    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId")
+    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId ORDER BY s.id DESC")
     List<SanPhamChiTiet> findBySanPhamId(@Param("sanPhamId") Long sanPhamId);
 
-    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId AND (s.trangThai IS NULL OR s.trangThai = 1)")
+    @Query("SELECT s FROM SanPhamChiTiet s WHERE s.sanPham.id = :sanPhamId AND (s.trangThai IS NULL OR s.trangThai = 1) ORDER BY s.id DESC")
     List<SanPhamChiTiet> findBySanPhamIdActiveOnly(@Param("sanPhamId") Long sanPhamId);
 
     @Query("SELECT s FROM SanPhamChiTiet s " +
            "LEFT JOIN FETCH s.sanPham sp " +
            "LEFT JOIN FETCH s.mauSac ms " +
            "LEFT JOIN FETCH s.coGiay cg " +
+           "LEFT JOIN FETCH sp.thuongHieu th " +
+           "LEFT JOIN FETCH sp.danhMuc dm " +
+           "LEFT JOIN FETCH sp.loaiGiay lg " +
+           "LEFT JOIN FETCH sp.chatLieu cl " +
            "WHERE s.soLuongTon > 0 " +
-           "AND (s.trangThai IS NULL OR s.trangThai = 1) " +
-           "AND (sp.trangThai IS NULL OR sp.trangThai = 1) " +
+           "AND (s.trangThai = 1) " +
+           "AND (sp.trangThai = 1) " +
+           "AND (ms IS NULL OR ms.trangThai IS NULL OR ms.trangThai = true) " +
+           "AND (cg IS NULL OR cg.trangThai IS NULL OR cg.trangThai = true) " +
+           "AND (th IS NULL OR th.trangThai IS NULL OR th.trangThai = true) " +
+           "AND (dm IS NULL OR dm.trangThai IS NULL OR dm.trangThai = true) " +
+           "AND (lg IS NULL OR lg.trangThai IS NULL OR lg.trangThai = true) " +
+           "AND (cl IS NULL OR cl.trangThai IS NULL OR cl.trangThai = true) " +
            "AND (:keyword IS NULL OR :keyword = '' " +
            "  OR LOWER(sp.tenSanPham) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "  OR LOWER(s.ma) LIKE LOWER(CONCAT('%', :keyword, '%')) " +

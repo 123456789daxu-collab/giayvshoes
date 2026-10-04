@@ -102,7 +102,7 @@ public class ThuocTinhServiceImpl implements ThuocTinhService {
 
     @Override
     public List<DanhMuc> getAllDanhMuc() {
-        return danhMucRepository.findAll();
+        return danhMucRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     // ─── Loại giày ───
@@ -177,7 +177,7 @@ public class ThuocTinhServiceImpl implements ThuocTinhService {
 
     @Override
     public List<LoaiGiay> getAllLoaiGiay() {
-        return loaiGiayRepository.findAll();
+        return loaiGiayRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     // ─── Thương hiệu ───
@@ -252,7 +252,7 @@ public class ThuocTinhServiceImpl implements ThuocTinhService {
 
     @Override
     public List<ThuongHieu> getAllThuongHieu() {
-        return thuongHieuRepository.findAll();
+        return thuongHieuRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     // ─── Chất liệu ───
@@ -327,7 +327,7 @@ public class ThuocTinhServiceImpl implements ThuocTinhService {
 
     @Override
     public List<ChatLieu> getAllChatLieu() {
-        return chatLieuRepository.findAll();
+        return chatLieuRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     // ─── Màu sắc ───
@@ -402,7 +402,7 @@ public class ThuocTinhServiceImpl implements ThuocTinhService {
 
     @Override
     public List<MauSac> getAllMauSac() {
-        return mauSacRepository.findAll();
+        return mauSacRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     // ─── Kích thước / Cổ giày ───
@@ -478,6 +478,6 @@ public class ThuocTinhServiceImpl implements ThuocTinhService {
 
     @Override
     public List<CoGiay> getAllCoGiay() {
-        return coGiayRepository.findAll();
+        return coGiayRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 }

@@ -74,15 +74,6 @@
             items.push({ label: 'Bán hàng tại quầy', active: true });
         } else if (path.startsWith('/thong-ke')) {
             items.push({ label: 'Thống kê & Báo cáo', active: true, icon: 'bar-chart-3' });
-        } else if (path.startsWith('/giao-ca')) {
-            items.push({ label: 'Nhân sự', icon: 'clock' });
-            items.push({ label: 'Giao ca', active: true });
-        } else if (path.startsWith('/lich-lam-viec')) {
-            items.push({ label: 'Nhân sự', icon: 'calendar' });
-            items.push({ label: 'Lịch làm việc', active: true });
-        } else if (path.startsWith('/chat')) {
-            items.push({ label: 'Khách hàng', icon: 'message-square' });
-            items.push({ label: 'Chăm sóc khách hàng', active: true });
         } else if (path.startsWith('/danh-gia')) {
             items.push({ label: 'Sản phẩm', icon: 'star' });
             items.push({ label: 'Quản lý đánh giá', active: true });

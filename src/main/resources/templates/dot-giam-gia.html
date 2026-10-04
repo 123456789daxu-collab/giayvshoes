@@ -80,11 +80,11 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <span class="card-title-table" style="margin-bottom: 0;">Danh sách đợt giảm giá</span>
                             <div style="display: flex; gap: 8px;">
-                                <button id="btnExportExcel" onclick="exportCampaignsExcel()" style="padding: 8px 14px; background: white; color: #0f2d4a; border: 1px solid #0f2d4a; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#0f2d4a'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#0f2d4a'">
-                                    <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i> Xuất Excel
+                                <button id="btnExportExcel" class="btn-export-excel" onclick="exportCampaignsExcel()">
+                                    <i data-lucide="file-spreadsheet"></i> Xuất Excel
                                 </button>
-                                <button onclick="openAddCampaignForm()" style="padding: 8px 14px; background: linear-gradient(135deg, #0f2d4a 0%, #00adef 100%); color: white; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2); width: auto;">
-                                    <i data-lucide="plus" style="width: 20px; height: 20px;"></i> Tạo đợt giảm giá
+                                <button class="btn-primary-action" onclick="openAddCampaignForm()">
+                                    <i data-lucide="plus"></i> Tạo đợt giảm giá
                                 </button>
                             </div>
                         </div>

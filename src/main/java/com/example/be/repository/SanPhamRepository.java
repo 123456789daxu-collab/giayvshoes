@@ -42,6 +42,9 @@ public interface SanPhamRepository extends JpaRepository<SanPham, Long> {
                          @Param("maxPrice") java.math.BigDecimal maxPrice,
                          Pageable pageable);
     
+    @Query("SELECT MAX(s.giaBan) FROM SanPham s")
+    java.math.BigDecimal findMaxGiaBan();
+
     boolean existsByTenSanPham(String tenSanPham);
     SanPham findByTenSanPham(String tenSanPham);
     boolean existsByMaSanPham(String maSanPham);

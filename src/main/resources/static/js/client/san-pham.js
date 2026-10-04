@@ -35,6 +35,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initToolbarSearch();
     initPriceSlider();
     initResetFilter();
+
+    // Live sync without F5
+    const syncProducts = () => {
+        fetchProducts();
+    };
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => syncProducts();
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') syncProducts();
+    });
+    window.addEventListener('focus', () => syncProducts());
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') syncProducts();
+    });
 });
 
 /* =============================================
@@ -130,12 +146,15 @@ async function fetchProducts() {
 
         let activePct = 0;
         try {
-            let resD = await fetch('/api/dot-giam-gia');
-            if (!resD.ok) resD = await fetch('/api/dot-giam-gia-local');
+            let resD = await fetch('/api/dot-giam-gia/active');
+            if (!resD.ok) resD = await fetch('/api/dot-giam-gia');
             if (resD.ok) {
-                const listD = await resD.json();
+                let listD = await resD.json();
+                if (listD && listD.content && Array.isArray(listD.content)) {
+                    listD = listD.content;
+                }
                 const now = new Date();
-                const activeEvents = (listD || []).filter(d => {
+                const activeEvents = (Array.isArray(listD) ? listD : []).filter(d => {
                     const isStatusActive = (d.trangThai == 1 || d.trangThai === true || d.trangThai === '1');
                     if (!isStatusActive) return false;
 
@@ -171,7 +190,7 @@ async function fetchProducts() {
             if (imgPath && imgPath.includes(',')) {
                 imgPath = imgPath.split(',')[0].trim();
             }
-            const discountPct = p.discountPct || (activePct > 0 ? activePct : 0);
+            const discountPct = p.discountPct || 0;
             const giaGoc = p.giaGoc ? p.giaGoc : (discountPct > 0 ? p.gia : null);
             const giaActual = p.giaGoc ? p.gia : (discountPct > 0 ? Math.round(p.gia * (1 - discountPct / 100)) : p.gia);
 

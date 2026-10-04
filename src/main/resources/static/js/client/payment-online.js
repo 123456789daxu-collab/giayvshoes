@@ -13,8 +13,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnCancel = document.getElementById('btnCancelPay');
     if (btnCancel) {
-        btnCancel.addEventListener('click', () => {
-            sessionStorage.removeItem('pending_online_order');
+        btnCancel.addEventListener('click', (e) => {
+            e.preventDefault();
+            const pendingStr = sessionStorage.getItem('pending_online_order');
+            if (pendingStr) {
+                try {
+                    const pending = JSON.parse(pendingStr);
+                    if (pending.checkoutItems && pending.checkoutItems.length > 0) {
+                        localStorage.setItem('checkout_items', JSON.stringify(pending.checkoutItems));
+
+                        // Restore items to cart as well if not already present
+                        const cart = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
+                        const existingIds = new Set(cart.map(c => c.id));
+                        pending.checkoutItems.forEach(item => {
+                            if (!existingIds.has(item.id)) {
+                                cart.push(item);
+                            }
+                        });
+                        localStorage.setItem('vshoes_cart', JSON.stringify(cart));
+                    }
+                    if (pending.formData) {
+                        sessionStorage.setItem('vshoes_checkout_prefill', JSON.stringify({
+                            formData: pending.formData,
+                            checkoutItems: pending.checkoutItems
+                        }));
+                    }
+                } catch (err) {
+                    console.error('Lỗi khi phục hồi dữ liệu thanh toán:', err);
+                }
+            }
+            window.location.href = '/client/checkout';
         });
     }
 });
@@ -157,61 +185,92 @@ async function handlePaidConfirmation() {
             if (pendingData.id) orderId = pendingData.id;
             if (pendingData.maHoaDon) orderMa = pendingData.maHoaDon;
             if (pendingData.total) orderTotal = pendingData.total;
-        } catch (e) {}
+        } catch (e) {
+            console.warn('Could not parse pending_online_order:', e);
+        }
     }
 
     try {
-        if (!pendingData || !pendingData.payload) {
-            throw new Error('Không tìm thấy thông tin đơn hàng chờ thanh toán. Vui lòng đặt hàng lại!');
-        }
+        let payload = pendingData ? pendingData.payload : null;
+        let targetOrderId = orderId;
 
-        const payload = pendingData.payload;
-        // Gắn thêm ghi chú xác nhận thanh toán online
-        payload.ghiChu = (payload.ghiChu || '') + ` | [KHÁCH XÁC NHẬN ĐÃ THANH TOÁN QUA ${method}]`;
+        if (targetOrderId) {
+            // Đơn hàng đã được tạo sẵn từ trước, cập nhật xác nhận thanh toán
+            const confirmRes = await fetch(`/api/hoa-don/${targetOrderId}/confirm-online-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ method: method })
+            });
 
-        const res = await fetch('/api/hoa-don/ban-hang', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-            let errMsg = 'Lỗi khi tạo đơn hàng';
-            try {
-                const errBody = await res.json();
-                errMsg = errBody.error || errBody.message || errMsg;
-            } catch (_) {
-                errMsg = (await res.text()) || errMsg;
+            if (!confirmRes.ok) {
+                let errMsg = 'Lỗi khi xác nhận thanh toán';
+                try {
+                    const errBody = await confirmRes.json();
+                    errMsg = errBody.error || errBody.message || errMsg;
+                } catch (_) {
+                    errMsg = (await confirmRes.text()) || errMsg;
+                }
+                throw new Error(errMsg);
             }
-            throw new Error(errMsg);
-        }
 
-        const newOrder = await res.json();
-        orderMa = newOrder.maHoaDon;
-        orderTotal = newOrder.tongTien;
+            const updatedOrder = await confirmRes.json();
+            if (updatedOrder && updatedOrder.maHoaDon) orderMa = updatedOrder.maHoaDon;
+            if (updatedOrder && updatedOrder.tongTien != null) orderTotal = updatedOrder.tongTien;
 
-        // Gửi email xác nhận cho khách
-        if (newOrder.id) {
-            fetch(`/api/hoa-don/${newOrder.id}/send-email`, { method: 'POST' }).catch(err => console.warn('Lỗi gửi email:', err));
+            // Gửi email xác nhận
+            fetch(`/api/hoa-don/${targetOrderId}/send-email`, { method: 'POST' }).catch(err => console.warn('Lỗi gửi email:', err));
+        } else if (payload) {
+            // Fallback nếu chưa có orderId: tạo mới đơn hàng
+            payload.ghiChu = (payload.ghiChu || '') + ` | [KHÁCH XÁC NHẬN ĐÃ THANH TOÁN QUA ${method}]`;
+
+            const res = await fetch('/api/hoa-don/ban-hang', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                let errMsg = 'Lỗi khi tạo đơn hàng';
+                try {
+                    const errBody = await res.json();
+                    errMsg = errBody.error || errBody.message || errMsg;
+                } catch (_) {
+                    errMsg = (await res.text()) || errMsg;
+                }
+                throw new Error(errMsg);
+            }
+
+            const newOrder = await res.json();
+            targetOrderId = newOrder.id;
+            orderMa = newOrder.maHoaDon;
+            orderTotal = newOrder.tongTien;
+
+            if (targetOrderId) {
+                fetch(`/api/hoa-don/${targetOrderId}/send-email`, { method: 'POST' }).catch(err => console.warn('Lỗi gửi email:', err));
+            }
+        } else {
+            throw new Error('Không tìm thấy thông tin đơn hàng. Vui lòng kiểm tra lại đơn hàng!');
         }
 
         // Xóa các sản phẩm đã mua khỏi giỏ hàng
-        if (payload.items && Array.isArray(payload.items)) {
+        if (payload && payload.items && Array.isArray(payload.items)) {
             const purchasedIds = payload.items.map(item => item.sanPhamChiTietId);
             const generalCart = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
             const remainingCart = generalCart.filter(item => !purchasedIds.includes(item.id));
             localStorage.setItem('vshoes_cart', JSON.stringify(remainingCart));
+            localStorage.removeItem('checkout_items');
+        } else {
             localStorage.removeItem('checkout_items');
         }
 
         // Xóa thông tin phiên thanh toán tạm
         sessionStorage.removeItem('pending_online_order');
 
-        showToast('Đã ghi nhận thanh toán! Đơn hàng đang chờ admin xác nhận.', 'success');
+        showToast('Đã ghi nhận thanh toán! Đơn hàng đang chờ xác nhận.', 'success');
 
         setTimeout(() => {
-            window.location.href = `/client/checkout/success?ma=${encodeURIComponent(orderMa)}&total=${encodeURIComponent(orderTotal)}&status=${encodeURIComponent('chờ xác nhận thanh toán')}`;
-        }, 1200);
+            window.location.href = `/client/checkout/success?ma=${encodeURIComponent(orderMa || '')}&total=${encodeURIComponent(orderTotal || 0)}&status=${encodeURIComponent('chờ xác nhận')}`;
+        }, 1000);
 
     } catch (err) {
         console.error(err);

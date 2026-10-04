@@ -775,6 +775,11 @@ function renderMyOrders() {
 }
 
 window.cancelCustomerOrder = function(orderId, orderCode) {
+    const order = state.orders.find(o => o.id === orderId);
+    if (order && order.trangThai !== 0) {
+        alert('Đơn hàng đã được xác nhận, không được phép hủy đơn!');
+        return;
+    }
     openCancelOrderModal(orderId, orderCode || ('HD' + orderId), () => {
         loadMyOrders();
     });

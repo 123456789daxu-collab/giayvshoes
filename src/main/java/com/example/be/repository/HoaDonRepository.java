@@ -27,7 +27,9 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
            "AND (:maxPrice IS NULL OR h.tongTien <= :maxPrice) " +
            "AND (:startDate IS NULL OR h.ngayTao >= :startDate) " +
            "AND (:endDate IS NULL OR h.ngayTao <= :endDate) " +
-           "ORDER BY h.ngayTao DESC")
+           "AND NOT (h.trangThai = 7 AND (h.loaiHoaDon = false OR h.loaiHoaDon IS NULL) AND (h.tongTien IS NULL OR h.tongTien = 0) AND h.ngayThanhToan IS NULL) " +
+           "AND NOT (h.trangThai = 0 AND (h.loaiHoaDon = false OR h.loaiHoaDon IS NULL) AND h.ngayThanhToan IS NULL) " +
+           "ORDER BY h.ngayTao DESC, h.id DESC")
     List<HoaDon> searchHoaDon(
             @Param("keyword") String keyword,
             @Param("trangThai") Integer trangThai,
@@ -48,7 +50,11 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Long> {
 
     java.util.Optional<HoaDon> findByMaHoaDon(String maHoaDon);
 
+    List<HoaDon> findByTrangThai(Integer trangThai);
+
     List<HoaDon> findByTrangThaiAndLoaiHoaDon(Integer trangThai, Boolean loaiHoaDon);
+
+    List<HoaDon> findByTrangThaiAndLoaiHoaDonAndNgayThanhToanIsNull(Integer trangThai, Boolean loaiHoaDon);
 
     List<HoaDon> findByTrangThaiAndPhieuGiamGiaId(Integer trangThai, Long phieuGiamGiaId);
 }

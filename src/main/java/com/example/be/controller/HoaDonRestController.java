@@ -58,9 +58,15 @@ public class HoaDonRestController {
     public ResponseEntity<?> createFromBanHang(@RequestBody java.util.Map<String, Object> payload) {
         try {
             return ResponseEntity.ok(hoaDonService.createFromBanHang(payload));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             java.util.Map<String, String> error = new java.util.LinkedHashMap<>();
             error.put("error", ex.getMessage());
+            error.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception ex) {
+            java.util.Map<String, String> error = new java.util.LinkedHashMap<>();
+            error.put("error", "Lỗi tạo hóa đơn: " + ex.getMessage());
+            error.put("message", "Lỗi tạo hóa đơn: " + ex.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -71,9 +77,15 @@ public class HoaDonRestController {
             return hoaDonService.update(id, hoaDon)
                     .<ResponseEntity<?>>map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             java.util.Map<String, String> error = new java.util.LinkedHashMap<>();
             error.put("error", ex.getMessage());
+            error.put("message", ex.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception ex) {
+            java.util.Map<String, String> error = new java.util.LinkedHashMap<>();
+            error.put("error", "Lỗi cập nhật hóa đơn: " + ex.getMessage());
+            error.put("message", "Lỗi cập nhật hóa đơn: " + ex.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -184,6 +196,15 @@ public class HoaDonRestController {
             result.put("message", "Lỗi gửi email: " + e.getMessage());
         }
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{id}/confirm-online-payment")
+    public ResponseEntity<?> confirmOnlinePayment(@PathVariable Long id, @RequestBody(required = false) java.util.Map<String, Object> body) {
+        try {
+            return ResponseEntity.ok(hoaDonService.confirmOnlinePayment(id, body));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     /**

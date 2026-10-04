@@ -14,19 +14,20 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.ico", "/favicon.png").permitAll()
                 .requestMatchers(
                     "/trang-chu", "/client/**", "/api/san-pham/**", "/api/phieu-giam-gia/check", 
                     "/api/phieu-giam-gia/list", "/api/hoa-don/ban-hang", "/api/hoa-don/*/send-email", 
+                    "/api/hoa-don/*/confirm-online-payment",
                     "/api/hoa-don/test-email", "/upload/**", "/api/auth/**", "/api/client/**", 
-                    "/api/address/**", "/ws-chat/**", "/client-chat-widget", "/api/chat/history/**",
+                    "/api/address/**",
                     "/api/payment/vnpay/**"
                 ).permitAll()
 
-                // Require ADMIN for Thống kê, Hóa đơn, Đợt giảm giá, Phiếu giảm giá, Nhân viên, Lịch làm việc
-                .requestMatchers("/thong-ke/**", "/hoa-don/**", "/dot-giam-gia/**", "/phieu-giam-gia/**", "/tai-khoan/nhan-vien/**", "/nhan-vien/**", "/lich-lam-viec/**", "/api/thong-ke/**", "/api/hoa-don/**", "/api/dot-giam-gia/**").hasRole("ADMIN")
-                // Allow both ADMIN and STAFF for Ban hang, San pham, Khách hàng, Giao ca, Danh gia, Chat
-                .requestMatchers("/ban-hang/**", "/san-pham/**", "/khach-hang/**", "/tai-khoan/khach-hang/**", "/api/khach-hang/**", "/danh-gia/**", "/chat", "/chat/**", "/api/chat/**", "/api/**").hasAnyRole("ADMIN", "STAFF")
+                // Require ADMIN for Thống kê, Hóa đơn, Đợt giảm giá, Phiếu giảm giá, Nhân viên
+                .requestMatchers("/thong-ke/**", "/hoa-don/**", "/dot-giam-gia/**", "/phieu-giam-gia/**", "/tai-khoan/nhan-vien/**", "/nhan-vien/**", "/api/thong-ke/**", "/api/hoa-don/**", "/api/dot-giam-gia/**").hasRole("ADMIN")
+                // Allow both ADMIN and STAFF for Ban hang, San pham, Khách hàng, Danh gia
+                .requestMatchers("/ban-hang/**", "/san-pham/**", "/khach-hang/**", "/tai-khoan/khach-hang/**", "/api/khach-hang/**", "/danh-gia/**", "/api/**").hasAnyRole("ADMIN", "STAFF")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

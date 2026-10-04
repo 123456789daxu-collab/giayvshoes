@@ -16,6 +16,7 @@ public class HoaDonDTO {
     private String sdtKhachHang;
     private Integer soLuong;
     private LocalDateTime ngayTao;
+    private LocalDateTime ngayThanhToan;
     private BigDecimal tongTien;
     private String loaiHoaDon;
     private Integer trangThai;

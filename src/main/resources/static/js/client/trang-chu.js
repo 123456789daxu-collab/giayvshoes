@@ -23,6 +23,22 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
     initScrollTop();
     updateCartBadge();
+
+    // Live sync without F5
+    const syncHome = () => {
+        loadProducts();
+    };
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => syncHome();
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') syncHome();
+    });
+    window.addEventListener('focus', () => syncHome());
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') syncHome();
+    });
 });
 
 // ========== HERO SLIDER ==========
@@ -847,39 +863,59 @@ function selectModalColor(color) {
 function validateModalQtyInput(inputEl) {
     const v = state.selectedModalVariant;
     const maxStock = v ? (v.soLuongTon != null ? v.soLuongTon : 9999) : 9999;
-    let val = parseInt(inputEl.value) || 1;
-    if (val > maxStock) {
-        showToast(`Số lượng nhập (${val}) vượt quá tồn kho (${maxStock})!`, 'error');
-        val = maxStock > 0 ? maxStock : 1;
-        inputEl.value = val;
+    let val = parseInt(inputEl.value);
+    const addBtn = document.getElementById('modalAddToCartBtn');
+
+    if (isNaN(val) || val <= 0) {
+        inputEl.style.color = '#ef4444';
+    } else if (val > maxStock) {
+        inputEl.style.color = '#ef4444';
+    } else {
+        inputEl.style.color = '#0f172a';
+    }
+
+    if (addBtn) {
+        addBtn.disabled = false;
+        addBtn.style.background = '#00adef';
+        addBtn.style.cursor = 'pointer';
+        addBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" width="18" height="18" stroke="white"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Thêm vào giỏ hàng
+        `;
     }
 }
 
 function changeModalQty(delta) {
     const input = document.getElementById('modalQtyInput');
     if (!input) return;
-    const v = state.selectedModalVariant;
-    const maxStock = v ? (v.soLuongTon != null ? v.soLuongTon : 9999) : 9999;
     let val = parseInt(input.value) || 1;
     val = val + delta;
-
-    if (val > maxStock) {
-        showToast(`Số lượng vượt quá tồn kho (${maxStock})!`, 'error');
-        val = maxStock > 0 ? maxStock : 1;
-    }
     if (val < 1) val = 1;
     input.value = val;
+    validateModalQtyInput(input);
 }
 
 function addModalProductToCart() {
     const v = state.selectedModalVariant;
     if (!v) return;
     const inputEl = document.getElementById('modalQtyInput');
-    let qty = parseInt(inputEl?.value) || 1;
+    let qty = parseInt(inputEl?.value) || 0;
 
     const maxStock = v.soLuongTon != null ? v.soLuongTon : 0;
     if (maxStock <= 0) {
-        showToast('Sản phẩm đã hết hàng!', 'error');
+        showToast('Số lượng trong kho không đủ hàng (Sản phẩm đã hết hàng)!', 'error');
+        return;
+    }
+
+    if (qty <= 0) {
+        showToast('Số lượng phải lớn hơn 0!', 'error');
+        return;
+    }
+
+    // STRICT: If qty > maxStock, notify insufficient stock
+    if (qty > maxStock) {
+        showToast(`Trong kho không đủ hàng! Số lượng yêu cầu (${qty}) vượt quá số lượng trong kho (kho còn ${maxStock}).`, 'error');
+        validateModalQtyInput(inputEl);
         return;
     }
 
@@ -888,8 +924,8 @@ function addModalProductToCart() {
     const totalRequested = currentQty + qty;
 
     if (totalRequested > maxStock) {
-        showToast(`Không thể thêm vào giỏ hàng! Số lượng yêu cầu (${totalRequested}) vượt quá tồn kho (${maxStock}).`, 'error');
-        if (inputEl) inputEl.value = maxStock > 0 ? maxStock : 1;
+        showToast(`Trong kho không đủ hàng! Trong giỏ đã có ${currentQty}, thêm ${qty} sẽ vượt quá số lượng trong kho (kho chỉ còn ${maxStock}).`, 'error');
+        validateModalQtyInput(inputEl);
         return;
     }
 

@@ -48,14 +48,19 @@
         iconCircle.innerHTML = `<i data-lucide="check-circle-2" style="width: 44px; height: 44px; color: #10b981;"></i>`;
         titleText.textContent    = 'Thanh toán thành công!';
         titleText.style.color    = '#0f172a';
-        subtitleText.textContent = 'Giao dịch VNPay của bạn đã được xác nhận. Cảm ơn bạn đã mua hàng!';
+        subtitleText.textContent = 'Giao dịch VNPay của bạn đã được ghi nhận. Đơn hàng đang ở trạng thái Chờ xác nhận từ cửa hàng!';
         infoRows.innerHTML = `
             <div class="info-row"><span class="info-label">Mã đơn hàng</span><span class="info-value">${txnRef}</span></div>
+            <div class="info-row"><span class="info-label">Trạng thái</span><span class="info-value" style="color:#0284c7;">Chờ xác nhận</span></div>
             <div class="info-row"><span class="info-label">Mã giao dịch VNPay</span><span class="info-value">${transNo}</span></div>
             <div class="info-row"><span class="info-label">Số tiền</span><span class="info-value" style="color:#e53e3e;">${fmtAmount}</span></div>
             <div class="info-row"><span class="info-label">Ngân hàng</span><span class="info-value">${bankCode}</span></div>
             <div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">${fmtDate(payDate)}</span></div>
         `;
+        const btnTrack = document.getElementById('btnTrackOrder');
+        if (btnTrack && txnRef) {
+            btnTrack.href = `/client/tra-cuu?code=${encodeURIComponent(txnRef)}`;
+        }
     } else {
         iconCircle.className = 'icon-circle fail';
         iconCircle.innerHTML = `<i data-lucide="x-circle" style="width: 44px; height: 44px; color: #ef4444;"></i>`;

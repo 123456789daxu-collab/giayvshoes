@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
+@Transactional
 public class DanhGiaServiceImpl implements DanhGiaService {
 
     @Autowired private DanhGiaRepository danhGiaRepository;
@@ -26,6 +27,31 @@ public class DanhGiaServiceImpl implements DanhGiaService {
     private static final int MAX_IMAGES = 3;
     private static final long MAX_SIZE_BYTES = 35 * 1024 * 1024L; // 35MB
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+
+    private SanPham resolveTrueSanPham(DanhGia d) {
+        if (d.getHoaDon() != null) {
+            List<ChiTietHoaDon> items = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
+            if (items != null && !items.isEmpty()) {
+                boolean matched = false;
+                SanPham firstSp = null;
+                for (ChiTietHoaDon it : items) {
+                    if (it.getSanPhamChiTiet() != null && it.getSanPhamChiTiet().getSanPham() != null) {
+                        if (firstSp == null) firstSp = it.getSanPhamChiTiet().getSanPham();
+                        if (d.getSanPham() != null && d.getSanPham().getId().equals(it.getSanPhamChiTiet().getSanPham().getId())) {
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (!matched && firstSp != null) {
+                    d.setSanPham(firstSp);
+                    danhGiaRepository.save(d);
+                }
+                return d.getSanPham() != null ? d.getSanPham() : firstSp;
+            }
+        }
+        return d.getSanPham();
+    }
 
     @Override
     public List<Map<String, Object>> getAllReviews() {
@@ -51,17 +77,22 @@ public class DanhGiaServiceImpl implements DanhGiaService {
 
         Map<Long, List<DanhGia>> reviewsByProdId = new HashMap<>();
         for (DanhGia d : allReviews) {
-            Long prodId = null;
+            Set<Long> prodIds = new HashSet<>();
             if (d.getSanPham() != null) {
-                prodId = d.getSanPham().getId();
-            } else if (d.getHoaDon() != null) {
+                prodIds.add(d.getSanPham().getId());
+            }
+            if (d.getHoaDon() != null) {
                 List<ChiTietHoaDon> cthds = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
-                if (cthds != null && !cthds.isEmpty() && cthds.get(0).getSanPhamChiTiet() != null && cthds.get(0).getSanPhamChiTiet().getSanPham() != null) {
-                    prodId = cthds.get(0).getSanPhamChiTiet().getSanPham().getId();
+                if (cthds != null) {
+                    for (ChiTietHoaDon it : cthds) {
+                        if (it.getSanPhamChiTiet() != null && it.getSanPhamChiTiet().getSanPham() != null) {
+                            prodIds.add(it.getSanPhamChiTiet().getSanPham().getId());
+                        }
+                    }
                 }
             }
-            if (prodId != null) {
-                reviewsByProdId.computeIfAbsent(prodId, k -> new ArrayList<>()).add(d);
+            for (Long pId : prodIds) {
+                reviewsByProdId.computeIfAbsent(pId, k -> new ArrayList<>()).add(d);
             }
         }
 
@@ -94,7 +125,10 @@ public class DanhGiaServiceImpl implements DanhGiaService {
             List<SanPhamChiTiet> cts = sanPhamChiTietRepository.findBySanPhamId(sp.getId());
             if (cts != null) {
                 for (SanPhamChiTiet ct : cts) {
-                    if (ct.getHinhAnh() != null && !ct.getHinhAnh().isBlank() && !ct.getHinhAnh().equals("[]") && !ct.getHinhAnh().equals("[\"\"]")) {
+                    if (ct.getDanhSachHinhAnh() != null && !ct.getDanhSachHinhAnh().isEmpty()) {
+                        spHinhAnh = ct.getDanhSachHinhAnh().get(0);
+                        break;
+                    } else if (ct.getHinhAnh() != null && !ct.getHinhAnh().isBlank() && !ct.getHinhAnh().equals("[]") && !ct.getHinhAnh().equals("[\"\"]")) {
                         spHinhAnh = ct.getHinhAnh();
                         break;
                     }
@@ -136,7 +170,12 @@ public class DanhGiaServiceImpl implements DanhGiaService {
             }
             String dateA = (String) a.get("latestDateIso");
             String dateB = (String) b.get("latestDateIso");
-            return dateB.compareTo(dateA);
+            if (dateA != null && dateB != null && (!dateA.isEmpty() || !dateB.isEmpty())) {
+                return dateB.compareTo(dateA);
+            }
+            Long idA = (Long) a.get("id");
+            Long idB = (Long) b.get("id");
+            return Long.compare(idB != null ? idB : 0L, idA != null ? idA : 0L);
         });
 
         return result;
@@ -150,15 +189,21 @@ public class DanhGiaServiceImpl implements DanhGiaService {
         List<DanhGia> allReviews = danhGiaRepository.findAll();
         List<DanhGia> prodReviews = new ArrayList<>();
         for (DanhGia d : allReviews) {
-            Long pId = null;
-            if (d.getSanPham() != null) pId = d.getSanPham().getId();
-            else if (d.getHoaDon() != null) {
+            boolean matches = false;
+            if (d.getSanPham() != null && productId.equals(d.getSanPham().getId())) {
+                matches = true;
+            } else if (d.getHoaDon() != null) {
                 List<ChiTietHoaDon> cthds = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
-                if (cthds != null && !cthds.isEmpty() && cthds.get(0).getSanPhamChiTiet() != null && cthds.get(0).getSanPhamChiTiet().getSanPham() != null) {
-                    pId = cthds.get(0).getSanPhamChiTiet().getSanPham().getId();
+                if (cthds != null) {
+                    for (ChiTietHoaDon it : cthds) {
+                        if (it.getSanPhamChiTiet() != null && it.getSanPhamChiTiet().getSanPham() != null && productId.equals(it.getSanPhamChiTiet().getSanPham().getId())) {
+                            matches = true;
+                            break;
+                        }
+                    }
                 }
             }
-            if (productId.equals(pId)) {
+            if (matches) {
                 prodReviews.add(d);
             }
         }
@@ -305,13 +350,15 @@ public class DanhGiaServiceImpl implements DanhGiaService {
     public List<Map<String, Object>> getClientReviewsByProduct(Long sanPhamId) {
         Long targetSanPhamId = null;
 
-        Optional<SanPhamChiTiet> spctOpt = sanPhamChiTietRepository.findById(sanPhamId);
-        if (spctOpt.isPresent() && spctOpt.get().getSanPham() != null) {
-            targetSanPhamId = spctOpt.get().getSanPham().getId();
+        // 1. Check if sanPhamId is already a SanPham ID
+        Optional<SanPham> spOpt = sanPhamRepository.findById(sanPhamId);
+        if (spOpt.isPresent()) {
+            targetSanPhamId = spOpt.get().getId();
         } else {
-            Optional<SanPham> spOpt = sanPhamRepository.findById(sanPhamId);
-            if (spOpt.isPresent()) {
-                targetSanPhamId = spOpt.get().getId();
+            // 2. If it is a SanPhamChiTiet ID, find parent SanPham ID
+            Optional<SanPhamChiTiet> spctOpt = sanPhamChiTietRepository.findById(sanPhamId);
+            if (spctOpt.isPresent() && spctOpt.get().getSanPham() != null) {
+                targetSanPhamId = spctOpt.get().getSanPham().getId();
             }
         }
 
@@ -324,24 +371,25 @@ public class DanhGiaServiceImpl implements DanhGiaService {
 
         for (DanhGia d : allReviews) {
             if (d.getTrangThai() != null && d.getTrangThai() != 1) continue;
-            boolean matched = false;
+            
+            boolean matches = false;
             if (d.getSanPham() != null && targetSanPhamId.equals(d.getSanPham().getId())) {
-                matched = true;
-            }
-            if (!matched && d.getSanPham() == null && d.getHoaDon() != null) {
+                matches = true;
+            } else if (d.getHoaDon() != null) {
                 List<ChiTietHoaDon> items = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
-                for (ChiTietHoaDon item : items) {
-                    if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getSanPham() != null) {
-                        if (targetSanPhamId.equals(item.getSanPhamChiTiet().getSanPham().getId())) {
-                            matched = true;
-                            d.setSanPham(item.getSanPhamChiTiet().getSanPham());
-                            danhGiaRepository.save(d);
-                            break;
+                if (items != null) {
+                    for (ChiTietHoaDon it : items) {
+                        if (it.getSanPhamChiTiet() != null && it.getSanPhamChiTiet().getSanPham() != null) {
+                            if (targetSanPhamId.equals(it.getSanPhamChiTiet().getSanPham().getId())) {
+                                matches = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
-            if (matched && !matchedList.contains(d)) {
+
+            if (matches && !matchedList.contains(d)) {
                 matchedList.add(d);
             }
         }
@@ -401,23 +449,22 @@ public class DanhGiaServiceImpl implements DanhGiaService {
         for (DanhGia d : allReviews) {
             if (d.getTrangThai() != null && d.getTrangThai() != 1) continue;
             int stars = (d.getSoSao() != null && d.getSoSao() >= 1 && d.getSoSao() <= 5) ? d.getSoSao() : 5;
-            Set<Long> matchedSpIds = new HashSet<>();
-
+            Set<Long> prodIds = new HashSet<>();
             if (d.getSanPham() != null) {
-                matchedSpIds.add(d.getSanPham().getId());
+                prodIds.add(d.getSanPham().getId());
             }
-
             if (d.getHoaDon() != null) {
-                List<ChiTietHoaDon> items = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
-                for (ChiTietHoaDon item : items) {
-                    if (item.getSanPhamChiTiet() != null && item.getSanPhamChiTiet().getSanPham() != null) {
-                        matchedSpIds.add(item.getSanPhamChiTiet().getSanPham().getId());
+                List<ChiTietHoaDon> cthds = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
+                if (cthds != null) {
+                    for (ChiTietHoaDon it : cthds) {
+                        if (it.getSanPhamChiTiet() != null && it.getSanPhamChiTiet().getSanPham() != null) {
+                            prodIds.add(it.getSanPhamChiTiet().getSanPham().getId());
+                        }
                     }
                 }
             }
-
-            for (Long spId : matchedSpIds) {
-                spStars.computeIfAbsent(spId, k -> new ArrayList<>()).add(stars);
+            for (Long pId : prodIds) {
+                spStars.computeIfAbsent(pId, k -> new ArrayList<>()).add(stars);
             }
         }
 
@@ -587,12 +634,12 @@ public class DanhGiaServiceImpl implements DanhGiaService {
             throw new IllegalArgumentException("Vui lòng nhập nội dung đánh giá!");
         }
 
-        SanPham sanPham = sanPhamRepository.findById(id).orElse(null);
-        if (sanPham == null) {
-            SanPhamChiTiet spct = sanPhamChiTietRepository.findById(id).orElse(null);
-            if (spct != null && spct.getSanPham() != null) {
-                sanPham = spct.getSanPham();
-            }
+        SanPham sanPham = null;
+        Optional<SanPhamChiTiet> spctOpt = sanPhamChiTietRepository.findById(id);
+        if (spctOpt.isPresent() && spctOpt.get().getSanPham() != null) {
+            sanPham = spctOpt.get().getSanPham();
+        } else {
+            sanPham = sanPhamRepository.findById(id).orElse(null);
         }
         if (sanPham == null) {
             throw new IllegalArgumentException("Không tìm thấy sản phẩm!");
@@ -657,6 +704,12 @@ public class DanhGiaServiceImpl implements DanhGiaService {
     }
 
     private Map<String, Object> convertToMap(DanhGia d) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", d.getId());
+        m.put("soSao", d.getSoSao() != null ? d.getSoSao() : 5);
+        m.put("noiDung", d.getNoiDung() != null ? d.getNoiDung() : "");
+        m.put("tenHienThi", d.getTenHienThi());
+
         List<String> images = new ArrayList<>();
         if (d.getAnhDanhGia() != null && !d.getAnhDanhGia().isBlank()) {
             String raw = d.getAnhDanhGia().trim();
@@ -693,34 +746,72 @@ public class DanhGiaServiceImpl implements DanhGiaService {
         }
         m.put("tenKhachHang", ten);
 
-        if (d.getSanPham() != null) {
-            m.put("sanPhamId", d.getSanPham().getId());
-            m.put("tenSanPham", d.getSanPham().getTenSanPham());
-            m.put("maSanPham", d.getSanPham().getMaSanPham());
-        } else if (d.getHoaDon() != null) {
-            List<ChiTietHoaDon> cthds = chiTietHoaDonRepository.findByHoaDonId(d.getHoaDon().getId());
-            if (cthds != null && !cthds.isEmpty() && cthds.get(0).getSanPhamChiTiet() != null && cthds.get(0).getSanPhamChiTiet().getSanPham() != null) {
-                SanPham sp = cthds.get(0).getSanPhamChiTiet().getSanPham();
-                m.put("sanPhamId", sp.getId());
-                m.put("tenSanPham", sp.getTenSanPham());
-                m.put("maSanPham", sp.getMaSanPham());
-            } else {
-                m.put("sanPhamId", null);
-                m.put("tenSanPham", "Đơn hàng #" + d.getHoaDon().getId());
-                m.put("maSanPham", d.getHoaDon().getMaHoaDon());
+        // Khach hang object
+        Map<String, Object> khMap = new LinkedHashMap<>();
+        if (d.getKhachHang() != null) {
+            khMap.put("id", d.getKhachHang().getId());
+            khMap.put("hoTen", d.getKhachHang().getHoTen() != null ? d.getKhachHang().getHoTen() : ten);
+            khMap.put("soDienThoai", d.getKhachHang().getSoDienThoai());
+            khMap.put("email", d.getKhachHang().getEmail());
+        } else {
+            khMap.put("id", null);
+            khMap.put("hoTen", ten);
+            khMap.put("soDienThoai", d.getHoaDon() != null ? d.getHoaDon().getSdtNguoiNhan() : "");
+            khMap.put("email", "");
+        }
+        m.put("khachHang", khMap);
+
+        // San pham object
+        Map<String, Object> spMap = new LinkedHashMap<>();
+        SanPham sp = resolveTrueSanPham(d);
+
+        if (sp != null) {
+            String spHinhAnh = "";
+            List<SanPhamChiTiet> cts = sanPhamChiTietRepository.findBySanPhamId(sp.getId());
+            if (cts != null) {
+                for (SanPhamChiTiet ct : cts) {
+                    if (ct.getDanhSachHinhAnh() != null && !ct.getDanhSachHinhAnh().isEmpty()) {
+                        spHinhAnh = ct.getDanhSachHinhAnh().get(0);
+                        break;
+                    } else if (ct.getHinhAnh() != null && !ct.getHinhAnh().isBlank() && !ct.getHinhAnh().equals("[]") && !ct.getHinhAnh().equals("[\"\"]")) {
+                        spHinhAnh = ct.getHinhAnh();
+                        break;
+                    }
+                }
             }
+
+            m.put("sanPhamId", sp.getId());
+            m.put("tenSanPham", sp.getTenSanPham());
+            m.put("maSanPham", sp.getMaSanPham());
+
+            spMap.put("id", sp.getId());
+            spMap.put("tenSanPham", sp.getTenSanPham());
+            spMap.put("ma", sp.getMaSanPham() != null ? sp.getMaSanPham() : ("SP" + sp.getId()));
+            spMap.put("hinhAnh", spHinhAnh);
         } else {
             m.put("sanPhamId", null);
             m.put("tenSanPham", "Sản phẩm");
             m.put("maSanPham", "");
+
+            spMap.put("id", null);
+            spMap.put("tenSanPham", "Sản phẩm");
+            spMap.put("ma", "");
+            spMap.put("hinhAnh", "");
         }
+        m.put("sanPham", spMap);
 
         if (d.getHoaDon() != null) {
             m.put("hoaDonId", d.getHoaDon().getId());
             m.put("maHoaDon", d.getHoaDon().getMaHoaDon());
+
+            Map<String, Object> hdMap = new LinkedHashMap<>();
+            hdMap.put("id", d.getHoaDon().getId());
+            hdMap.put("maHoaDon", d.getHoaDon().getMaHoaDon());
+            m.put("hoaDon", hdMap);
         } else {
             m.put("hoaDonId", null);
             m.put("maHoaDon", null);
+            m.put("hoaDon", null);
         }
 
         return m;

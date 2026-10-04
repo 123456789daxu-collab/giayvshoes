@@ -141,7 +141,8 @@ public class PhieuGiamGiaController {
             PhieuGiamGia voucher = phieuGiamGiaService.toggleStatus(id, trangThai);
             return ResponseEntity.ok(voucher);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            String msg = e.getMessage() != null ? e.getMessage() : e.toString();
+            return ResponseEntity.badRequest().body(Map.of("message", msg));
         }
     }
 

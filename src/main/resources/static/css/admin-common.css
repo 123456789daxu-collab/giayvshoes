@@ -177,25 +177,41 @@ body, html {
     padding-left: 36px !important;
 }
 
-.fi-reset-btn, .refresh-btn, .btn-refresh {
-    width: 40px !important;
-    height: 40px !important;
+/* Nút Làm mới bộ lọc dạng icon vuông (Filter Grid Reset Button) */
+.fi-reset-btn, .refresh-btn, .btn-refresh, .btn-icon-reset {
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    padding: 0 !important;
     border-radius: 8px !important;
-    border: 1px solid var(--admin-border) !important;
+    border: 1.5px solid #00adef !important;
     background-color: #ffffff !important;
-    color: var(--admin-text-sub) !important;
+    color: #0284c7 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+    vertical-align: middle !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
     flex-shrink: 0;
 }
 
-.fi-reset-btn:hover, .refresh-btn:hover, .btn-refresh:hover {
-    background-color: var(--admin-border-light) !important;
-    color: var(--admin-text-main) !important;
-    border-color: #cbd5e1 !important;
+.fi-reset-btn:hover, .refresh-btn:hover, .btn-refresh:hover, .btn-icon-reset:hover {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border-color: #0284c7 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(0, 173, 239, 0.25) !important;
+}
+
+.fi-reset-btn svg, .fi-reset-btn i,
+.refresh-btn svg, .refresh-btn i,
+.btn-refresh svg, .btn-refresh i {
+    width: 16px !important;
+    height: 16px !important;
+    color: inherit !important;
 }
 
 /* Status Filter Toggle Group */
@@ -260,13 +276,16 @@ body, html {
 .btn-primary-action,
 .btn-add-product,
 .btn-update-product,
+.btn-search,
+.fi-search-btn,
+.btn-filter-search,
 button.btn-primary:not(.btn-outline-primary) {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 8px !important;
     padding: 0 18px !important;
-    height: 40px !important;
+    height: 38px !important;
     border-radius: 8px !important;
     background: var(--admin-gradient) !important;
     color: #ffffff !important;
@@ -274,8 +293,8 @@ button.btn-primary:not(.btn-outline-primary) {
     font-size: 13.5px !important;
     font-weight: 600 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.22) !important;
     text-decoration: none !important;
 }
 
@@ -283,112 +302,314 @@ button.btn-primary:not(.btn-outline-primary) {
 .btn-primary-action:hover,
 .btn-add-product:hover,
 .btn-update-product:hover,
+.btn-search:hover,
+.fi-search-btn:hover,
+.btn-filter-search:hover,
 button.btn-primary:not(.btn-outline-primary):hover {
+    background: var(--admin-gradient-hover) !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 14px rgba(0, 173, 239, 0.35) !important;
     color: #ffffff !important;
 }
 
-.btn-admin-outline,
-.btn-outline-info,
-.btn-reset {
+/* Export Excel Buttons (Unified Green Palette) */
+.btn-export-excel,
+.btn-excel,
+.btn-export,
+#btnExportExcel,
+.btn-outline-excel,
+a.btn-export-excel,
+a.btn-excel {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 6px !important;
-    padding: 0 14px !important;
-    height: 40px !important;
+    gap: 8px !important;
+    padding: 0 16px !important;
+    height: 38px !important;
     background: #ffffff !important;
-    color: var(--admin-accent) !important;
-    border: 1px solid var(--admin-accent) !important;
+    color: #059669 !important;
+    border: 1.5px solid #10b981 !important;
     border-radius: 8px !important;
     font-size: 13.5px !important;
     font-weight: 600 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.1) !important;
     text-decoration: none !important;
+}
+
+.btn-export-excel:hover,
+.btn-excel:hover,
+.btn-export:hover,
+#btnExportExcel:hover,
+.btn-outline-excel:hover,
+a.btn-export-excel:hover,
+a.btn-excel:hover {
+    background: #ecfdf5 !important;
+    color: #047857 !important;
+    border-color: #059669 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+}
+
+.btn-export-excel svg,
+.btn-export-excel i,
+.btn-excel svg,
+.btn-excel i,
+#btnExportExcel svg,
+#btnExportExcel i {
+    width: 16px !important;
+    height: 16px !important;
+    color: inherit !important;
+}
+
+/* Import Excel Buttons (Unified Teal Palette) */
+.btn-import-excel,
+.btn-import,
+#btnImportExcel,
+.btn-outline-import-excel,
+a.btn-import-excel,
+a.btn-import {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 16px !important;
+    height: 38px !important;
+    background: #ffffff !important;
+    color: #0d9488 !important;
+    border: 1.5px solid #14b8a6 !important;
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(20, 184, 166, 0.1) !important;
+    text-decoration: none !important;
+}
+
+.btn-import-excel:hover,
+.btn-import:hover,
+#btnImportExcel:hover,
+.btn-outline-import-excel:hover,
+a.btn-import-excel:hover,
+a.btn-import:hover {
+    background: #f0fdfa !important;
+    color: #0f766e !important;
+    border-color: #0d9488 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.25) !important;
+}
+
+.btn-import-excel svg,
+.btn-import-excel i,
+.btn-import svg,
+.btn-import i,
+#btnImportExcel svg,
+#btnImportExcel i {
+    width: 16px !important;
+    height: 16px !important;
+    color: inherit !important;
+}
+
+/* Nút Làm mới bộ lọc có chữ & Outline (Text Filter Reset Buttons) */
+.btn-admin-outline,
+.btn-outline-info,
+.btn-reset,
+.btn-filter-reset {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 16px !important;
+    height: 38px !important;
+    background: #ffffff !important;
+    color: #0284c7 !important;
+    border: 1.5px solid #00adef !important;
+    border-radius: 8px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-decoration: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
 }
 
 .btn-admin-outline:hover,
 .btn-outline-info:hover,
-.btn-reset:hover {
-    background: rgba(0, 173, 239, 0.08) !important;
-    color: var(--admin-accent) !important;
-    border-color: var(--admin-accent) !important;
+.btn-reset:hover,
+.btn-filter-reset:hover {
+    background: #e0f2fe !important;
+    color: #0369a1 !important;
+    border-color: #0284c7 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(0, 173, 239, 0.2) !important;
+}
+
+.btn-admin-outline svg,
+.btn-admin-outline i,
+.btn-reset svg,
+.btn-reset i,
+.btn-filter-reset svg,
+.btn-filter-reset i {
+    width: 16px !important;
+    height: 16px !important;
+    color: inherit !important;
 }
 
 /* Action Icon Buttons */
+.btn-actions-cell {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+}
+
 .action-icon-btn,
 .action-btn,
-.btn-icon-table {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 6px !important;
+.btn-icon-table,
+.btn-brown-outline-sm,
+.dg-icon-btn-view,
+.dg-btn-action-view,
+.addr-action-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    border-radius: 8px !important;
     border: 1px solid transparent !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
-    transition: all 0.15s ease !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     font-size: 14px !important;
     text-decoration: none !important;
     margin: 0 2px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    line-height: 1 !important;
 }
 
+.action-icon-btn svg,
+.action-icon-btn i,
+.action-btn svg,
+.action-btn i,
+.dg-icon-btn-view svg,
+.dg-icon-btn-view i,
+.dg-btn-action-view svg,
+.dg-btn-action-view i,
+.addr-action-btn svg,
+.addr-action-btn i {
+    width: 16px !important;
+    height: 16px !important;
+    color: inherit !important;
+    display: inline-block !important;
+}
+
+/* Xem / Chi tiết (Xanh lam) */
 .action-icon-btn.view,
-.action-btn.btn-view {
+.action-btn.btn-view,
+.btn-action-view,
+.dg-icon-btn-view,
+.dg-btn-action-view,
+.action-icon-btn.schedule,
+.addr-action-btn.primary-text {
     color: #0284c7 !important;
     background-color: #e0f2fe !important;
-    border-color: #bae6fd !important;
+    border: 1px solid #bae6fd !important;
 }
 
 .action-icon-btn.view:hover,
-.action-btn.btn-view:hover {
-    background-color: #bae6fd !important;
-    color: #0369a1 !important;
-    transform: translateY(-1px);
+.action-btn.btn-view:hover,
+.btn-action-view:hover,
+.dg-icon-btn-view:hover,
+.dg-btn-action-view:hover,
+.action-icon-btn.schedule:hover,
+.addr-action-btn.primary-text:hover {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    border-color: #0284c7 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.35) !important;
 }
 
+/* Chỉnh sửa (Vàng hổ phách) */
 .action-icon-btn.edit,
-.action-btn.btn-edit {
-    color: #0284c7 !important;
-    background-color: #e0f2fe !important;
-    border-color: #bae6fd !important;
+.action-btn.btn-edit,
+.btn-action-edit,
+.btn-brown-outline-sm,
+.addr-action-btn.edit-text {
+    color: #b45309 !important;
+    background-color: #fef9c3 !important;
+    border: 1px solid #fde68a !important;
 }
 
 .action-icon-btn.edit:hover,
-.action-btn.btn-edit:hover {
-    background-color: #bae6fd !important;
-    color: #0369a1 !important;
-    transform: translateY(-1px);
+.action-btn.btn-edit:hover,
+.btn-action-edit:hover,
+.btn-brown-outline-sm:hover,
+.addr-action-btn.edit-text:hover {
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+    border-color: #d97706 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(245, 158, 11, 0.35) !important;
 }
 
+/* Địa chỉ (Xanh lá cây) */
+.action-icon-btn.address,
+.action-btn.btn-address,
+.btn-action-address {
+    color: #15803d !important;
+    background-color: #dcfce7 !important;
+    border: 1px solid #bbf7d0 !important;
+}
+
+.action-icon-btn.address:hover,
+.action-btn.btn-address:hover,
+.btn-action-address:hover {
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+    border-color: #16a34a !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(22, 163, 74, 0.35) !important;
+}
+
+/* Nút chuyển đổi trạng thái dạng nút bấm */
 .action-icon-btn.toggle,
 .action-btn.btn-toggle {
     color: #b45309 !important;
     background-color: #fef3c7 !important;
-    border-color: #fde68a !important;
+    border: 1px solid #fde68a !important;
 }
 
 .action-icon-btn.toggle:hover,
 .action-btn.btn-toggle:hover {
-    background-color: #fde68a !important;
-    color: #92400e !important;
-    transform: translateY(-1px);
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+    border-color: #d97706 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(245, 158, 11, 0.35) !important;
 }
 
+/* Xóa (Đỏ) */
 .action-icon-btn.delete,
-.action-btn.btn-delete {
-    color: #b91c1c !important;
+.action-btn.btn-delete,
+.btn-action-delete,
+.addr-action-btn.danger-text {
+    color: #dc2626 !important;
     background-color: #fee2e2 !important;
-    border-color: #fecaca !important;
+    border: 1px solid #fecaca !important;
 }
 
 .action-icon-btn.delete:hover,
-.action-btn.btn-delete:hover {
-    background-color: #fecaca !important;
-    color: #991b1b !important;
-    transform: translateY(-1px);
+.action-btn.btn-delete:hover,
+.btn-action-delete:hover,
+.addr-action-btn.danger-text:hover {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #b91c1c !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.35) !important;
 }
 
 /* 7. Unified Table System (ĐỒNG BỘ KIỂU BẢNG) */
@@ -475,7 +696,8 @@ table tbody tr:hover,
 .app-badge,
 .badge,
 .status-badge,
-.badge-status {
+.badge-status,
+.status-pill {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -549,7 +771,7 @@ table tbody tr:hover,
 .total-count,
 .pagination-info,
 .dg-pagination-wrap > div:first-child {
-    font-size: 13px !important;
+    font-size: 13.5px !important;
     color: var(--admin-text-muted) !important;
     font-weight: 500 !important;
 }
@@ -565,82 +787,111 @@ table tbody tr:hover,
 .pagination,
 .pagination-nav,
 .pagination-controls,
+.pagination-controls-wrapper,
+#page-numbers-container,
+#emp-pagination-controls,
 .dg-pagination-wrap > div:last-child {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 6px !important;
     margin-bottom: 0 !important;
     padding-left: 0 !important;
     list-style: none !important;
 }
 
+/* Unified Page Buttons: 34x34px, rounded-8px, clean border, smooth lift */
 .page-btn,
 .btn-page,
 .dg-page-btn,
-.page-link {
-    min-width: 32px !important;
-    height: 32px !important;
-    padding: 0 8px !important;
-    border-radius: 6px !important;
+.page-link,
+.btn-page-arrow,
+.page-number-box {
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    border-radius: 8px !important;
     border: 1px solid var(--admin-border) !important;
     background-color: #ffffff !important;
     color: var(--admin-text-sub) !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer !important;
     text-decoration: none !important;
-    transition: all 0.15s ease !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    line-height: 1 !important;
 }
 
-.page-btn:hover:not(.disabled):not(.active),
+.page-btn:hover:not(.disabled):not(:disabled):not(.active),
 .btn-page:hover:not(:disabled):not(.active),
 .dg-page-btn:hover:not(:disabled):not(.active),
-.page-link:hover {
+.btn-page-arrow:hover:not(:disabled),
+.page-link:hover:not(:disabled) {
     background-color: #f1f5f9 !important;
     border-color: #cbd5e1 !important;
-    color: var(--admin-text-main) !important;
-    transform: translateY(-1px);
+    color: var(--admin-primary) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06) !important;
 }
 
 .page-btn.active,
 .btn-page.active,
 .dg-page-btn.active,
+.page-number-box,
 .page-item.active .page-link {
     background: var(--admin-gradient) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    font-weight: 600 !important;
-    box-shadow: 0 2px 8px rgba(0, 173, 239, 0.3) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 3px 8px rgba(0, 173, 239, 0.3) !important;
 }
 
 .page-btn.disabled,
 .page-btn:disabled,
 .btn-page:disabled,
 .dg-page-btn:disabled,
+.btn-page-arrow:disabled,
 .page-item.disabled .page-link {
-    opacity: 0.45 !important;
+    opacity: 0.4 !important;
     cursor: not-allowed !important;
     pointer-events: none !important;
     background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.pagination-label {
+    font-size: 13px !important;
+    color: var(--admin-text-muted) !important;
+    font-weight: 500 !important;
+    margin: 0 4px !important;
 }
 
 .page-size-selector select,
 select.page-size-select,
 select.form-select-sm {
-    height: 32px !important;
-    padding: 0 24px 0 8px !important;
-    border-radius: 6px !important;
+    height: 34px !important;
+    padding: 0 26px 0 10px !important;
+    border-radius: 8px !important;
     border: 1px solid var(--admin-border) !important;
     background-color: #ffffff !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     color: var(--admin-text-main) !important;
     outline: none !important;
     cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.page-size-selector select:hover,
+select.page-size-select:hover,
+select.form-select-sm:hover {
+    border-color: #00adef !important;
 }
 
 /* 10. Switch Toggle Controls (iOS Style) */

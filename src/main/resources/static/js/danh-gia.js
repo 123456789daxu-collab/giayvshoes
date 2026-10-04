@@ -32,8 +32,30 @@ const dgState = {
     detailStatus: '1' // 'all', '1' (đang hiển thị - mặc định), '0' (đã ẩn)
 };
 
+function notifyReviewSync() {
+    try {
+        if ('BroadcastChannel' in window) {
+            const bc = new BroadcastChannel('vshoes_sync_channel');
+            bc.postMessage({ type: 'REVIEW_UPDATED', timestamp: Date.now() });
+        }
+        localStorage.setItem('vshoes_sync_trigger', Date.now().toString());
+    } catch(e) {}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initReviewAdmin();
+
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => {
+            loadData();
+        };
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') {
+            loadData();
+        }
+    });
 });
 
 async function initReviewAdmin() {
@@ -63,10 +85,19 @@ async function loadData() {
         ]);
 
         if (resByProduct.ok) {
-            dgState.allProducts = await resByProduct.json();
+            const prods = await resByProduct.json();
+            dgState.allProducts = Array.isArray(prods) ? prods : [];
+        } else {
+            console.error('Lỗi API /by-product:', resByProduct.status);
+            dgState.allProducts = [];
         }
+
         if (resAllReviews.ok) {
-            dgState.allReviews = await resAllReviews.json();
+            const revs = await resAllReviews.json();
+            dgState.allReviews = Array.isArray(revs) ? revs : [];
+        } else {
+            console.error('Lỗi API /danh-gia:', resAllReviews.status);
+            dgState.allReviews = [];
         }
 
         if (dgState.currentView === 'detail' && dgState.selectedProductId) {
@@ -172,6 +203,14 @@ function onSearchInput(val) {
     dgState.currentPage = 1;
     applyFilters();
 }
+
+window.resetReviewFilters = function() {
+    const input = document.getElementById('filterSearch');
+    if (input) input.value = '';
+    dgState.searchQuery = '';
+    dgState.currentPage = 1;
+    applyFilters();
+};
 
 function applyFilters() {
     const q = dgState.searchQuery;
@@ -691,6 +730,7 @@ async function sendDirectReply(reviewId) {
             });
         }
 
+        notifyReviewSync();
         await loadData();
 
     } catch (e) {
@@ -719,8 +759,14 @@ function confirmDeleteReview(reviewId, prodId) {
             if (result.isConfirmed) {
                 try {
                     const res = await fetch(`/api/admin/danh-gia/${reviewId}`, { method: 'DELETE' });
-                    if (!res.ok) throw new Error('API error');
+                    let data = {};
+                    try { data = await res.json(); } catch(err) {}
 
+                    if (!res.ok || data.error) {
+                        throw new Error(data.error || 'Lỗi khi xóa đánh giá!');
+                    }
+
+                    notifyReviewSync();
                     await loadData();
 
                     Swal.fire({
@@ -732,7 +778,8 @@ function confirmDeleteReview(reviewId, prodId) {
                         timer: 2000
                     });
                 } catch (e) {
-                    Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể xoá đánh giá!' });
+                    console.error('Lỗi xóa đánh giá:', e);
+                    Swal.fire({ icon: 'error', title: 'Lỗi', text: e.message || 'Không thể xoá đánh giá!' });
                 }
             }
         });

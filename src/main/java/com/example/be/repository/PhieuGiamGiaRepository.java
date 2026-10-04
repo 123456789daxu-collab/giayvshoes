@@ -18,6 +18,8 @@ public interface PhieuGiamGiaRepository extends JpaRepository<PhieuGiamGia, Long
 
     boolean existsByMaVoucher(String maVoucher);
 
+    java.util.List<PhieuGiamGia> findByTrangThai(Integer trangThai);
+
     @org.springframework.data.jpa.repository.Query("SELECT p FROM PhieuGiamGia p WHERE p.trangThai = 1 " +
            "AND (p.soLuong > COALESCE(p.soLuongDaDung, 0)) " +
            "AND (p.ngayBatDau IS NULL OR p.ngayBatDau <= :now) " +

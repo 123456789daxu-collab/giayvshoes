@@ -19,6 +19,7 @@ public class LichSuHoaDon {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_hoa_don")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private HoaDon hoaDon;
 
     @Column(name = "hanh_dong")

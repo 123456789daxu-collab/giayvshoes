@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý đánh giá | VShoes</title>
     <!-- Nhúng CSS sidebar, header & layout dùng chung -->
-    <link rel="stylesheet" href="/css/global-typography.css?v=1.0">
+    <link rel="stylesheet" href="/css/global-typography.css?v=2.0">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.2">
     <link rel="stylesheet" href="/css/sidebar.css?v=99">
     <link rel="stylesheet" href="/css/header.css?v=99">
     <!-- Nhúng CSS riêng của trang quản lý đánh giá -->
@@ -54,6 +55,10 @@
                                        placeholder="Tìm theo tên hoặc mã sản phẩm..."
                                        oninput="onSearchInput(this.value)">
                             </div>
+
+                            <button class="fi-reset-btn" onclick="resetReviewFilters()" title="Làm mới bộ lọc">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
                         </div>
                     </div>
 

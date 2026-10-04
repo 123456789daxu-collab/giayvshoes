@@ -49,6 +49,9 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     @Autowired
     private HoaDonRepository hoaDonRepository;
 
+    @Autowired
+    private com.example.be.repository.ChiTietHoaDonRepository chiTietHoaDonRepository;
+
     @Override
     public Page<PhieuGiamGia> searchVouchers(
             String search,
@@ -219,7 +222,10 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
             }
         }
 
-        if (updatedVoucher.getTrangThai() != null && updatedVoucher.getTrangThai() != 1) {
+        LocalDateTime now = LocalDateTime.now();
+        boolean isExpiredOrInactive = (updatedVoucher.getTrangThai() != null && updatedVoucher.getTrangThai() != 1)
+                || (updatedVoucher.getNgayKetThuc() != null && now.isAfter(updatedVoucher.getNgayKetThuc()));
+        if (isExpiredOrInactive) {
             clearVoucherFromPendingInvoices(updatedVoucher.getId());
         }
 
@@ -260,12 +266,19 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
     private void clearVoucherFromPendingInvoices(Long voucherId) {
         if (voucherId == null) return;
         List<HoaDon> pendingInvoices = hoaDonRepository.findByTrangThaiAndPhieuGiamGiaId(0, voucherId);
+        if (pendingInvoices == null || pendingInvoices.isEmpty()) return;
 
         for (HoaDon hd : pendingInvoices) {
             hd.setPhieuGiamGia(null);
             hd.setTienGiamGia(BigDecimal.ZERO);
-            BigDecimal tongHang = (hd.getTongTienHang() != null) ? hd.getTongTienHang() : BigDecimal.ZERO;
+            List<com.example.be.entity.ChiTietHoaDon> details = chiTietHoaDonRepository.findByHoaDonId(hd.getId());
+            BigDecimal tongHang = details.stream()
+                    .map(com.example.be.entity.ChiTietHoaDon::getThanhTien)
+                    .filter(java.util.Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
             BigDecimal ship = (hd.getPhiShip() != null) ? hd.getPhiShip() : (hd.getTienVanChuyen() != null ? hd.getTienVanChuyen() : BigDecimal.ZERO);
+            hd.setTongTienHang(tongHang);
             hd.setTongTienThanhToan(tongHang.add(ship).max(BigDecimal.ZERO));
             hoaDonRepository.save(hd);
         }
@@ -445,14 +458,14 @@ public class PhieuGiamGiaServiceImpl implements PhieuGiamGiaService {
         }
         PhieuGiamGia v = opt.get();
         if (v.getTrangThai() == null || v.getTrangThai() != 1) {
-            throw new IllegalStateException("Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!");
+            throw new IllegalStateException("Phiếu giảm giá không thể áp dụng");
         }
         LocalDateTime now = LocalDateTime.now();
         if (v.getNgayBatDau() != null && now.isBefore(v.getNgayBatDau())) {
-            throw new IllegalStateException("Chưa tới ngày áp dụng phiếu giảm giá này!");
+            throw new IllegalStateException("Phiếu giảm giá không thể áp dụng");
         }
         if (v.getNgayKetThuc() != null && now.isAfter(v.getNgayKetThuc())) {
-            throw new IllegalStateException("Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!");
+            throw new IllegalStateException("Phiếu giảm giá không thể áp dụng");
         }
         if (v.getSoLuong() != null && v.getSoLuongDaDung() != null && v.getSoLuongDaDung() >= v.getSoLuong()) {
             throw new IllegalStateException("Phiếu giảm giá này đã hết lượt sử dụng, vui lòng chọn phiếu giảm giá khác!");

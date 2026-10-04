@@ -126,6 +126,24 @@ body {
     font-weight: bold;
 }
 
+/* Badge số lượng sản phẩm trên tab hóa đơn */
+.tab-item-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ef4444;
+    color: #ffffff;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 50rem;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    margin-left: 2px;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.35);
+}
+
 /* --- Giỏ hàng Card --- */
 #cartItemCount {
     background-color: var(--theme-primary-light) !important;
@@ -487,4 +505,32 @@ body {
     overflow: hidden;
     border: 2px solid var(--theme-primary) !important;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Ẩn mũi tên mặc định của input type="number" */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Quantity Stepper Group */
+.quantity-stepper-group {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #cbd5e1 !important;
+}
+.quantity-stepper-group button:hover:not(:disabled) {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+.quantity-stepper-group button:active:not(:disabled) {
+    background-color: #cbd5e1 !important;
+}
+.quantity-stepper-group input:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: #fff !important;
 }

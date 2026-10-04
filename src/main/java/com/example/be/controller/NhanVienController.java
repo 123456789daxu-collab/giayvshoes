@@ -119,8 +119,13 @@ public class NhanVienController {
                         existing.setEmail(nhanVien.getEmail());
                         existing.setSoDienThoai(nhanVien.getSoDienThoai());
                         existing.setChucVu(nhanVien.getChucVu());
-                        existing.setTrangThai(nhanVien.getTrangThai());
-                        existing.setGioiTinh(nhanVien.getGioiTinh());
+                        existing.setCccd(nhanVien.getCccd());
+                        if (nhanVien.getTrangThai() != null) {
+                            existing.setTrangThai(nhanVien.getTrangThai());
+                        }
+                        if (nhanVien.getGioiTinh() != null) {
+                            existing.setGioiTinh(nhanVien.getGioiTinh());
+                        }
                         existing.setNgaySinh(nhanVien.getNgaySinh());
                         existing.setDiaChi(nhanVien.getDiaChi());
                         if (nhanVien.getMatKhau() != null && !nhanVien.getMatKhau().trim().isEmpty()) {

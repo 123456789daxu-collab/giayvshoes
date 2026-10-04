@@ -19,7 +19,7 @@ const state = {
     selectedWardName: ''
 };
 
-const SHIP_FEE = 30000;    // Phí ship ngoại thành / tỉnh khác: 30.000 đ
+const SHIP_FEE = 30000;    // Phí ship toàn quốc khi đã nhập địa chỉ: 30.000 đ
 
 /**
  * Danh sách quận/huyện NỘI THÀNH Hà Nội → Miễn phí vận chuyển
@@ -58,7 +58,7 @@ function parseFlexibleDate(val) {
     return isNaN(d.getTime()) ? null : d;
 }
 
-async function syncCheckoutItemsPricesWithBackend() {
+async function syncCheckoutItemsPricesWithBackend(isLive = false) {
     try {
         let items = state.checkoutItems;
         if (!items || items.length === 0) return;
@@ -77,21 +77,44 @@ async function syncCheckoutItemsPricesWithBackend() {
             const statusMap = new Map();
             statusList.forEach(s => statusMap.set(s.id, s));
 
+            let newlyStopped = [];
             for (let item of items) {
+                const wasActive = item.isStopped !== true;
                 const s = statusMap.get(item.id);
                 if (s) {
-                    item.isStopped = s.isStopped === true || (s.trangThai != null && s.trangThai != 1);
+                    const isNowStopped = s.isStopped === true || (s.trangThai != null && s.trangThai != 1);
+                    if (wasActive && isNowStopped) {
+                        newlyStopped.push(item.tenSanPham || 'Sản phẩm');
+                    }
+                    item.isStopped = isNowStopped;
                     item.trangThai = s.trangThai;
                     item.soLuongTon = s.soLuongTon != null ? s.soLuongTon : 0;
                     if (s.giaBan != null) item.giaBan = s.giaBan;
-                    if (s.giaGoc != null) item.giaGoc = s.giaGoc;
-                    if (s.phanTramGiam != null) item.phanTramGiam = s.phanTramGiam;
+                    item.giaGoc = s.giaGoc || null;
+                    item.phanTramGiam = s.phanTramGiam || null;
                     if (s.tenSanPham) item.tenSanPham = s.tenSanPham;
                     if (s.ma) item.ma = s.ma;
                     if (s.hinhAnh) item.hinhAnh = s.hinhAnh;
                 } else {
+                    if (wasActive) {
+                        newlyStopped.push(item.tenSanPham || 'Sản phẩm');
+                    }
                     item.isStopped = true;
                     item.trangThai = 0;
+                }
+            }
+
+            if (newlyStopped.length > 0) {
+                const spText = newlyStopped.length === 1 ? `"${newlyStopped[0]}"` : `${newlyStopped.length} sản phẩm`;
+                showToast(`Sản phẩm ${spText} đã ngừng kinh doanh.`, 'warning');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Thông báo',
+                        html: `Sản phẩm <strong>${spText}</strong> đã ngừng kinh doanh.`,
+                        icon: 'warning',
+                        confirmButtonColor: '#00adef',
+                        confirmButtonText: 'Đã hiểu'
+                    });
                 }
             }
         }
@@ -104,6 +127,21 @@ async function syncCheckoutItemsPricesWithBackend() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Check if returning from cancelled online payment with prefill data
+    let prefillData = null;
+    const prefillStr = sessionStorage.getItem('vshoes_checkout_prefill');
+    if (prefillStr) {
+        try {
+            prefillData = JSON.parse(prefillStr);
+            if (prefillData.checkoutItems && prefillData.checkoutItems.length > 0 && (!state.checkoutItems || state.checkoutItems.length === 0)) {
+                state.checkoutItems = prefillData.checkoutItems;
+                localStorage.setItem('checkout_items', JSON.stringify(state.checkoutItems));
+            }
+        } catch (e) {
+            console.error('Lỗi đọc prefill data:', e);
+        }
+    }
+
     if (state.checkoutItems.length === 0) {
         showToast('Không có sản phẩm nào trong hàng chờ thanh toán!', 'error');
         setTimeout(() => {
@@ -119,9 +157,88 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupVoucherControls();
     setupCheckoutBtn();
     updateCartBadgeGlobal();
-    loadProvinces();
-    checkAuthAndPrefill();
-    loadActiveVouchers();
+    await loadProvinces();
+    await checkAuthAndPrefill();
+    await loadActiveVouchers();
+
+    // If returning with prefilled form data from immediate payment cancellation:
+    if (prefillData && prefillData.formData) {
+        const form = prefillData.formData;
+        if (form.name && $('inputName')) { $('inputName').value = form.name; highlightPrefilled($('inputName')); }
+        if (form.phone && $('inputPhone')) { $('inputPhone').value = form.phone; highlightPrefilled($('inputPhone')); }
+        if (form.email && $('inputEmail')) { $('inputEmail').value = form.email; highlightPrefilled($('inputEmail')); }
+        if (form.specificAddress && $('inputAddress')) { $('inputAddress').value = form.specificAddress; highlightPrefilled($('inputAddress')); }
+        if (form.note && $('inputNote')) { $('inputNote').value = form.note; }
+        
+        if (form.province) {
+            await fillAdministrativeAddress(form.province, form.district, form.ward);
+        }
+        
+        if (form.voucher) {
+            const inputVoucher = $('inputVoucher');
+            if (inputVoucher) {
+                inputVoucher.value = form.voucher;
+                const btnApply = $('btnApplyVoucher');
+                if (btnApply) btnApply.click();
+            }
+        }
+        
+        if (form.paymentMethod) {
+            const radio = document.querySelector(`.payment-radio[value="${form.paymentMethod}"]`);
+            if (radio) {
+                const parentItem = radio.closest('.payment-method-item');
+                if (parentItem) parentItem.click();
+            }
+        }
+        
+        sessionStorage.removeItem('vshoes_checkout_prefill');
+        sessionStorage.removeItem('pending_online_order');
+    }
+
+    const inputAddrEl = $('inputAddress');
+    if (inputAddrEl) {
+        inputAddrEl.addEventListener('input', () => {
+            updateShippingFeeState();
+        });
+    }
+
+    updateShippingFeeState();
+
+    // Live sync without F5 when products or vouchers change status
+    const syncCheckoutLive = async () => {
+        // QUAN TRỌNG: Nếu modal xác nhận đặt hàng đang mở, KHÔNG kiểm tra phiếu trong nền.
+        // Việc thay đổi state.appliedVoucher khi modal đang mở sẽ gây race condition:
+        // btnConfirmOrder có thể thấy appliedVoucher=null và bỏ qua check, đặt hàng luôn.
+        const confirmModalOpen = (() => {
+            const m = $('orderConfirmModal');
+            return m && m.style.display === 'flex';
+        })();
+
+        await syncCheckoutItemsPricesWithBackend(true);
+        if (state.appliedVoucher && !confirmModalOpen) {
+            // Chỉ validate live-sync khi modal xác nhận ĐÓNG
+            await validateAppliedVoucherRealtime();
+        }
+        await loadActiveVouchers();
+        renderCheckoutSummary();
+    };
+
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => syncCheckoutLive();
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') syncCheckoutLive();
+    });
+    window.addEventListener('focus', () => syncCheckoutLive());
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') syncCheckoutLive();
+    });
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            syncCheckoutLive();
+        }
+    }, 4000);
 });
 
 function renderCheckoutSummary() {
@@ -260,7 +377,6 @@ function updatePaymentPanels() {
     // Online QR panels moved to separate payment-online page upon order submission
 }
 
-function updateMomoPanel() { updatePaymentPanels(); }
 
 let allVouchers = [];
 
@@ -272,7 +388,27 @@ async function loadActiveVouchers() {
         }
         if (res.ok) {
             allVouchers = await res.json();
-            autoApplyBestVoucher();
+
+            // Nếu voucher đang áp dụng mà voucher đó bị tắt khỏi danh sách khả dụng
+            if (state.appliedVoucher) {
+                const stillAvailable = allVouchers.some(v => v.id === state.appliedVoucher.id || (v.maVoucher && v.maVoucher.toUpperCase() === (state.appliedVoucher.maVoucher || '').toUpperCase()));
+                if (!stillAvailable) {
+                    // Live-sync nền: chỉ gỡ phiếu, cập nhật UI — KHÔNG hiện Swal popup
+                    // Popup sẽ chỉ hiện khi người dùng chủ động nhấn "Đặt Hàng" hoặc "Xác nhận đặt hàng"
+                    state.appliedVoucher = null;
+                    state.discountAmount = 0;
+                    calculatePricing();
+                    const inputVoucher = $('inputVoucher');
+                    if (inputVoucher) inputVoucher.value = '';
+                    const msgEl = $('voucherMessage');
+                    if (msgEl) {
+                        msgEl.textContent = '';
+                        msgEl.style.color = '#ef4444';
+                    }
+                }
+            } else {
+                autoApplyBestVoucher();
+            }
         }
     } catch (err) {
         console.error('Lỗi tải danh sách voucher, thử tải local:', err);
@@ -280,7 +416,24 @@ async function loadActiveVouchers() {
             const res = await fetch('/api/phieu-giam-gia-local/list');
             if (res.ok) {
                 allVouchers = await res.json();
-                autoApplyBestVoucher();
+                if (state.appliedVoucher) {
+                    const stillAvailable = allVouchers.some(v => v.id === state.appliedVoucher.id || (v.maVoucher && v.maVoucher.toUpperCase() === (state.appliedVoucher.maVoucher || '').toUpperCase()));
+                    if (!stillAvailable) {
+                        // Live-sync nền (local fallback): chỉ gỡ phiếu — KHÔNG hiện Swal popup
+                        state.appliedVoucher = null;
+                        state.discountAmount = 0;
+                        calculatePricing();
+                        const inputVoucher = $('inputVoucher');
+                        if (inputVoucher) inputVoucher.value = '';
+                        const msgEl = $('voucherMessage');
+                        if (msgEl) {
+                            msgEl.textContent = '';
+                            msgEl.style.color = '#ef4444';
+                        }
+                    }
+                } else {
+                    autoApplyBestVoucher();
+                }
             }
         } catch (localErr) {
             console.error('Lỗi tải danh sách voucher local:', localErr);
@@ -323,9 +476,9 @@ function autoApplyBestVoucher() {
 
     if (bestVoucher) {
         state.appliedVoucher = bestVoucher;
-        $('inputVoucher').value = bestVoucher.maVoucher;
+        $('inputVoucher').value = bestVoucher.tenVoucher || bestVoucher.maVoucher;
         const msg = $('voucherMessage');
-        msg.textContent = `Tự động áp dụng mã tốt nhất: ${bestVoucher.tenVoucher}`;
+        msg.textContent = `Tự động áp dụng mã tốt nhất: ${bestVoucher.tenVoucher || bestVoucher.maVoucher}`;
         msg.style.color = '#10b981';
     } else {
         state.appliedVoucher = null;
@@ -403,9 +556,22 @@ function renderVouchers(subtotal) {
     }).join('');
 }
 
-window.applySelectedVoucher = function(code) {
-    $('inputVoucher').value = code;
-    $('btnApplyVoucher').click();
+window.applySelectedVoucher = function(codeOrName) {
+    const found = allVouchers.find(v => v.maVoucher === codeOrName || v.tenVoucher === codeOrName);
+    if (found) {
+        state.appliedVoucher = found;
+        $('inputVoucher').value = found.tenVoucher || found.maVoucher;
+        const msg = $('voucherMessage');
+        msg.textContent = `Đã áp dụng: ${found.tenVoucher || found.maVoucher}`;
+        msg.style.color = '#10b981';
+        calculatePricing();
+        let subtotal = 0;
+        state.checkoutItems.forEach(item => { subtotal += item.qty * (parseFloat(item.giaBan) || 0); });
+        renderVouchers(subtotal);
+    } else {
+        $('inputVoucher').value = codeOrName;
+        $('btnApplyVoucher').click();
+    }
     const container = $('voucherListContainer');
     if (container) container.style.display = 'none';
 };
@@ -434,10 +600,10 @@ function setupVoucherControls() {
     if (!btn) return;
     
     btn.addEventListener('click', async () => {
-        const ma = $('inputVoucher').value.trim().toUpperCase();
+        const inputVal = $('inputVoucher').value.trim();
         const msg = $('voucherMessage');
-        if (!ma) {
-            msg.textContent = 'Vui lòng nhập mã voucher!';
+        if (!inputVal) {
+            msg.textContent = 'Vui lòng nhập tên hoặc mã voucher!';
             msg.style.color = '#ef4444';
             return;
         }
@@ -450,36 +616,87 @@ function setupVoucherControls() {
         btn.disabled = true;
         btn.textContent = 'Đang áp dụng...';
         msg.textContent = '';
+
+        // Tìm kiếm theo mã hoặc tên voucher
+        const matchedLocal = allVouchers.find(v => 
+            (v.maVoucher && v.maVoucher.toUpperCase() === inputVal.toUpperCase()) ||
+            (v.tenVoucher && v.tenVoucher.toLowerCase() === inputVal.toLowerCase())
+        );
+        const queryCode = matchedLocal ? matchedLocal.maVoucher : inputVal;
         
         try {
-            const res = await fetch(`/api/phieu-giam-gia/check?ma=${encodeURIComponent(ma)}&tongTien=${subtotal}`);
+            const res = await fetch(`/api/phieu-giam-gia/check?ma=${encodeURIComponent(queryCode)}&tongTien=${subtotal}`);
             if (!res.ok) {
-                let errMsg = 'Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!';
+                let errMsg = 'Phiếu giảm giá không thể áp dụng';
                 try {
                     const errData = await res.json();
-                    if (errData && errData.message) errMsg = errData.message;
+                    if (errData && errData.message) {
+                        errMsg = errData.message;
+                    }
                 } catch (_) {}
                 throw new Error(errMsg);
             }
             const data = await res.json();
             state.appliedVoucher = data;
+            $('inputVoucher').value = data.tenVoucher || data.maVoucher;
             calculatePricing();
-            msg.textContent = `Đã áp dụng: ${data.tenVoucher}`;
+            msg.textContent = `Đã áp dụng: ${data.tenVoucher || data.maVoucher}`;
             msg.style.color = '#10b981';
-            showToast(`Áp dụng thành công voucher: ${data.tenVoucher}`, 'success');
+            showToast(`Áp dụng thành công voucher: ${data.tenVoucher || data.maVoucher}`, 'success');
             renderVouchers(subtotal);
         } catch (err) {
             state.appliedVoucher = null;
             calculatePricing();
-            msg.textContent = err.message || 'Mã voucher không hợp lệ!';
+            const displayMsg = (err.message && err.message.includes('Phiếu giảm giá')) ? err.message : 'Phiếu giảm giá không thể áp dụng';
+            msg.textContent = displayMsg;
             msg.style.color = '#ef4444';
-            showToast(err.message || 'Lỗi áp dụng voucher!', 'error');
+            showToast(displayMsg, 'error');
             renderVouchers(subtotal);
         } finally {
             btn.disabled = false;
             btn.textContent = 'Áp dụng';
         }
     });
+}
+
+/**
+ * Hiện popup thông báo phiếu giảm giá không còn hiệu lực.
+ * Dùng SweetAlert2 nếu đã load, fallback về native dialog nếu chưa.
+ * Luôn resolve sau khi người dùng bấm OK.
+ */
+async function showVoucherExpiredAlert() {
+    const MSG = 'Phiếu giảm giá đã ngừng áp dụng hoặc không còn hiệu lực!';
+    if (typeof Swal !== 'undefined') {
+        await Swal.fire({
+            title: 'Thông báo',
+            text: MSG,
+            icon: 'warning',
+            confirmButtonColor: '#00adef',
+            confirmButtonText: 'OK',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        });
+    } else {
+        // Fallback: custom modal tự xây (không dùng alert() tránh bị trình duyệt block)
+        await new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;';
+            const box = document.createElement('div');
+            box.style.cssText = 'background:#fff;border-radius:16px;padding:32px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);font-family:Inter,sans-serif;';
+            box.innerHTML = `
+                <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+                <div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:10px;">Thông báo</div>
+                <div style="font-size:14px;color:#475569;margin-bottom:24px;line-height:1.6;">${MSG}</div>
+                <button id="voucherAlertOk" style="background:#00adef;color:#fff;border:none;border-radius:10px;padding:11px 36px;font-size:14px;font-weight:700;cursor:pointer;width:100%;">OK</button>
+            `;
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            document.getElementById('voucherAlertOk').onclick = () => {
+                document.body.removeChild(overlay);
+                resolve();
+            };
+        });
+    }
 }
 
 async function validateAppliedVoucherRealtime() {
@@ -494,28 +711,21 @@ async function validateAppliedVoucherRealtime() {
     try {
         const res = await fetch(`/api/phieu-giam-gia/check?ma=${encodeURIComponent(ma)}&tongTien=${subtotal}`);
         if (!res.ok) {
-            let errorMsg = 'Phiếu giảm giá này đã hết hạn, vui lòng chọn phiếu giảm giá khác!';
-            try {
-                const errData = await res.json();
-                if (errData && errData.message) errorMsg = errData.message;
-            } catch (_) {}
-
+            // Phiếu không còn hiệu lực: gỡ phiếu, cập nhật UI
             state.appliedVoucher = null;
+            state.discountAmount = 0;
             calculatePricing();
-
             const inputVoucher = $('inputVoucher');
             if (inputVoucher) inputVoucher.value = '';
             const msgEl = $('voucherMessage');
-            if (msgEl) {
-                msgEl.textContent = `${errorMsg}`;
-                msgEl.style.color = '#ef4444';
-            }
+            if (msgEl) { msgEl.textContent = ''; }
+            // Làm mới danh sách voucher nền (không await để không chặn)
+            if (typeof loadActiveVouchers === 'function') loadActiveVouchers();
+            renderVouchers(subtotal);
 
-            if (typeof loadActiveVouchers === 'function') {
-                loadActiveVouchers();
-            }
-
-            showToast(`${errorMsg}`, 'error');
+            // Hiện đúng 1 popup thông báo với nội dung chuẩn
+            await showVoucherExpiredAlert();
+            // Trả về false → người dùng ở lại trang thanh toán, xem lại tổng tiền đã cập nhật
             return false;
         }
 
@@ -529,6 +739,11 @@ async function validateAppliedVoucherRealtime() {
     }
 }
 
+// Mã phiếu giảm giá được ghi nhận tại thời điểm modal xác nhận MỞ.
+// Dùng biến này thay vì state.appliedVoucher vì live-sync có thể nullify appliedVoucher
+// trong lúc modal đang hiện → btnConfirmOrder phải biết mã nào cần kiểm tra.
+let _pendingVoucherCode = null;
+
 function setupCheckoutBtn() {
     $('btnOrderComplete').addEventListener('click', async () => {
         const stoppedItem = state.checkoutItems.find(i => i.isStopped);
@@ -541,7 +756,8 @@ function setupCheckoutBtn() {
         if (state.appliedVoucher) {
             const isVoucherValid = await validateAppliedVoucherRealtime();
             if (!isVoucherValid) {
-                return;
+                _pendingVoucherCode = null;
+                return; // Popup đã hiện, người dùng ở lại trang thanh toán
             }
         }
 
@@ -565,14 +781,21 @@ function setupCheckoutBtn() {
             return;
         }
         
-        // Show confirm modal
+        // Hiện modal xác nhận đặt hàng
         const modal = $('orderConfirmModal');
         if (modal) {
             let subtotal = 0;
             state.checkoutItems.forEach(item => { subtotal += item.qty * (parseFloat(item.giaBan) || 0); });
+            // Đồng bộ lại pricing trước khi hiện modal
+            calculatePricing();
             const discount = state.discountAmount;
             const total = Math.max(0, subtotal + state.shippingFee - discount);
             const fullAddress = `${specificAddress}, ${ward}, ${district}, ${province}`;
+
+            // Ghi nhận mã phiếu TẠI THỜI ĐIỂM modal mở
+            // Quan trọng: live-sync có thể null hóa state.appliedVoucher sau khi modal mở,
+            // nên cần snapshot mã này để btnConfirmOrder kiểm tra đúng phiếu.
+            _pendingVoucherCode = state.appliedVoucher ? state.appliedVoucher.maVoucher : null;
             
             const payMap = { 
                 COD: '<i data-lucide="package" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Thanh toán khi nhận hàng', 
@@ -601,27 +824,82 @@ function setupCheckoutBtn() {
                         <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">Thanh toán</span><strong>${payMap[state.selectedPaymentMethod] || state.selectedPaymentMethod}</strong></div>
                     </div>
                 `;
-                if (window.lucide) {
-                    lucide.createIcons();
-                }
+                if (window.lucide) { lucide.createIcons(); }
             }
             modal.style.display = 'flex';
         } else {
+            _pendingVoucherCode = null;
             await submitOrder();
         }
     });
-    
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // NÚT "XÁC NHẬN ĐẶT HÀNG" — kiểm tra phiếu lần cuối trước khi submit
+    // Dùng _pendingVoucherCode (snapshot lúc modal mở) thay vì state.appliedVoucher
+    // để tránh race condition với live-sync có thể đã null hóa appliedVoucher.
+    // ─────────────────────────────────────────────────────────────────────────
     const btnConfirm = $('btnConfirmOrder');
     if (btnConfirm) {
         btnConfirm.addEventListener('click', async () => {
-            $('orderConfirmModal').style.display = 'none';
+            // Bước 1: Đóng modal xác nhận NGAY LẬP TỨC
+            const confirmModal = $('orderConfirmModal');
+            if (confirmModal) confirmModal.style.display = 'none';
+
+            // Bước 2: Dùng _pendingVoucherCode (ghi nhận lúc modal mở)
+            // Không dùng state.appliedVoucher vì live-sync có thể đã null nó rồi
+            const codeToCheck = _pendingVoucherCode;
+            _pendingVoucherCode = null; // reset ngay
+
+            if (codeToCheck) {
+                // Luôn gọi API kiểm tra phiếu — không tin vào state
+                let subtotal = 0;
+                state.checkoutItems.forEach(item => {
+                    subtotal += item.qty * (parseFloat(item.giaBan) || 0);
+                });
+
+                try {
+                    const checkRes = await fetch(
+                        `/api/phieu-giam-gia/check?ma=${encodeURIComponent(codeToCheck)}&tongTien=${subtotal}`
+                    );
+                    if (!checkRes.ok) {
+                        // ❌ Phiếu KHÔNG hợp lệ: gỡ phiếu + cập nhật UI
+                        state.appliedVoucher = null;
+                        state.discountAmount = 0;
+                        calculatePricing();
+                        const inputEl = $('inputVoucher');
+                        if (inputEl) inputEl.value = '';
+                        const msgEl = $('voucherMessage');
+                        if (msgEl) { msgEl.textContent = ''; msgEl.style.color = '#ef4444'; }
+                        if (typeof loadActiveVouchers === 'function') loadActiveVouchers();
+
+                        // ⛔ Hiện popup — CHẶN cho đến khi user bấm OK
+                        await showVoucherExpiredAlert();
+
+                        // Sau OK: trở về trang thanh toán, TUYỆT ĐỐI KHÔNG gọi submitOrder()
+                        return;
+                    }
+                    // ✅ Phiếu hợp lệ: cập nhật state mới nhất
+                    const freshVoucher = await checkRes.json();
+                    state.appliedVoucher = freshVoucher;
+                    calculatePricing();
+                } catch (netErr) {
+                    console.warn('Lỗi mạng khi kiểm tra phiếu, tiếp tục đặt hàng:', netErr);
+                    // Lỗi mạng: backend sẽ validate lần cuối khi nhận đơn
+                }
+            } else {
+                // Không có phiếu: đảm bảo pricing = 0 discount
+                calculatePricing();
+            }
+
+            // Bước 3: Đặt hàng (chỉ đến đây nếu không có return ở trên)
             await submitOrder();
         });
     }
-    
+
     const btnCancelOrder = $('btnCancelOrder');
     if (btnCancelOrder) {
         btnCancelOrder.addEventListener('click', () => {
+            _pendingVoucherCode = null; // xóa snapshot khi user hủy
             $('orderConfirmModal').style.display = 'none';
         });
     }
@@ -629,7 +907,10 @@ function setupCheckoutBtn() {
     const modal = $('orderConfirmModal');
     if (modal) {
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.style.display = 'none';
+            if (e.target === modal) {
+                _pendingVoucherCode = null; // xóa snapshot khi click ngoài modal
+                modal.style.display = 'none';
+            }
         });
     }
 }
@@ -654,15 +935,10 @@ async function submitOrder() {
         return;
     }
 
-    // Kiểm tra phiếu giảm giá lần cuối trước khi gửi lên máy chủ
-    if (state.appliedVoucher) {
-        const isVoucherValid = await validateAppliedVoucherRealtime();
-        if (!isVoucherValid) {
-            $('btnOrderComplete').disabled = false;
-            $('btnOrderComplete').textContent = 'Đặt Hàng';
-            return;
-        }
-    }
+    // Lớp bảo vệ cuối: luôn tính lại discount trực tiếp từ state.appliedVoucher hiện tại
+    // Tránh trường hợp state.discountAmount còn giá trị cũ khi appliedVoucher đã bị gỡ
+    // (ví dụ: live-sync đã null hóa appliedVoucher nhưng discountAmount chưa được cập nhật)
+    calculatePricing(); // đồng bộ lại discountAmount từ appliedVoucher hiện tại
 
     const name = $('inputName').value.trim();
     const phone = $('inputPhone').value.trim();
@@ -675,6 +951,7 @@ async function submitOrder() {
     
     let subtotal = 0;
     state.checkoutItems.forEach(item => { subtotal += item.qty * (parseFloat(item.giaBan) || 0); });
+    // Lấy discount sau khi đã calculatePricing() để đảm bảo khớp với appliedVoucher
     const discount = state.discountAmount;
     const total = Math.max(0, subtotal + state.shippingFee - discount);
     
@@ -723,6 +1000,20 @@ async function submitOrder() {
         }))
     } : null;
 
+    // Capture snapshot of current form data for easy restoration if cancelled
+    const currentFormData = {
+        name: $('inputName') ? $('inputName').value.trim() : '',
+        phone: $('inputPhone') ? $('inputPhone').value.trim() : '',
+        email: $('inputEmail') ? $('inputEmail').value.trim() : '',
+        specificAddress: $('inputAddress') ? $('inputAddress').value.trim() : '',
+        province: state.selectedProvinceName,
+        district: state.selectedDistrictName,
+        ward: state.selectedWardName,
+        note: $('inputNote') ? $('inputNote').value.trim() : '',
+        voucher: state.appliedVoucher ? (state.appliedVoucher.maVoucher || '') : '',
+        paymentMethod: method
+    };
+
     // ===== THANH TOÁN VNPAY: Tạo đơn hàng TRƯỚC rồi redirect sang VNPay thực =====
     if (method === 'VNPAY') {
         $('btnOrderComplete').disabled = true;
@@ -759,13 +1050,29 @@ async function submitOrder() {
             }
             const vnpData = await vnpRes.json();
 
-            // 3. Xóa giỏ hàng cục bộ
+            // 3. Lưu dữ liệu backup & prefill nếu huỷ
+            sessionStorage.setItem('pending_online_order', JSON.stringify({
+                id: order.id,
+                maHoaDon: order.maHoaDon,
+                total: order.tongTien,
+                method: method,
+                payload: payload,
+                emailPayload: emailPayload,
+                checkoutItems: state.checkoutItems,
+                formData: currentFormData
+            }));
+            sessionStorage.setItem('vshoes_checkout_prefill', JSON.stringify({
+                formData: currentFormData,
+                checkoutItems: state.checkoutItems
+            }));
+
+            // 4. Xóa giỏ hàng cục bộ
             const purchasedIds3 = state.checkoutItems.map(i => i.id);
             const cart3 = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
             localStorage.setItem('vshoes_cart', JSON.stringify(cart3.filter(i => !purchasedIds3.includes(i.id))));
             localStorage.removeItem('checkout_items');
 
-            // 4. Redirect sang VNPay
+            // 5. Redirect sang VNPay
             showToast('Đang chuyển sang cổng thanh toán VNPay...', 'info');
             setTimeout(() => { window.location.href = vnpData.paymentUrl; }, 600);
             return;
@@ -777,21 +1084,55 @@ async function submitOrder() {
         }
     }
 
-    // ===== THANH TOÁN ONLINE KHÁC (MoMo, ZaloPay, VietQR): Lưu tạm, chuyển sang trang QR =====
+    // ===== THANH TOÁN ONLINE KHÁC (MoMo, ZaloPay, VietQR): Tạo đơn hàng trước (Chờ thanh toán), chuyển sang trang QR =====
     if (method === 'MOMO' || method === 'ZALOPAY' || method === 'VIETQR') {
-        const tempMa = 'HD' + Date.now();
-        sessionStorage.setItem('pending_online_order', JSON.stringify({
-            maHoaDon: tempMa,
-            total: total,
-            method: method,
-            payload: payload,
-            emailPayload: emailPayload
-        }));
-        showToast('Đang chuyển sang cổng thanh toán online...', 'info');
-        setTimeout(() => {
-            window.location.href = `/client/checkout/payment-online?ma=${encodeURIComponent(tempMa)}&total=${encodeURIComponent(total)}&method=${encodeURIComponent(method)}`;
-        }, 500);
-        return;
+        $('btnOrderComplete').disabled = true;
+        $('btnOrderComplete').textContent = 'Đang tạo đơn hàng...';
+        try {
+            const orderRes = await fetch('/api/hoa-don/ban-hang', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!orderRes.ok) {
+                const errBody = await orderRes.json().catch(() => ({}));
+                throw new Error(errBody.error || errBody.message || 'Lỗi tạo đơn hàng');
+            }
+            const order = await orderRes.json();
+
+            // Lưu snapshot trước khi xoá checkout_items
+            sessionStorage.setItem('pending_online_order', JSON.stringify({
+                id: order.id,
+                maHoaDon: order.maHoaDon,
+                total: order.tongTien,
+                method: method,
+                payload: payload,
+                emailPayload: emailPayload,
+                checkoutItems: state.checkoutItems,
+                formData: currentFormData
+            }));
+            sessionStorage.setItem('vshoes_checkout_prefill', JSON.stringify({
+                formData: currentFormData,
+                checkoutItems: state.checkoutItems
+            }));
+
+            // Xóa sản phẩm khỏi giỏ hàng
+            const purchasedIds = state.checkoutItems.map(i => i.id);
+            const cart = JSON.parse(localStorage.getItem('vshoes_cart') || '[]');
+            localStorage.setItem('vshoes_cart', JSON.stringify(cart.filter(i => !purchasedIds.includes(i.id))));
+            localStorage.removeItem('checkout_items');
+
+            showToast('Đang chuyển sang cổng thanh toán online...', 'info');
+            setTimeout(() => {
+                window.location.href = `/client/checkout/payment-online?id=${order.id}&ma=${encodeURIComponent(order.maHoaDon)}&total=${encodeURIComponent(order.tongTien)}&method=${encodeURIComponent(method)}`;
+            }, 500);
+            return;
+        } catch (err) {
+            showToast('' + err.message, 'error');
+            $('btnOrderComplete').disabled = false;
+            $('btnOrderComplete').textContent = 'Hoàn thành đặt hàng';
+            return;
+        }
     }
 
     // Đối với COD: Tiến hành lưu đơn hàng trực tiếp vào CSDL
@@ -852,7 +1193,16 @@ async function submitOrder() {
         
     } catch (err) {
         console.error(err);
-        showToast(err.message, 'error');
+        // Nếu lỗi liên quan voucher: UI đã được xử lý bởi handler phía trên, không hiện popup lần 2
+        const isVoucherErr = err.message && (
+            err.message.includes('Phiếu giảm giá') ||
+            err.message.includes('phiếu giảm giá') ||
+            err.message.includes('voucher') ||
+            err.message.includes('Voucher')
+        );
+        if (!isVoucherErr) {
+            showToast(err.message, 'error');
+        }
         $('btnOrderComplete').disabled = false;
         $('btnOrderComplete').textContent = 'Hoàn thành đặt hàng';
     }
@@ -1052,7 +1402,7 @@ window.handleCheckoutLogout = async function(e) {
     state.districtList = [];
     state.wardList     = [];
     state.shippingFee  = 0;
-    calculatePricing();
+    updateShippingFeeState();
     showToast('Đã đăng xuất khỏi tài khoản', 'success');
 };
 
@@ -1285,68 +1635,43 @@ async function selectOption(type, code, name) {
         updateShippingByArea(state.selectedProvinceName, name);
         
     } else if (type === 'ward') {
-        // Khi chọn xã/phường, phí ship đã tính từ bước quận/huyện → không thay đổi
+        updateShippingByArea(state.selectedProvinceName, state.selectedDistrictName);
     }
 }
 
+function hasEnteredAddress() {
+    const hasProvince = Boolean(state.selectedProvinceName && state.selectedProvinceName.trim());
+    const hasDistrict = Boolean(state.selectedDistrictName && state.selectedDistrictName.trim());
+    const hasWard = Boolean(state.selectedWardName && state.selectedWardName.trim());
+    const hasHiddenProvince = Boolean($('selectProvince') && $('selectProvince').value);
+    const hasSpecific = Boolean($('inputAddress') && $('inputAddress').value.trim());
+    return hasProvince || hasDistrict || hasWard || hasHiddenProvince || hasSpecific;
+}
+
 /**
- * Cập nhật phí ship dựa theo khu vực quận/huyện.
- * - Hà Nội nội thành (12 quận) → Miễn phí vận chuyển
- * - Hà Nội ngoại thành (huyện) hoặc tỉnh/thành khác → 30.000 đ
- *
- * @param {string} provinceName - Tên tỉnh/thành phố đã chọn
- * @param {string} districtName - Tên quận/huyện đã chọn (rỗng nếu chưa chọn)
+ * Cập nhật phí ship: 0đ nếu chưa nhập/chọn địa chỉ, 30.000 đ khi đã có địa chỉ
  */
-function updateShippingByArea(provinceName, districtName) {
+function updateShippingFeeState() {
     const distInfoEl = $('shippingDistanceInfo');
-
-    if (!provinceName) {
-        // Chưa chọn tỉnh/thành phố
-        state.shippingFee = 0;
-        if (distInfoEl) distInfoEl.textContent = '';
-        calculatePricing();
-        return;
-    }
-
-    const provLower = provinceName.toLowerCase();
-    const isHanoi = provLower.includes('hà nội') || provLower.includes('ha noi');
-
-    if (!isHanoi) {
-        // Tỉnh/thành khác ngoài Hà Nội → phí 30k
-        state.shippingFee = SHIP_FEE;
+    if (hasEnteredAddress()) {
+        state.shippingFee = SHIP_FEE; // 30.000 đ
         if (distInfoEl) {
-            distInfoEl.innerHTML = `<i data-lucide="truck" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Giao ngoài Hà Nội &bull; <span style="color:#f59e0b; font-weight:600;">Phí vận chuyển: 30.000 đ</span>`;
-        }
-        calculatePricing();
-        return;
-    }
-
-    // Là Hà Nội → kiểm tra nội thành / ngoại thành
-    if (!districtName) {
-        // Chưa chọn quận/huyện
-        state.shippingFee = 0;
-        if (distInfoEl) {
-            distInfoEl.innerHTML = `<i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Hà Nội &bull; <span style="color:#64748b;">Vui lòng chọn Quận/Huyện để tính phí ship</span>`;
-        }
-        calculatePricing();
-        return;
-    }
-
-    if (isInnerHanoi(districtName)) {
-        // Nội thành Hà Nội → Free ship
-        state.shippingFee = 0;
-        if (distInfoEl) {
-            distInfoEl.innerHTML = `<i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Nội thành Hà Nội &bull; <span style="color:#10b981; font-weight:700;">Miễn phí vận chuyển!</span>`;
+            distInfoEl.innerHTML = `<i data-lucide="truck" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Phí vận chuyển toàn quốc &bull; <span style="color:#f59e0b; font-weight:600;">30.000 đ</span>`;
         }
     } else {
-        // Ngoại thành Hà Nội (huyện) → phí 30k
-        state.shippingFee = SHIP_FEE;
+        state.shippingFee = 0;
         if (distInfoEl) {
-            distInfoEl.innerHTML = `<i data-lucide="map-pin" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>Ngoại thành Hà Nội &bull; <span style="color:#f59e0b; font-weight:600;">Phí vận chuyển: 30.000 đ</span>`;
+            distInfoEl.innerHTML = `<span style="color:#64748b;">Vui lòng chọn địa chỉ nhận hàng</span>`;
         }
     }
-
+    if (window.lucide) {
+        lucide.createIcons();
+    }
     calculatePricing();
+}
+
+function updateShippingByArea(provinceName, districtName) {
+    updateShippingFeeState();
 }
 
 

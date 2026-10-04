@@ -484,90 +484,231 @@ async function renderTrackingResult(inv, items, history = []) {
     }
 }
 
-/** Cập nhật 6 bước timeline và thanh tiến trình kết nối */
-function renderTimeline6Steps(inv, history) {
-    const isCancelled = (inv.trangThai === 7 || inv.trangThai === 8);
+/** Cập nhật timeline các bước và thanh tiến trình kết nối giống 100% như trong chi tiết hóa đơn (invoice-detail.js) */
+function renderTimeline6Steps(inv, history = []) {
+    const status = Number(inv.trangThai);
+    const isCancelled = (status === 7 || status === 8);
+    const ngayTao = inv.ngayTao ? new Date(inv.ngayTao) : new Date();
+
+    // Kiểm tra nếu là đơn Bán hàng tại quầy (mua trực tiếp, không giao hàng) - giống hệt invoice-detail.js
+    const isOnline = (inv.loaiHoaDon === 'Trực tuyến' || inv.loaiHoaDon === 'Online' || inv.loaiHoaDon === true);
+    const isGiaoHang = ((inv.diaChiGiao && inv.diaChiGiao.trim() !== '' && inv.diaChiGiao !== '-') || (inv.phiShip && Number(inv.phiShip) > 0));
+    const isTaiQuayDirect = !isOnline && !isGiaoHang;
+
     const connector = $('timelineConnectorActive');
+    const baseLine = document.querySelector('.timeline-6steps-line');
+    const timelineWrap = $('timelineWrapper');
 
-    const steps = [
-        { id: 'stepCol0', circle: 'circleStep0', name: 'nameStep0', date: 'dateStep0', label: 'Chờ xác nhận', statusVal: 0 },
-        { id: 'stepCol1', circle: 'circleStep1', name: 'nameStep1', date: 'dateStep1', label: 'Đã xác nhận',  statusVal: 1 },
-        { id: 'stepCol2', circle: 'circleStep2', name: 'nameStep2', date: 'dateStep2', label: 'Chờ lấy hàng', statusVal: 2 },
-        { id: 'stepCol3', circle: 'circleStep3', name: 'nameStep3', date: 'dateStep3', label: 'Đang giao hàng', statusVal: 3 },
-        { id: 'stepCol4', circle: 'circleStep4', name: 'nameStep4', date: 'dateStep4', label: 'Đã giao hàng',  statusVal: 4 },
-        { id: 'stepCol5', circle: 'circleStep5', name: 'nameStep5', date: 'dateStep5', label: 'Hoàn thành',   statusVal: 6 }
-    ];
+    const defaultLabels = {
+        0: { label: 'Chờ xác nhận', icon: 'clipboard-list' },
+        1: { label: 'Đã xác nhận',  icon: 'check-circle' },
+        2: { label: 'Đang xử lý',   icon: 'package' },
+        3: { label: 'Đang giao',    icon: 'truck' },
+        4: { label: 'Đã giao',      icon: 'inbox' },
+        5: { label: 'Hoàn thành',   icon: 'check-square' }
+    };
 
-    steps.forEach((st, idx) => {
-        const col = $(st.id);
-        const nameEl = $(st.name);
-        const dateEl = $(st.date);
-        if (col) col.className = 'timeline-step-col';
-        if (nameEl) nameEl.textContent = st.label;
-        if (dateEl) dateEl.textContent = (idx === 0) ? formatDate(inv.ngayTao) : '--:--:-- --/--/----';
-    });
+    // Chuẩn bị map ngày giờ mặc định: chỉ có step 0 có ngày tạo, các step khác là '-'
+    const dates = { 0: '-', 1: '-', 2: '-', 3: '-', 4: '-', 5: '-' };
+    if (inv.ngayTao) {
+        dates[0] = formatDate(inv.ngayTao);
+    }
 
+    // Tải ngày giờ thực tế từ lịch sử hóa đơn giống hệt invoice-detail.js
+    let latestUpdateTime = inv.ngayTao;
     if (Array.isArray(history) && history.length > 0) {
-        history.forEach(h => {
-            const hText = (h.hanhDong || '') + ' ' + (h.ghiChu || '');
-            const hDate = formatDate(h.ngayTao);
-            if (!hDate) return;
+        history.forEach(item => {
+            if (!item || !item.ngayTao) return;
+            const dStr = formatDate(item.ngayTao);
+            latestUpdateTime = item.ngayTao;
+            const note = ((item.ghiChu || '') + ' ' + (item.hanhDong || '')).toLowerCase();
 
-            if (hText.includes('Đã xác nhận') && $('dateStep1')) $('dateStep1').textContent = hDate;
-            if ((hText.includes('Chờ lấy hàng') || hText.includes('Đang xử lý') || hText.includes('Đã thanh toán')) && $('dateStep2')) $('dateStep2').textContent = hDate;
-            if (hText.includes('Đang giao') && $('dateStep3')) $('dateStep3').textContent = hDate;
-            if (hText.includes('Đã giao') && $('dateStep4')) $('dateStep4').textContent = hDate;
-            if (hText.includes('Hoàn thành') && $('dateStep5')) $('dateStep5').textContent = hDate;
+            if (note.includes('tạo đơn hàng') || note.includes('tự động tạo') || note.includes('chờ xác nhận')) {
+                dates[0] = dStr;
+            } else if (note.includes('đã xác nhận')) {
+                dates[1] = dStr;
+            } else if (note.includes('đang xử lý') || note.includes('chờ lấy hàng') || note.includes('chờ đóng gói') || note.includes('đã thanh toán')) {
+                dates[2] = dStr;
+            } else if (note.includes('đang giao')) {
+                dates[3] = dStr;
+            } else if (note.includes('đã giao')) {
+                dates[4] = dStr;
+            } else if (note.includes('hoàn thành')) {
+                dates[5] = dStr;
+            }
         });
     }
 
+    // Cập nhật text Cập nhật lần cuối ở góc phải card
+    const lastUpdatedEl = $('valTimelineLastUpdated');
+    if (lastUpdatedEl) {
+        lastUpdatedEl.textContent = formatDate(latestUpdateTime || inv.ngayThanhToan || inv.ngayTao);
+    }
+
+    // ── TRƯỜNG HỢP 1: ĐƠN HỦY (status 7 hoặc 8) ──
     if (isCancelled) {
-        if (inv.trangThai === 8) {
-            const step0 = $('stepCol0');
-            if (step0) step0.className = 'timeline-step-col active';
+        // Ẩn các bước vận chuyển 2, 3, 4, 5
+        [2, 3, 4, 5].forEach(i => {
+            const el = $('stepCol' + i);
+            if (el) el.style.display = 'none';
+        });
+
+        const step0 = $('stepCol0');
+        const step1 = $('stepCol1');
+        if (step0) {
+            step0.style.display = '';
+            step0.className = 'timeline-step-col ' + (status === 8 ? 'active' : 'completed');
             const name0 = $('nameStep0');
+            const date0 = $('dateStep0');
+            const circle0 = $('circleStep0');
             if (name0) name0.textContent = 'Yêu cầu hủy';
-            if (connector) {
-                connector.style.width = '0%';
-                connector.style.background = '#f97316';
-            }
-        } else {
-            const step0 = $('stepCol0');
-            if (step0) step0.className = 'timeline-step-col completed';
-            const step1 = $('stepCol1');
-            if (step1) step1.className = 'timeline-step-col active';
-            const name1 = $('nameStep1');
-            if (name1) name1.textContent = 'Đã hủy đơn';
-            if (connector) {
-                connector.style.width = '20%';
-                connector.style.background = '#ef4444';
-            }
+            if (date0) date0.textContent = dates[0] || formatDate(inv.ngayTao);
+            if (circle0) circle0.innerHTML = `<i data-lucide="${status === 8 ? 'clock' : 'check'}"></i>`;
         }
+        if (step1) {
+            step1.style.display = '';
+            step1.className = 'timeline-step-col ' + (status === 8 ? '' : 'active completed');
+            const name1 = $('nameStep1');
+            const date1 = $('dateStep1');
+            const circle1 = $('circleStep1');
+            if (name1) name1.textContent = 'Đơn hàng đã được hủy';
+            if (date1) date1.textContent = (status === 7) ? formatDate(latestUpdateTime || inv.ngayTao) : '-';
+            if (circle1) circle1.innerHTML = `<i data-lucide="x-circle"></i>`;
+        }
+
+        if (timelineWrap) timelineWrap.style.justifyContent = 'space-around';
+        if (baseLine) {
+            baseLine.style.left = '25%';
+            baseLine.style.right = '25%';
+        }
+        if (connector) {
+            connector.style.left = '25%';
+            connector.style.width = (status === 7) ? '50%' : '0%';
+            connector.style.background = '#ef4444';
+        }
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         return;
     }
 
-    let activeIdx = 0;
-    if (inv.trangThai === 0) activeIdx = 0;
-    else if (inv.trangThai === 1) activeIdx = 1;
-    else if (inv.trangThai === 2) activeIdx = 2;
-    else if (inv.trangThai === 3) activeIdx = 3;
-    else if (inv.trangThai === 4 || inv.trangThai === 5) activeIdx = 4;
-    else if (inv.trangThai === 6) activeIdx = 5;
+    // ── TRƯỜNG HỢP 2: BÁN HÀNG TẠI QUẦY (Mua trực tiếp tại quầy, không giao hàng) ──
+    // Giống 100% logic invoice-detail.js: chỉ hiện 2 bước step-0 và step-6
+    if (isTaiQuayDirect) {
+        // Ẩn tất cả các bước trung gian 1, 2, 3, 4
+        [1, 2, 3, 4].forEach(i => {
+            const el = $('stepCol' + i);
+            if (el) el.style.display = 'none';
+        });
 
-    steps.forEach((st, idx) => {
-        const col = $(st.id);
+        const step0 = $('stepCol0');
+        const step5 = $('stepCol5');
+
+        if (step0) {
+            step0.style.display = '';
+            step0.className = 'timeline-step-col completed' + (status === 0 ? ' active' : '');
+            const name0 = $('nameStep0');
+            const date0 = $('dateStep0');
+            const circle0 = $('circleStep0');
+            if (name0) name0.textContent = 'Chờ xác nhận';
+            if (date0) date0.textContent = dates[0] || formatDate(inv.ngayTao);
+            if (circle0) circle0.innerHTML = `<i data-lucide="clipboard-list"></i>`;
+        }
+
+        if (step5) {
+            step5.style.display = '';
+            const isDone = (status === 6);
+            step5.className = 'timeline-step-col' + (isDone ? ' completed active' : '');
+            const name5 = $('nameStep5');
+            const date5 = $('dateStep5');
+            const circle5 = $('circleStep5');
+            if (name5) name5.textContent = 'Hoàn thành';
+            if (date5) {
+                if (isDone) {
+                    const compTime = dates[5] !== '-' ? dates[5] : formatDate(inv.ngayThanhToan || inv.ngayCapNhat || latestUpdateTime || inv.ngayTao);
+                    date5.textContent = compTime;
+                } else {
+                    date5.textContent = '-';
+                }
+            }
+            if (circle5) circle5.innerHTML = `<i data-lucide="check-square"></i>`;
+        }
+
+        if (timelineWrap) timelineWrap.style.justifyContent = 'space-around';
+        if (baseLine) {
+            baseLine.style.left = '25%';
+            baseLine.style.right = '25%';
+        }
+        if (connector) {
+            connector.style.left = '25%';
+            connector.style.width = (status === 6) ? '50%' : '0%';
+            connector.style.background = 'linear-gradient(90deg, #00adef, #0284c7)';
+        }
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+        return;
+    }
+
+    // ── TRƯỜNG HỢP 3: ĐƠN HÀNG CÓ GIAO HÀNG (Online / Giao hàng tại quầy): hiển thị đầy đủ 6 bước ──
+    if (timelineWrap) timelineWrap.style.justifyContent = 'space-between';
+    if (baseLine) {
+        baseLine.style.left = '7.5%';
+        baseLine.style.right = '7.5%';
+    }
+    if (connector) {
+        connector.style.left = '7.5%';
+    }
+
+    let currentIdx = 0;
+    if (status === 0) currentIdx = 0;
+    else if (status === 1) currentIdx = 1;
+    else if (status === 2) currentIdx = 2;
+    else if (status === 3) currentIdx = 3;
+    else if (status === 4 || status === 5) currentIdx = 4;
+    else if (status === 6) currentIdx = 5;
+
+    [0, 1, 2, 3, 4, 5].forEach(idx => {
+        const col = $('stepCol' + idx);
+        const nameEl = $('nameStep' + idx);
+        const dateEl = $('dateStep' + idx);
+        const circleEl = $('circleStep' + idx);
+
         if (!col) return;
-        if (idx < activeIdx) {
-            col.className = 'timeline-step-col completed';
-        } else if (idx === activeIdx) {
-            col.className = 'timeline-step-col active';
+        col.style.display = '';
+
+        if (nameEl && defaultLabels[idx]) nameEl.textContent = defaultLabels[idx].label;
+        if (circleEl && defaultLabels[idx]) circleEl.innerHTML = `<i data-lucide="${defaultLabels[idx].icon}"></i>`;
+
+        if (idx <= currentIdx) {
+            col.className = 'timeline-step-col completed' + (idx === currentIdx ? ' active' : '');
+            if (dateEl) {
+                if (dates[idx] && dates[idx] !== '-') {
+                    dateEl.textContent = dates[idx];
+                } else if (idx === 0) {
+                    dateEl.textContent = formatDate(inv.ngayTao);
+                } else if (idx === currentIdx) {
+                    if (idx === 5 && inv.ngayThanhToan) {
+                        dateEl.textContent = formatDate(inv.ngayThanhToan);
+                    } else if (dates[idx] !== '-') {
+                        dateEl.textContent = dates[idx];
+                    } else {
+                        dateEl.textContent = formatDate(latestUpdateTime || inv.ngayTao);
+                    }
+                } else {
+                    dateEl.textContent = '-';
+                }
+            }
+        } else {
+            col.className = 'timeline-step-col';
+            if (dateEl) dateEl.textContent = '-';
         }
     });
 
     if (connector) {
-        const percent = Math.min(100, Math.max(0, activeIdx * 20));
+        const percent = Math.min(100, Math.max(0, currentIdx * 20));
         connector.style.width = percent + '%';
-        connector.style.background = 'var(--primary, #00adef)';
+        connector.style.background = 'linear-gradient(90deg, #00adef, #0284c7)';
+    }
+
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
     }
 }
 
@@ -865,6 +1006,15 @@ function setupReviewOrderModal() {
 
                 showToast(res.message || 'Cảm ơn bạn đã gửi đánh giá sản phẩm!', 'success');
                 closeModal();
+
+                // Broadcast real-time sync across tabs/admin
+                try {
+                    if ('BroadcastChannel' in window) {
+                        const bc = new BroadcastChannel('vshoes_sync_channel');
+                        bc.postMessage({ type: 'REVIEW_UPDATED', timestamp: Date.now() });
+                    }
+                    localStorage.setItem('vshoes_sync_trigger', Date.now().toString());
+                } catch(e) {}
 
                 // Refresh details to update button to "Đã đánh giá"
                 await selectInvoice(inv.id, true);
@@ -1178,6 +1328,10 @@ window.openEditShippingModal = function() {
 
 /** Mở Modal Hủy Đơn Hàng */
 window.openCancelModalFromDetails = function(orderId, orderCode) {
+    if (state.currentInvoice && state.currentInvoice.trangThai !== 0) {
+        showToast('Đơn hàng đã được xác nhận, không được phép hủy đơn!', 'error');
+        return;
+    }
     openCancelOrderModal(orderId, orderCode, async () => {
         await selectInvoice(orderId, true);
     });
@@ -1502,19 +1656,17 @@ function formatDate(dateArr) {
         const d = String(dateArr[2]).padStart(2, '0');
         const hh = String(dateArr[3] || 0).padStart(2, '0');
         const mm = String(dateArr[4] || 0).padStart(2, '0');
-        const ss = String(dateArr[5] || 0).padStart(2, '0');
-        return `${hh}:${mm}:${ss} ${d}/${m}/${y}`;
+        return `${hh}:${mm} ${d}/${m}/${y}`;
     }
     try {
         const d = new Date(dateArr);
         if (isNaN(d.getTime())) return String(dateArr);
         const hh = String(d.getHours()).padStart(2, '0');
         const mm = String(d.getMinutes()).padStart(2, '0');
-        const ss = String(d.getSeconds()).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const year = d.getFullYear();
-        return `${hh}:${mm}:${ss} ${day}/${month}/${year}`;
+        return `${hh}:${mm} ${day}/${month}/${year}`;
     } catch (e) {
         return String(dateArr);
     }

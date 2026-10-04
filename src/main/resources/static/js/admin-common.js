@@ -1,7 +1,14 @@
-/**
- * VShoes Admin Common JavaScript Utilities (admin-common.js)
- * Module tập trung các hàm tiện ích và xử lý trạng thái chung cho Admin
- */
+window.notifyVshoesSync = function(type = 'DATA_UPDATED') {
+    try {
+        if ('BroadcastChannel' in window) {
+            const bc = new BroadcastChannel('vshoes_sync_channel');
+            bc.postMessage({ type: type, timestamp: Date.now() });
+        }
+        localStorage.setItem('vshoes_sync_trigger', Date.now() + '_' + type);
+    } catch (e) {
+        console.warn('Sync notification error:', e);
+    }
+};
 
 window.AdminStatus = {
     /**
@@ -137,6 +144,33 @@ window.AdminNotify = {
     },
 
     /**
+     * Hiển thị modal loading / đang xử lý
+     */
+    loading: function(title = 'Đang xử lý...', text = 'Vui lòng chờ trong giây lát') {
+        if (typeof Swal !== 'undefined') {
+            return Swal.fire({
+                title: title,
+                text: text,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+    },
+
+    /**
+     * Đóng modal loading
+     */
+    closeLoading: function() {
+        if (typeof Swal !== 'undefined') {
+            Swal.close();
+        }
+    },
+
+    /**
      * Popup xác nhận hành động chung (Hỗ trợ cả Object lẫn params: confirm(message, onConfirm, onCancel))
      */
     confirm: function(options = {}, callback = null, cancelCallback = null) {
@@ -235,6 +269,7 @@ window.AdminNotify = {
             confirmText: 'Đồng ý',
             cancelText: 'Hủy',
             onConfirm: () => {
+                window.notifyVshoesSync('STATUS_CHANGED');
                 if (onConfirm) onConfirm();
                 else if (targetUrl) window.location.href = targetUrl;
             },

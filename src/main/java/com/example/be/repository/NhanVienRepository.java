@@ -30,8 +30,9 @@ public interface NhanVienRepository extends JpaRepository<NhanVien, Long> {
            "LOWER(n.maNhanVien) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(n.hoTen) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(n.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(n.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+           "LOWER(n.soDienThoai) LIKE LOWER(CONCAT('%', :keyword, '%')) ORDER BY n.id DESC")
     List<NhanVien> searchByKeyword(@Param("keyword") String keyword);
 
-    List<NhanVien> findByTrangThai(Integer trangThai);
+    @Query("SELECT n FROM NhanVien n WHERE n.trangThai = :trangThai ORDER BY n.id DESC")
+    List<NhanVien> findByTrangThai(@Param("trangThai") Integer trangThai);
 }

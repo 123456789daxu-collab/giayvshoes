@@ -13,22 +13,23 @@ public class NhanVienService {
 
     private final NhanVienRepository nhanVienRepository;
     private final NotificationService notificationService;
+    private final MaGeneratorService maGeneratorService;
 
-    public NhanVienService(NhanVienRepository nhanVienRepository, NotificationService notificationService) {
+    public NhanVienService(NhanVienRepository nhanVienRepository,
+                           NotificationService notificationService,
+                           MaGeneratorService maGeneratorService) {
         this.nhanVienRepository = nhanVienRepository;
         this.notificationService = notificationService;
+        this.maGeneratorService = maGeneratorService;
     }
 
     public List<NhanVien> findAll() {
-        return nhanVienRepository.findAll();
+        return nhanVienRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
     }
 
     public Optional<NhanVien> findById(Long id) {
         return nhanVienRepository.findById(id);
     }
-
-    @Autowired
-    private MaGeneratorService maGeneratorService;
 
     public String generateNextMaNhanVien() {
         return maGeneratorService.generateMaNhanVien();
@@ -68,6 +69,14 @@ public class NhanVienService {
             }
         }
 
+        if (nhanVien.getTrangThai() == null) {
+            nhanVien.setTrangThai(1);
+        }
+
+        if (nhanVien.getGioiTinh() == null) {
+            nhanVien.setGioiTinh(true);
+        }
+
         if (nhanVien.getChucVu() == null || nhanVien.getChucVu().trim().isEmpty()) {
             nhanVien.setChucVu("Nhân viên");
         } else {
@@ -88,10 +97,18 @@ public class NhanVienService {
         
         NhanVien saved = nhanVienRepository.save(nhanVien);
         
-        // If it's a newly created employee, send notifications
+        // If it's a newly created employee, send notifications safely
         if (isNew) {
-            notificationService.sendEmailNotification(saved.getEmail(), saved.getHoTen(), unencryptedPassword);
-            notificationService.sendSmsNotification(saved.getSoDienThoai(), saved.getHoTen());
+            try {
+                notificationService.sendEmailNotification(saved.getEmail(), saved.getHoTen(), unencryptedPassword);
+            } catch (Exception e) {
+                System.err.println("Lỗi gửi email thông báo nhân viên mới: " + e.getMessage());
+            }
+            try {
+                notificationService.sendSmsNotification(saved.getSoDienThoai(), saved.getHoTen());
+            } catch (Exception e) {
+                System.err.println("Lỗi gửi tin nhắn SMS thông báo nhân viên mới: " + e.getMessage());
+            }
         }
         
         return saved;

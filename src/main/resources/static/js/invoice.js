@@ -121,20 +121,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.showToast = (message, type = "success") => {
         const toastContainer = document.getElementById("toastContainer");
+        if (!toastContainer) return;
+
+        if (message && typeof message === 'string' && (message.includes("không đủ") || message.includes("kho") || message.includes("Kho"))) {
+            message = "Số lượng trong kho không đủ";
+        }
+
         const toast = document.createElement("div");
         toast.className = `premium-toast toast-${type}`;
+        
+        let title = (type === 'success' ? 'Thành công' : (type === 'error' ? 'Thất bại' : 'Thông báo'));
+        let iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+        
+        if (type === "error") {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+        } else if (type === "warning") {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        } else if (type === "info") {
+            iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+        }
+
         toast.innerHTML = `
-            <div class="toast-icon">
-                <i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}" style="width: 14px; height: 14px;"></i>
+            <div class="toast-icon-badge">${iconSvg}</div>
+            <div class="toast-content-wrapper">
+                <span class="toast-title">${title}</span>
+                <span class="toast-msg">${message}</span>
             </div>
-            <span class="toast-message">${message}</span>
+            <button class="toast-close-btn" title="Đóng">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+            <div class="toast-progress"></div>
         `;
         toastContainer.appendChild(toast);
-        lucide.createIcons({ attrs: { style: 'stroke-width: 2.5' } });
+        
+        const closeBtn = toast.querySelector(".toast-close-btn");
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 350);
+            };
+        }
+
         setTimeout(() => {
-            toast.classList.add("hide");
-            setTimeout(() => toast.remove(), 400);
-        }, 3500);
+            if (toast.parentElement) {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 350);
+            }
+        }, 4500);
     };
     
     // Triggers for Filtering
@@ -378,6 +411,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch(err => console.debug("Silent polling error:", err));
         }
     }, 3000);
+
+    // Đồng bộ tức thì khi bán hàng tại quầy hoặc có đơn mới từ tab khác
+    const handleInvoiceSync = () => {
+        currentPage = 0;
+        fetchInvoices();
+    };
+
+    if ('BroadcastChannel' in window) {
+        const bc = new BroadcastChannel('vshoes_sync_channel');
+        bc.onmessage = () => handleInvoiceSync();
+    }
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'vshoes_sync_trigger') {
+            handleInvoiceSync();
+        }
+    });
 });
 
 
@@ -687,9 +736,9 @@ function renderTable() {
         const phoneDisplay = invoice.sdtKhachHang || '-';
         const customerDisplay = invoice.tenKhachHang || 'Khách lẻ';
 
-        // Phát hiện đơn hàng khách xác nhận đã thanh toán online nhưng admin chưa xác nhận
+        // Phát hiện đơn hàng khách xác nhận đã thanh toán online / VNPay nhưng admin chưa xác nhận
         const ghiChuUpper = (invoice.ghiChu || '').toUpperCase();
-        const khachDaXacNhan = ghiChuUpper.includes('KHÁCH XÁC NHẬN ĐÃ THANH TOÁN') || ghiChuUpper.includes('KHACH XAC NHAN DA THANH TOAN');
+        const khachDaXacNhan = ghiChuUpper.includes('KHÁCH XÁC NHẬN ĐÃ THANH TOÁN') || ghiChuUpper.includes('KHACH XAC NHAN DA THANH TOAN') || ghiChuUpper.includes('VNPAY THANH TOÁN THÀNH CÔNG') || ghiChuUpper.includes('CHỜ ADMIN XÁC NHẬN');
         const paymentAlertBadge = (khachDaXacNhan && invoice.trangThai === 0)
             ? `<br><span style="font-size:10px;font-weight:700;background:#f59e0b;color:#fff;padding:2px 6px;border-radius:4px;margin-top:3px;display:inline-block;"><i data-lucide="credit-card" style="width:11px;height:11px;vertical-align:-1px;margin-right:3px;"></i>Chờ kiểm tra TT</span>`
             : '';
@@ -706,9 +755,9 @@ function renderTable() {
             <td>${dateStr}</td>
             <td style="text-align: center;">${statusBadge}${paymentAlertBadge}</td>
             <td style="text-align: center;">
-                <div class="btn-actions-cell" style="justify-content: center;">
-                    <button class="btn-brown-outline-sm" onclick="viewInvoice(${invoice.id})" title="Chi tiết">
-                        <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                <div class="btn-actions-cell" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <button type="button" class="action-icon-btn view" onclick="viewInvoice(${invoice.id})" title="Xem chi tiết hóa đơn">
+                        <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
             </td>

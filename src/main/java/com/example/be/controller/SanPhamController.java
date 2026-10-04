@@ -49,7 +49,7 @@ public class SanPhamController {
         if (sanPham == null) {
             return "redirect:/san-pham";
         }
-        Page<SanPhamChiTiet> pageData = sanPhamService.getVariantsBySanPhamId(id, PageRequest.of(page, size));
+        Page<SanPhamChiTiet> pageData = sanPhamService.getVariantsBySanPhamId(id, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         Map<String, Object> discountData = sanPhamService.calculateDiscounts(pageData.getContent());
         
         model.addAttribute("sanPham", sanPham);
@@ -175,9 +175,9 @@ public class SanPhamController {
                         @RequestParam(required = false) BigDecimal maxPrice,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "5") int size,
-                        @RequestParam(required = false, defaultValue = "price_asc") String sort) {
+                        @RequestParam(required = false, defaultValue = "id_desc") String sort) {
         
-        Sort sortObj = Sort.by(Sort.Direction.ASC, "giaBan");
+        Sort sortObj = Sort.by(Sort.Direction.DESC, "id");
         if (sort != null && !sort.isEmpty()) {
             switch (sort) {
                 case "name_asc": sortObj = Sort.by(Sort.Direction.ASC, "tenSanPham"); break;
@@ -186,7 +186,9 @@ public class SanPhamController {
                 case "price_desc": sortObj = Sort.by(Sort.Direction.DESC, "giaBan"); break;
                 case "qty_asc": sortObj = Sort.by(Sort.Direction.ASC, "soLuong"); break;
                 case "qty_desc": sortObj = Sort.by(Sort.Direction.DESC, "soLuong"); break;
-                case "id_desc": sortObj = Sort.by(Sort.Direction.DESC, "id"); break;
+                case "id_desc":
+                default:
+                    sortObj = Sort.by(Sort.Direction.DESC, "id"); break;
             }
         }
         
@@ -207,6 +209,15 @@ public class SanPhamController {
         model.addAttribute("activeProducts", activeProducts);
         model.addAttribute("inactiveProducts", inactiveProducts);
         
+        BigDecimal dbMaxPrice = sanPhamService.findMaxGiaBan();
+        if (dbMaxPrice == null || dbMaxPrice.compareTo(BigDecimal.valueOf(10000000)) < 0) {
+            dbMaxPrice = BigDecimal.valueOf(10000000);
+        } else {
+            long rounded = ((dbMaxPrice.longValue() + 999999) / 1000000) * 1000000;
+            dbMaxPrice = BigDecimal.valueOf(rounded);
+        }
+
+        model.addAttribute("dynamicMaxPrice", dbMaxPrice);
         model.addAttribute("keyword", keyword);
         model.addAttribute("trangThai", trangThai);
         model.addAttribute("soLuongTon", soLuongTon);
@@ -230,9 +241,9 @@ public class SanPhamController {
             @RequestParam(required = false) Long idLoaiGiay,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false, defaultValue = "price_asc") String sort) {
+            @RequestParam(required = false, defaultValue = "id_desc") String sort) {
         try {
-            Sort sortObj = Sort.by(Sort.Direction.ASC, "giaBan");
+            Sort sortObj = Sort.by(Sort.Direction.DESC, "id");
             if (sort != null && !sort.isEmpty()) {
                 switch (sort) {
                     case "name_asc": sortObj = Sort.by(Sort.Direction.ASC, "tenSanPham"); break;
@@ -241,7 +252,9 @@ public class SanPhamController {
                     case "price_desc": sortObj = Sort.by(Sort.Direction.DESC, "giaBan"); break;
                     case "qty_asc": sortObj = Sort.by(Sort.Direction.ASC, "soLuong"); break;
                     case "qty_desc": sortObj = Sort.by(Sort.Direction.DESC, "soLuong"); break;
-                    case "id_desc": sortObj = Sort.by(Sort.Direction.DESC, "id"); break;
+                    case "id_desc":
+                    default:
+                        sortObj = Sort.by(Sort.Direction.DESC, "id"); break;
                 }
             }
             Pageable pageable = PageRequest.of(0, 10000, sortObj);

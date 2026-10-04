@@ -1,13 +1,13 @@
 <!-- File fragment Sidebar dùng chung cho toàn bộ các trang -->
 <div th:fragment="sidebar" class="sidebar" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <link rel="stylesheet" href="/css/global-typography.css?v=2.0">
-    <link rel="stylesheet" href="/css/admin-common.css?v=2.0">
+    <link rel="stylesheet" href="/css/admin-common.css?v=2.3">
     
     <!-- 1. KHU VỰC LOGO VSHOES -->
     <div class="sidebar-brand">
         <!-- Đường dẫn ảnh trỏ tới thư mục static/images/logo.png -->
         <!-- Bạn có thể copy ảnh logo của mình đặt tên là logo.png và bỏ vào thư mục src/main/resources/static/images/ -->
-        <img src="/images/logo.png" alt="VShoes Logo" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';">
+        <img src="/images/logo.png?v=3" alt="VShoes Logo" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'; this.nextElementSibling.nextElementSibling.style.display='block';">
         
         <!-- Logo dạng chữ dự phòng hiển thị nếu như không tìm thấy file ảnh logo.png -->
         <div class="logo-placeholder" style="display: none;">V<span>SHOES</span></div>
@@ -87,12 +87,6 @@
         <a href="/danh-gia" class="menu-item">
             <i data-lucide="star" class="menu-icon"></i>
             <span>Quản lý đánh giá</span>
-        </a>
-
-        <!-- Chăm sóc khách hàng (Chat trực tuyến) -->
-        <a href="/chat" class="menu-item">
-            <i data-lucide="message-square" class="menu-icon"></i>
-            <span>Chăm sóc khách hàng</span>
         </a>
 
         <!-- Phiếu giảm giá -->
